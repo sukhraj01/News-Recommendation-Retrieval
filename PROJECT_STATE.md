@@ -89,6 +89,7 @@ The following decisions will be resolved during the architecture phase:
 - How should user embeddings be represented?
 - What cold-start strategy should be used?
 - What temporal split strategy should be adopted?
+- Which EB-NeRD population does the assignment's ~2.7M users / 600M+ impressions figure describe vs. the paper's ~1M / 37M active-user-filtered (5–1,000 clicks, May 18–Jun 8) subset? Working hypothesis: assignment number = full raw dataset across demo/small/large bundles, paper number = active-user-filtered challenge subset. To confirm against `ebnerd_demo.zip` once loaded, and document the resolution + its implication for user-inclusion filtering in the unified-schema ADR (Phase 1B).
 
 ---
 
