@@ -2,9 +2,9 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 5, 2026 (Project Initialization)
+**Last Updated:** August 9, 2026 (Phase 1A — Mental Model)
 
-**Current Phase:** Phase 1 — Understanding & Environment Setup
+**Current Phase:** Phase 1A — Build Mental Model (theory foundation before architecture)
 
 **Current Objective:** Build a strong conceptual foundation and prepare the development environment before beginning system architecture.
 
@@ -37,6 +37,36 @@
 - Understanding recommendation systems from first principles
 - Verifying local development environment
 - Preparing for architecture and design phase
+
+---
+
+# Learning Progress
+
+## Day 1 — Mental Model of Recommendation Systems & News Domain (2026-08-09)
+
+**Sources consulted:** Wu et al. 2020 (MIND, ACL Anthology 2020.acl-main.331), Kruse et al. 2024 (EB-NeRD, arXiv:2410.03432 / ACM RecSys Challenge 2024), plus industry figures on Netflix/Amazon/YouTube recommendation ROI (flagged as community-consensus-tier evidence, not audited).
+
+**1. Why companies invest in recommendation systems**
+- Core problem: search-cost / discovery problem at catalog scale no human curation team can solve manually.
+- Structural difference from normal software: no correctness oracle. Success is a statistical property over a user population (CTR, retention), not pass/fail. Feedback loops exist (exposure bias) — what's shown changes what's observable next.
+- ROI figures (Netflix ~80% of streamed hours + ~$1B/yr churn reduction; Amazon ~35% of sales) are widely cited but not independently audited — useful as directional motivation, not benchmarkable claims.
+
+**2. Why news recommendation is structurally different**
+- Framed by item relevance half-life: Amazon (months–years), Netflix (years), YouTube (days–years), News (hours). Item cold-start is the *default state* in news, not an edge case — this is why the assignment centers content-based retrieval (BM25 + embeddings) rather than collaborative filtering.
+- EB-NeRD paper names three technical challenges explicitly: continuous publish/expire flow (item cold-start), implicit-only feedback, and mandatory reliance on article content.
+- Editorial/normative dimension is unique to news among the compared domains — EB-NeRD paper: recommenders "perform a deeply editorial function." Concrete evidence: submitted models varied from 10.2% to 45.7% category coverage at similar accuracy — direct justification for Q4's mandatory diversity/novelty/coverage metrics, not just AUC/nDCG.
+- Temporal (never random) splitting exists to prevent the model from seeing information that wouldn't exist yet at real serving time. MIND splits by date; EB-NeRD uses a fixed 21-day click-history window feeding a 7-day forward impression window, non-overlapping in time.
+- Noted discrepancy to double-check later: assignment PDF cites EB-NeRD as ~2.7M users/600M+ impressions; the paper's active-user-filtered subset (5–1,000 clicks, May 18–Jun 8 window) reports ~1M users/37M impressions. Likely full-dataset vs. challenge-scoped-subset, not a contradiction — verify against whichever bundle (demo/small/large) we actually load.
+
+**3. Why lexical (BM25) and semantic (embeddings) are complementary, not redundant**
+- BM25 strength: exact/near-exact term specificity (named entities, numbers, proper nouns), fully interpretable, zero training cost, index updates incrementally as new articles land — critical given hourly article churn.
+- BM25 failure mode: vocabulary mismatch / synonymy (e.g., Danish "Bidens klimaplan" vs. "Præsidentens grønne udspil" — same story, zero shared tokens).
+- Embedding strength: captures conceptual/topical similarity and paraphrase even with no lexical overlap; XLM-R adds cross-lingual generalization.
+- Embedding failure mode: over-generalization (blurs distinct entities into the same topic cluster) and no representation for brand-new named entities the model hasn't seen.
+- MIND paper's own baselines (NAML, NPA, LSTUR, NRMS — all content-based over title/abstract) substantially outperform pure CF/popularity baselines — empirical basis for why the dataset schema centers article text.
+- Working hypothesis (not yet evidence — to be tested via Q4 slicing + bootstrap CIs): BM25 likely stronger on warm users / head or entity-heavy articles; embeddings likely stronger on cold-start users and paraphrase-heavy categories.
+
+**Definition of Done:** met — mental model can be explained without recommender-systems background, news-specific challenges are articulated beyond "recommendations are hard," and lexical/semantic complementarity is grounded in both papers' own evidence rather than asserted.
 
 ---
 
@@ -90,9 +120,10 @@ Experiment results will be recorded in the `experiments/` directory as implement
 
 ## Immediate
 
-1. Complete conceptual understanding of the recommendation problem.
-2. Verify the development environment.
-3. Begin architecture exploration.
+1. ~~Build mental model of recommendation systems and news domain~~ — done 2026-08-09, see Learning Progress.
+2. Extend Phase 1A: read MIND/EB-NeRD sections on evaluation protocol and baseline architectures before Phase 1B (architecture exploration) begins.
+3. Verify the development environment.
+4. Begin architecture exploration (temporal split + unified schema ADRs first).
 
 ## Upcoming
 
@@ -131,6 +162,26 @@ Experiment results will be recorded in the `experiments/` directory as implement
 - Begin studying recommendation system fundamentals.
 - Complete environment verification.
 - Prepare for architecture and design.
+
+---
+
+## August 9, 2026 — Day 1: Mental Model of Recommendation Systems & News Domain
+
+### Completed
+
+- Researched business rationale for recommendation investment (Netflix/Amazon/YouTube), with evidence-tier caveats.
+- Read and grounded explanation in MIND (Wu et al., 2020) and EB-NeRD (Kruse et al., 2024) papers directly, not just the assignment PDF's summary.
+- Built mental model: why news recommendation differs structurally (item half-life, mandatory content-based cold-start mitigation, editorial/normative dimension), why temporal splitting is non-negotiable, why lexical and semantic retrieval are complementary rather than redundant.
+- Logged a data-source discrepancy (assignment PDF vs. paper's active-user-filtered EB-NeRD stats) to verify once we load the actual bundle.
+
+### Key Outcomes
+
+- Full write-up recorded in `# Learning Progress` above.
+- Working (unverified) hypothesis for Q3.5: BM25 favors warm users/head or entity-heavy articles, embeddings favor cold-start users/paraphrase-heavy categories — to be tested empirically via Q4 slicing, not assumed.
+
+### Next Session
+
+- Begin Phase 1B: architecture exploration — temporal split strategy and unified schema ADRs first, since they constrain the feature store and both retrieval legs.
 
 ---
 
