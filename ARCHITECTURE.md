@@ -1,13 +1,13 @@
 # System Architecture
 
-**Last Updated:** YYYY-MM-DD  
-**Status:** Design | Under Construction | Stable with Known Limitations
+**Last Updated:** 2026-08-09
+**Status:** Under Construction — Data Pipeline / Feature Store implemented (Phase 2); Retrieval / Evaluation not yet started
 
 ---
 
 # System Overview
 
-[Provide a concise description of the system, its purpose, and the overall architectural approach.]
+A reproducible pipeline comparing lexical (BM25) and semantic (embedding-based) retrieval for news recommendation, evaluated on MIND and EB-NeRD under a unified schema and shared temporal-split protocol (ADR-001, ADR-002). Data Pipeline and Feature Store are implemented; Retrieval and Evaluation are still design placeholders below.
 
 ---
 
@@ -99,41 +99,54 @@ Raw Data (MIND / EB-NeRD)
 
 ### Purpose
 
-[Purpose]
+Parses raw MIND (TSV, zipped) and EB-NeRD (parquet, zipped) bundles into
+ADR-002's unified schema, preserving ADR-001's official train/dev/validation
+split boundaries without re-partitioning. Never extracts zips to disk.
 
 ### Responsibilities
 
-- ...
-- ...
+- Presence-check raw bundles under `data/raw/`, fail loudly with instructions if absent (`src/pipeline/download.py::ensure_raw_data`)
+- Parse MIND `news.tsv`/`behaviors.tsv` and EB-NeRD `articles.parquet`/`behaviors.parquet`/`history.parquet` into the unified `articles`/`impressions`/`user_history` shape (`src/datasets/mind.py`, `src/datasets/ebnerd.py`)
+- Validate every table against ADR-002's schema contract before and after writing (`src/pipeline/validators.py`)
+- Write one parquet file per (dataset, bundle, split, table), deterministically sorted
 
 ### Dependencies
 
-- ...
+- pandas, pyarrow (parquet read/write — see ADR-002 amendment note below)
 
 ### Primary Artifacts
 
-- Cleaned datasets
-- Temporal splits
+- `data/processed/{dataset}/{bundle}/{split}/{table}.parquet` (gitignored, rebuilt by `make data`)
+- `data/processed/ebnerd/{bundle}/articles.parquet` (shared across EB-NeRD splits — see Known Limitations)
 
 ### Public Interface
 
-- ...
+- `src.pipeline.orchestrator.build_all(raw_dir, processed_dir, include_mind_large=False) -> None`
+- `src.datasets.mind.parse_mind_split(zip_path, split) -> dict[str, DataFrame]`
+- `src.datasets.mind.parse_mind_test_candidates(zip_path, split) -> dict[str, DataFrame]`
+- `src.datasets.ebnerd.parse_ebnerd_articles(zip_path) -> DataFrame`, `parse_ebnerd_split(zip_path, split) -> dict[str, DataFrame]`
+- CLI: `make data` → `scripts/build_feature_store.py`
 
 ### Consumers
 
-- Feature Store
+- Feature Store (same artifacts — the pipeline writes directly to the feature-store layout; there is no separate transformation step between them in the current design)
 
 ### Current Assumptions
 
-- ...
+- Internal MIND zip folder name equals the zip's own filename stem (verified across all 5 MIND bundles on disk)
+- `user_id`/`article_id` are stable identities across a dataset's own splits (verified: MIND train/dev share 5,943/50,000 users; EB-NeRD train/validation share 1,217/~1,590) — only `impression_id` is split-qualified, since it genuinely restarts per file
+- MIND's per-user `history` field is a static snapshot (0 variance across all rows for a user) — re-asserted at build time, not just trusted from ADR-002's original 33,617-user sample
 
 ### Known Limitations
 
-- ...
+- `ebnerd_small`/`ebnerd_large` unverified against this design (built strictly against `ebnerd_demo`'s confirmed schema)
+- EB-NeRD's shared `articles.parquet` (one file, not per-split) is a real asymmetry with MIND's per-split `news.tsv` — referential-integrity checks need dataset-aware logic, not one uniform check
+- MINDlarge is a slow tier, excluded from `make data`'s default scope (`include_mind_large=True` required)
 
 ### Related Decisions
 
 - ADR-001
+- ADR-002 (amendment: `pyarrow` constraint corrected from `^12.0.0` to `^22.0.0` — the original pin predates any Python 3.14 wheel and had been silently dropped from pyproject.toml, which would have broken EB-NeRD parquet parsing entirely; caught and fixed during Phase 2 implementation)
 
 ---
 
@@ -141,11 +154,12 @@ Raw Data (MIND / EB-NeRD)
 
 ### Purpose
 
-[Purpose]
+The on-disk parquet layout produced by the Data Pipeline, conforming to ADR-002's `articles`/`impressions`/`user_history` schema. Currently the pipeline writes this layout directly — there is no separate feature-store build step distinct from parsing.
 
 ### Responsibilities
 
-- ...
+- Persist parsed tables in a layout that keeps train/dev/validation/test physically separate (never a single file with a `split` column), so a leakage bug can't merge them silently
+- Provide a schema every downstream retrieval/evaluation component can depend on without dataset-specific branching
 
 ### Dependencies
 
@@ -153,25 +167,26 @@ Raw Data (MIND / EB-NeRD)
 
 ### Primary Artifacts
 
-- Feature matrices
-- Processed datasets
+- `data/processed/mind/{small,large}/{train,dev,test}/{articles,impressions,user_history,candidates}.parquet`
+- `data/processed/ebnerd/{bundle}/articles.parquet`, `data/processed/ebnerd/{bundle}/{train,validation}/{impressions,user_history}.parquet`
 
 ### Public Interface
 
-- Dataset loaders
-- Feature APIs
+- Direct `pd.read_parquet()` against the layout above
+- `src.pipeline.schema.ARTICLES_SCHEMA` / `IMPRESSIONS_SCHEMA` / `USER_HISTORY_SCHEMA` / `CANDIDATES_SCHEMA` as the schema contract
 
 ### Consumers
 
-- Retrieval
+- Retrieval (BM25/semantic indexing over `articles`)
+- Evaluation (labels from `impressions.clicked`)
 
 ### Current Assumptions
 
-- ...
+- Mandatory core fields (title, abstract, category, impression timestamp, clicked label) are sufficient for Phase 2–3 retrieval — verified for BM25/semantic candidate scoring, not yet verified against Q4's diversity/coverage metrics (per ADR-002)
 
 ### Known Limitations
 
-- ...
+- No feature APIs beyond raw parquet reads yet (e.g. no recency-weighted history helper) — deferred to the retrieval phase, where the first consumer determines the actual interface needed
 
 ### Related Decisions
 
@@ -428,27 +443,32 @@ Related ADR
 
 # Architecture Changelog
 
-## YYYY-MM-DD
+## 2026-08-09 — Phase 2: Data Pipeline / Feature Store implemented
 
 ### What Changed
 
--
+- Implemented `src/datasets/{mind,ebnerd}.py`, `src/pipeline/{schema,validators,download,orchestrator}.py`, `src/utils/{config,ids,io}.py`
+- `make data` now builds the full feature store end-to-end from raw MINDsmall + ebnerd_demo zips
+- Added `make test-reproducibility` and `make clean-data` (previously referenced by README but missing)
+- Added unit (29), integration (48), and reproducibility test suites
 
 ### Why
 
--
+Turns ADR-001/ADR-002 from paper decisions into a working, tested pipeline, per CLAUDE.md's engineering lifecycle.
 
 ### Impact
 
--
+- Row counts verified to match ADR-001's evidence table exactly (MINDsmall train=156,965/50,000 users, dev=73,152/50,000; ebnerd_demo train=24,724/1,590, validation=25,356/1,562)
+- Corrected an in-progress, uncommitted `pyproject.toml` change that had silently dropped `pyarrow` entirely (would have broken all EB-NeRD parsing) — see Data Pipeline's Related Decisions note
+- Corrected the implementation plan's original ID scheme mid-build: `user_id` must NOT be split-qualified (verified real user overlap across MIND/EB-NeRD splits), only `impression_id` should be
 
 ### Related ADR
 
-- ADR-XXX
+- ADR-001, ADR-002
 
 ### Benchmark
 
-- experiments/...
+- Not applicable — this phase is pure ETL correctness/reproducibility, no retrieval-performance claims yet
 
 ---
 
