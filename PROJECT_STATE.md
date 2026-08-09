@@ -2,11 +2,11 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 9, 2026 (Phase 1A — Mental Model)
+**Last Updated:** August 9, 2026 (Phase 1B Complete — Architecture Decisions)
 
-**Current Phase:** Phase 1A — Build Mental Model (theory foundation before architecture)
+**Current Phase:** Phase 2 — Data Pipeline Implementation
 
-**Current Objective:** Build a strong conceptual foundation and prepare the development environment before beginning system architecture.
+**Current Objective:** Build reproducible data pipeline (download → parse → split → feature store)
 
 ---
 
@@ -14,7 +14,7 @@
 
 | Component | Status | Progress | Notes |
 |-----------|--------|----------|-------|
-| Data Pipeline | ⏳ Not Started | 0% | Design phase |
+| Data Pipeline | 🔄 In Progress | 0% | Implementing per ADR-001 (temporal split) and ADR-002 (unified schema) |
 | Lexical Retrieval (BM25) | ⏳ Not Started | 0% | Awaiting architecture decisions |
 | Semantic Retrieval | ⏳ Not Started | 0% | Awaiting embedding model decision |
 | Evaluation Harness | ⏳ Not Started | 0% | Design phase |
@@ -68,13 +68,23 @@
 
 **Definition of Done:** met — mental model can be explained without recommender-systems background, news-specific challenges are articulated beyond "recommendations are hard," and lexical/semantic complementarity is grounded in both papers' own evidence rather than asserted.
 
+## August 9, 2026 — Phase 1B: Architecture Exploration Complete (Decisions ADR-001 & ADR-002)
+
+- Explored temporal split (7 vs 14 days) using actual on-disk data inspection
+- Decision: adopt official train/val splits (7-day windows) — only feasible option given data budgets
+- Inspected schemas for MIND and EB-NeRD (corrected two field-attribution errors in the process)
+- Decision: unified three-table schema with mandatory core + dataset-specific optional fields
+- Both decisions enable single BM25/semantic code path for cross-dataset Q4 comparison
+- Confidence: Medium (verified for retrieval; not yet checked against Q4 diversity/coverage metrics)
+
 ---
 
 # Recent Decisions
 
 | ADR | Title | Status | Notes |
 |-----|-------|--------|------|
-| — | None yet | Pending | Architectural decisions begin in Phase 2 |
+| ADR-001 | Temporal Split Strategy | Decided | Use official train/val splits as-is (7-day windows) |
+| ADR-002 | Unified Data Schema | Decided | Three tables (articles, impressions, user_history) with mandatory core + optional fields |
 
 ---
 
@@ -89,7 +99,7 @@ The following decisions will be resolved during the architecture phase:
 - How should user embeddings be represented?
 - What cold-start strategy should be used?
 - What temporal split strategy should be adopted?
-- Which EB-NeRD population does the assignment's ~2.7M users / 600M+ impressions figure describe vs. the paper's ~1M / 37M active-user-filtered (5–1,000 clicks, May 18–Jun 8) subset? Working hypothesis: assignment number = full raw dataset across demo/small/large bundles, paper number = active-user-filtered challenge subset. To confirm against `ebnerd_demo.zip` once loaded, and document the resolution + its implication for user-inclusion filtering in the unified-schema ADR (Phase 1B).
+- Which EB-NeRD population does the assignment's ~2.7M users / 600M+ impressions figure describe vs. the paper's ~1M / 37M active-user-filtered (5–1,000 clicks, May 18–Jun 8) subset? **Partially resolved in ADR-002 (medium confidence):** assignment figure = full raw traffic log; paper figure = active-user-filtered subset that `ebnerd_large`/`ebnerd_small` are sampled from; `ebnerd_demo` (loaded: 1,590 train-window users / 1,562 validation-window users, 24,724 + 25,356 impressions) structurally matches the paper's filtered-subset methodology (21-day history / 7-day window, verified in ADR-001). Still unverified against `ebnerd_small`/`ebnerd_large` directly — remains open until those bundles are downloaded and inspected.
 
 ---
 
@@ -121,15 +131,12 @@ Experiment results will be recorded in the `experiments/` directory as implement
 
 ## Immediate
 
-1. ~~Build mental model of recommendation systems and news domain~~ — done 2026-08-09, see Learning Progress.
-2. Extend Phase 1A: read MIND/EB-NeRD sections on evaluation protocol and baseline architectures before Phase 1B (architecture exploration) begins.
-3. Verify the development environment.
-4. Begin architecture exploration (temporal split + unified schema ADRs first).
+- [ ] Implement data pipeline (download + parse + split + feature store build)
+- [ ] Run temporal-split leakage tests
+- [ ] Verify unified schema works for both datasets in practice
 
 ## Upcoming
 
-- Finalize major architectural decisions.
-- Create Architecture Decision Records (ADRs).
 - Design data pipeline and indexing strategy.
 - Design evaluation framework.
 - Update `ARCHITECTURE.md`.
