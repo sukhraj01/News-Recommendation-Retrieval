@@ -161,19 +161,20 @@ Each experiment records:
 
 # Running Experiments
 
-Run BM25:
+Run BM25 (implemented — Phase 3, ADR-005/ADR-006):
 
 ```bash
-make experiment-bm25
+poetry run python scripts/run_bm25_experiment.py --dataset mind
+poetry run python scripts/run_bm25_experiment.py --dataset ebnerd
 ```
 
-Run semantic retrieval:
+Run semantic retrieval (not yet implemented):
 
 ```bash
 make experiment-semantic
 ```
 
-Run the complete benchmark suite:
+Run the complete benchmark suite (not yet implemented):
 
 ```bash
 make experiment-all
@@ -182,16 +183,14 @@ make experiment-all
 Experiment outputs are stored under:
 
 ```text
-experiments/YYYY-MM-DD_<experiment-name>/
+experiments/bm25_<dataset>_<YYYY-MM-DD>/
 ```
 
-Each experiment contains:
+Each BM25 experiment currently contains:
 
 ```text
 config.json
 results.json
-predictions.csv
-log.txt
 ```
 
 ---
