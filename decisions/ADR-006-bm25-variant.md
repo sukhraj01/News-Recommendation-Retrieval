@@ -473,3 +473,31 @@ BM25L/BM25+ were not empirically benchmarked against BM25Okapi in this phase —
 # Notes
 
 The scoring-implementation half of this ADR is a clear example of CLAUDE.md's "benchmark before you trust a decision" principle in action: the plan approved before implementation specified calling `index.bm25.get_scores(...)` directly, which seemed reasonable until it was actually run against real data at real scale. The fix was verified for correctness before being trusted, not just assumed to be equivalent because the formula "looks the same on paper."
+
+---
+
+# Addendum — MINDlarge-Scale Benchmark (2026-08-11)
+
+**Status:** Resolves this ADR's own flagged revisit trigger ("MINDsmall-dev scale... is representative of the performance profile at MINDlarge scale... this hasn't been measured. Benchmark this scoring approach against MINDlarge before it enters scope"). Per CLAUDE.md's decision-reversal guidance, appended rather than rewriting the original decision.
+
+## What was checked
+
+Before running full BM25 retrieval over MINDlarge, benchmarked index build and per-user retrieval on real MINDlarge_dev data (not MINDsmall extrapolated):
+
+| Metric | MINDsmall-dev (ADR-006 original) | MINDlarge-dev (this addendum) |
+|---|---|---|
+| Corpus size | 42,416 articles | 72,023 articles |
+| Users | 50,000 | 255,990 |
+| BM25 index build | 1.0s | 1.70s |
+| Sparse weight matrix | not measured | 1,933,590 nnz, 23.5 MB |
+| Full-run retrieval (measured, not projected for MINDsmall; 1,000-user sample projected for MINDlarge) | 78.6s (all 50,000 users) | 2.31s / 1,000 users → **590.2s projected (9.8 min) for all 255,990 users** |
+
+Note: MINDlarge_dev's own article catalog (72,023) is the correct benchmarking target per ADR-005's "each split's own catalog is the query-time universe" convention — not the paper's headline 161,013 figure, which spans MINDlarge's full 6-week raw-log window rather than any single split's own news.tsv (see the parallel finding documented in `tests/integration/test_schema_conformance.py::test_mind_large_total_article_and_user_counts_sanity`).
+
+## Decision
+
+**Stays local.** Both the flagged memory-footprint trigger and the runtime trigger are resolved with real numbers, not assumption: the sparse weight matrix is 23.5 MB (nowhere near a bottleneck on this 8GB machine), and the full MINDlarge-dev run projects to under 10 minutes — far short of the >2hr / exceeds-available-RAM threshold that would justify a Kaggle GPU detour under CLAUDE.md's Resource Availability clause. No migration needed for BM25 at this scale.
+
+## Related
+
+Companion finding: `_explode_impressions`'s vectorization for the *data pipeline* (not this scoring path) required three rounds of real algorithmic fixes to survive MINDlarge's row counts at all (see `src/datasets/mind.py`'s docstring and PROJECT_STATE.md's session notes) — a reminder that "benchmark before trusting a decision" applies per-component, not just once per phase; BM25's own scoring path (this ADR) turned out fine on the first real check, unlike the parsing path.

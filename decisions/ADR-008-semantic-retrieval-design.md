@@ -704,3 +704,33 @@ retrieval-tuned model (e5) would obviously beat a paraphrase-tuned one
 asymmetric convention doesn't match this project's symmetric use case. This
 is exactly the kind of finding CLAUDE.md's "benchmark before trusting a
 decision" principle exists to surface.
+
+---
+
+# Addendum — MINDlarge-Scale Benchmark (2026-08-11)
+
+**Status:** Resolves this ADR's own flagged Technical Trigger ("Corpus size grows materially (e.g. MINDlarge enters scope) — re-run the brute-force matvec timing check before trusting it holds; FAISS may become justified at that scale where it currently isn't"). Appended per CLAUDE.md's decision-reversal guidance.
+
+## What was checked
+
+Real MINDlarge_dev data (72,023 articles, 255,990 users) — not projected from MINDsmall:
+
+| Metric | MINDsmall-dev (ADR-008 original) | MINDlarge-dev (this addendum) |
+|---|---|---|
+| Corpus size | 42,416 articles | 72,023 articles |
+| Users | 50,000 | 255,990 |
+| Encoder throughput (sample) | 172.4/s (800-article sample, first-run incl. model download) | 373.6/s (2,000-article sample, warm model) |
+| Full encode + disk-cache write | not separately measured | **264.4s (4.4 min)** for all 72,023 articles |
+| Brute-force matvec retrieval | 0.99ms/query | 2.44ms/query (1,000-user sample) → **624.4s projected (10.4 min) for all 255,990 users** |
+| Embedding vectors memory | not stated | 110.6 MB (384-dim float32 × 72,023 docs) |
+
+The encoder-throughput jump (172→374/s) is plausibly a warm-model-cache effect (ADR-008's original number included a one-time ~178s download/load counted against the sample), not a hardware change — not isolated further since both numbers clear the feasibility bar by a wide margin either way.
+
+## Decision
+
+**Stays local — brute-force cosine similarity remains sufficient, FAISS remains unjustified.** Combined full MINDlarge-dev run (both BM25 and embeddings, per this ADR's and ADR-006's addenda) projects to under 25 minutes total, nowhere near CLAUDE.md's Resource Availability threshold (this session's working definition: >2hrs or exceeds available RAM) that would justify a Kaggle GPU detour. Per-query matvec latency (2.44ms) is higher than MINDsmall's (0.99ms, as expected — corpus is 1.7x larger) but still trivial at this scale; FAISS would add real complexity (index construction, a new data structure to keep in sync with the article catalog) for no measurable benefit, the same conclusion ADR-008's original decision reached, now re-verified rather than assumed to still hold.
+
+## Related
+
+- ADR-006's parallel addendum (BM25 side of the same MINDlarge-scale check)
+- `tests/integration/test_schema_conformance.py::test_mind_large_total_article_and_user_counts_sanity` — why 72,023 (dev's own catalog), not the paper's 161,013 total, is the correct benchmarking target

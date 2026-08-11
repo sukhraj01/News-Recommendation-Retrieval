@@ -26,3 +26,23 @@ EBNERD_DEMO_EVIDENCE = {
     "train": {"impressions": 24_724, "users": 1_590},
     "validation": {"impressions": 25_356, "users": 1_562},
 }
+
+# MINDlarge evidence table, per Wu et al. (2020) Table 2 / Section 3.2
+# (ACL Anthology 2020.acl-main.331 -- ACL2020_MIND.pdf is not present in
+# this repo; the paper was fetched directly via WebFetch and Table 2/
+# Section 3.2 text-extracted with pypdf, not taken from memory). "samples"
+# in the paper == one row per impression_id in behaviors.tsv, matching
+# this project's own "impressions" row-count convention (see
+# MIND_SMALL_EVIDENCE above). Corpus-wide totals (161,013 articles;
+# 1,000,000 users) are reported once for the whole dataset, not
+# per-split -- MINDlarge's train/dev/test each ship their own news.tsv
+# with overlapping but non-identical article sets, so only the sample
+# (impression) counts are checked per-split; article/user totals are
+# checked as an approximate union across all three splits.
+MIND_LARGE_EVIDENCE = {
+    "train": {"impressions": 2_186_683},
+    "dev": {"impressions": 365_200},
+    "test": {"impressions": 2_341_619},
+}
+MIND_LARGE_TOTAL_ARTICLES = 161_013
+MIND_LARGE_TOTAL_USERS = 1_000_000

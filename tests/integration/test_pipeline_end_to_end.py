@@ -27,10 +27,18 @@ def test_expected_file_layout_exists(processed_dir):
         assert (processed_dir / rel).exists(), f"missing {rel}"
 
 
-def test_default_build_does_not_touch_mindlarge(processed_dir):
+def test_default_build_does_not_touch_mindlarge(tmp_path):
     """include_mind_large defaults to False — the fast tier must never
-    silently pull in the large bundle."""
-    assert not (processed_dir / "mind" / "large").exists()
+    silently pull in the large bundle. Builds into an isolated tmp_path
+    rather than the shared `processed_dir` fixture: this checks build_all()'s
+    own default-argument behavior, not the ambient contents of the real
+    feature store, which legitimately has `mind/large` built into it now
+    (MINDlarge Codabench-submission session) — a shared-fixture version of
+    this test would (correctly) start failing the moment MINDlarge was
+    built once for real, even though build_all()'s default behavior never
+    changed."""
+    build_all(processed_dir=tmp_path)
+    assert not (tmp_path / "mind" / "large").exists()
 
 
 @pytest.mark.slow
