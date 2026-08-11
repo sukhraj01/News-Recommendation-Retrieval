@@ -392,6 +392,18 @@ This is not questioning your judgment. This is maintaining quality.
 
 ---
 
+## Resource Availability
+
+If a resource the plan calls for (a model, an API, sufficient compute) turns
+out to be unavailable or too slow at execution time, do not silently
+substitute a lower-fidelity alternative. Stop, name the constraint
+explicitly, and present the real alternatives with their trade-offs as a
+decision point — same as any other engineering decision — before
+implementing anything. Silence here is a correctness risk, not an
+efficiency gain.
+
+---
+
 ## Decision Reversal
 
 Engineering decisions are not permanent.
@@ -420,6 +432,20 @@ When introducing unfamiliar concepts:
 
 Avoid assuming prior knowledge unless it has already been established during the project.
 Balance these roles intentionally. Don't skip straight to implementation.
+
+## Prompt & Session Logging
+
+Every session must leave a durable, verbatim record — independent of PROJECT_STATE.md's summarized Session Notes, which paraphrase and compress.
+
+At the start of each session, create a new file: `knowledge/ai-usage-log/YYYY-MM-DD_<short-topic>.md`.
+
+That file records:
+- Every prompt from the engineer this session, verbatim, in order — not summarized.
+- A short note on which resulting code/docs were AI-generated vs. human-written or human-edited.
+
+This is not optional. It's the only reliable way to reconstruct exactly what was asked and produced later, without depending on memory or an external export that might not survive.
+
+---
 
 ## This Document
 
