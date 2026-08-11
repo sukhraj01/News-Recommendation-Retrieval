@@ -204,6 +204,7 @@ def test_mind_large_test_candidates_conform_to_schema(mind_large_dir):
     base = mind_large_dir / "mind" / "large" / "test"
     validate_table(pd.read_parquet(base / "articles.parquet"), ARTICLES_SCHEMA, "mind")
     validate_table(pd.read_parquet(base / "candidates.parquet"), CANDIDATES_SCHEMA, "mind")
+    validate_table(pd.read_parquet(base / "user_history.parquet"), USER_HISTORY_SCHEMA, "mind")
 
 
 @pytest.mark.slow

@@ -54,6 +54,8 @@ def build_mind_test(zip_path: Path, out_dir: Path) -> None:
                  out_dir / "test" / "articles.parquet", ["article_id"])
     _write_table(result["candidates"], CANDIDATES_SCHEMA, "mind",
                  out_dir / "test" / "candidates.parquet", ["impression_id", "article_id"])
+    _write_table(result["user_history"], USER_HISTORY_SCHEMA, "mind",
+                 out_dir / "test" / "user_history.parquet", ["user_id"])
 
 
 def build_ebnerd_bundle(

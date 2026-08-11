@@ -103,4 +103,11 @@ def test_candidates_table_has_no_clicked_column(test_result):
 
 
 def test_candidates_never_produces_an_impressions_table(test_result):
-    assert set(test_result.keys()) == {"articles", "candidates"}
+    assert set(test_result.keys()) == {"articles", "candidates", "user_history"}
+
+
+def test_candidates_still_returns_user_history(test_result):
+    """Unlike `clicked`, user_history doesn't depend on labels — the blind
+    test split still needs it for query construction."""
+    assert len(test_result["user_history"]) > 0
+    assert "article_ids" in test_result["user_history"].columns

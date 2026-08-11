@@ -209,8 +209,10 @@ def parse_mind_test_candidates(zip_path: Path, split: str = "test") -> dict[str,
     """Parse MINDlarge_test: unlabeled candidates, no `clicked` column, never
     merged into `impressions` (ADR-002's `clicked` field is unconditionally
     mandatory; this table exists precisely so that constraint never needs an
-    exception)."""
+    exception). `user_history` is still returned (unlike `clicked`, it does
+    not depend on labels being present) — query construction for the blind
+    test split needs it exactly like train/dev do."""
     folder = zip_path.stem
     articles = _parse_news_tsv(zip_path, folder)
-    candidates, _user_history = _parse_behaviors_tsv(zip_path, folder, split, has_labels=False)
-    return {"articles": articles, "candidates": candidates}
+    candidates, user_history = _parse_behaviors_tsv(zip_path, folder, split, has_labels=False)
+    return {"articles": articles, "candidates": candidates, "user_history": user_history}
