@@ -2,11 +2,11 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 11, 2026 (MINDlarge built + benchmarked; Q5 dev-set validation passing against the official Codabench scorer)
+**Last Updated:** August 12, 2026 (MINDlarge_test embeddings predictions generated, validated, and packaged for Codabench upload)
 
-**Current Phase:** MIND Codabench submission (Q5), Parts 1-3. MINDlarge feature store built and row-count-verified against Wu et al. (2020); BM25 and embeddings benchmarked at real MINDlarge scale (both stay local, no Kaggle detour needed); `src/submission/mind_format.py` (official rank-format converter) implemented and validated end-to-end against the real `evaluate.py` script for both methods on MINDlarge_dev. Part 4 (real Codabench test submission) not yet started — needs the engineer's own account/login regardless of local readiness.
+**Current Phase:** MIND Codabench submission (Q5), Parts 1-4. MINDlarge feature store built and row-count-verified against Wu et al. (2020); BM25 and embeddings benchmarked at real MINDlarge scale (both stay local, no Kaggle detour needed); `src/submission/mind_format.py` (official rank-format converter) implemented and validated end-to-end against the real `evaluate.py` script for both methods on MINDlarge_dev. Part 4's local half (blind test predictions, row-count-validated) is now done — the actual Codabench upload + leaderboard screenshot remains, needing the engineer's own account/login regardless of local readiness.
 
-**Current Objective:** Part 4 — generate MINDlarge_test (blind) predictions with the better-performing method (embeddings, per this session's dev-set comparison) and/or both, then the engineer submits to Codabench and captures the leaderboard screenshot for Q6. Q6 (design note) itself remains not started.
+**Current Objective:** Manual: upload `submissions/mind_large_test_embed/prediction.zip` to the MIND Codabench competition and capture the leaderboard screenshot for Q6. Q6 (design note) itself remains not started.
 
 ---
 
@@ -20,7 +20,7 @@
 | Evaluation Harness | ✅ Complete | 100% | `src/evaluation/metrics.py` (recall@K), `src/evaluation/ranking_metrics.py` (Q4: AUC/MRR/nDCG@5/nDCG@10/diversity/novelty/coverage), `src/evaluation/bootstrap.py` (shared CI substrate), `src/retrieval/score.py` (generic `Scorer` interface — BM25 and `EmbeddingScorer` both implemented, exercised through the identical unchanged harness). All bootstrap CI, warm/cold slicing (Q4.3/Q4.4). See ADR-007/ADR-008. |
 | Benchmarking Framework | ✅ Complete (BM25 + semantic) | 100% | `experiments/{bm25,embed,ranking_bm25,ranking_embed}_{dataset}_{date}/{config,results}.json` pattern applied to both retrieval methods on all three fast-tier corpora plus MINDlarge-dev |
 | Codabench Submission Format | ✅ Complete (converter + dev-set validation) | 100% | `src/submission/mind_format.py` — official `impression_id [rank_1,...,rank_N]` format, re-reads the raw zip directly to preserve original candidate order (the processed feature store's deterministic sort destroys it). Validated end-to-end against the real `evaluation/official/evaluate.py` on MINDlarge_dev for both BM25 and embeddings: AUC/nDCG match the project's own `ranking_metrics.py` almost exactly; the one real MRR disagreement is a verified, fully-explained metric-definition difference (official sums 1/rank over all clicked items vs. this project's first-hit-only MRR), not a converter bug. |
-| Leaderboard Submission | 🟡 In progress | ~75% | Part 3 (dev-set validation) passing. Part 4 (blind MINDlarge_test predictions + actual Codabench upload) not yet done — the upload/screenshot step needs the engineer's own account regardless (see Deliverables Checklist) |
+| Leaderboard Submission | 🟡 In progress | ~90% | Part 3 (dev-set validation) passing. Part 4's local half done this session: `submissions/mind_large_test_embed/prediction.zip` generated (embeddings, 2,370,727 lines, row-count- and format-validated against the raw zip). Actual Codabench upload + screenshot still needs the engineer's own account (see Deliverables Checklist) |
 
 ---
 
@@ -30,10 +30,10 @@ Honest status against the assignment's four required deliverables, updated at th
 
 | # | Deliverable | Status | Notes |
 |---|-------------|--------|-------|
-| 1 | Code (GitHub Classroom) | 🟡 In progress | Data pipeline (now including MINDlarge), BM25 retrieval, semantic (embedding) retrieval, Q4 evaluation harness, and the Q5 official-format converter (`src/submission/mind_format.py`) all implemented and tested (ADR-005/006/007/008 + this session's addenda). `README.md` documents one-command reproduce (`make data`, `make test`) — still not updated with `scripts/run_embed_experiment.py`/`scripts/generate_mind_predictions.py` usage, flagged again for next session. `.gitignore` verified against Q8's explicit list — MINDlarge's new `data/processed/mind/large/` tree and raw zips confirmed covered by the existing `data/` rule, nothing new needed. Still missing: Part 4's actual test-set submission generation. |
-| 2 | Design note (≤4 pages, Moodle) | ⬜ Not started | Was deferred until semantic retrieval produced real numbers to compare against (met, ADR-008) and now also has MINDlarge-scale numbers to draw on (this session) — ready to start next session |
-| 3 | Leaderboard screenshots (both Codabench competitions) | 🟡 In progress (MIND) / ⬜ Not started (EB-NeRD) | MIND: Parts 1-3 of the Q5 submission pipeline complete and validated against the real official scorer this session; Part 4 (blind test predictions + actual upload) remains — **the upload itself needs the engineer's own Codabench account/login, which Claude Code cannot do regardless of local readiness.** EB-NeRD's own Codabench submission (competition 2469) not started this session — explicitly out of scope, not forgotten. |
-| 4 | AI usage log (prompts + AI-vs-human marking) | 🟢 Ongoing | `knowledge/ai-usage-log/` exists; one file per session (`YYYY-MM-DD_<topic>.md`), written live per CLAUDE.md's "Prompt & Session Logging" section, not reconstructed after the fact (this session's log: `2026-08-11_mindlarge-codabench-submission.md`) |
+| 1 | Code (GitHub Classroom) | 🟡 In progress | Data pipeline (now including MINDlarge), BM25 retrieval, semantic (embedding) retrieval, Q4 evaluation harness, and the Q5 official-format converter (`src/submission/mind_format.py`) all implemented and tested (ADR-005/006/007/008 + this session's addenda). `README.md` documents one-command reproduce (`make data`, `make test`) — still not updated with `scripts/run_embed_experiment.py`/`scripts/generate_mind_predictions.py` usage, flagged again for next session. `.gitignore` verified against Q8's explicit list — MINDlarge's new `data/processed/mind/large/` tree and raw zips confirmed covered by the existing `data/` rule, nothing new needed. **This session: two real bugs found and fixed while exercising Part 4 for the first time** (`data/datasets/mind.py::parse_mind_test_candidates` silently discarded `user_history` for the test split; `src/retrieval/score.py`'s `Scorer`s crashed on a candidate id absent from the corpus — see Session Notes). Part 4's blind-prediction generation is now done and validated. |
+| 2 | Design note (≤4 pages, Moodle) | ⬜ Not started | Was deferred until semantic retrieval produced real numbers to compare against (met, ADR-008) and now also has MINDlarge-scale numbers to draw on — ready to start next session |
+| 3 | Leaderboard screenshots (both Codabench competitions) | 🟡 In progress (MIND) / ⬜ Not started (EB-NeRD) | MIND: Parts 1-4's local half complete — `submissions/mind_large_test_embed/prediction.zip` ready to upload. **The upload itself needs the engineer's own Codabench account/login, which Claude Code cannot do regardless of local readiness.** EB-NeRD's own Codabench submission (competition 2469) not started — explicitly out of scope, not forgotten. |
+| 4 | AI usage log (prompts + AI-vs-human marking) | 🟢 Ongoing | `knowledge/ai-usage-log/` exists; one file per session (`YYYY-MM-DD_<topic>.md`), written live per CLAUDE.md's "Prompt & Session Logging" section, not reconstructed after the fact (this session's log: `2026-08-12_mindlarge-test-part4-submission.md`) |
 
 ---
 
@@ -263,22 +263,47 @@ Experiment results are recorded in the `experiments/` directory as implementatio
 - [x] Implement + benchmark embedding retrieval (recall@K and Q4 harness) on MINDsmall-dev, ebnerd_demo-validation, ebnerd_small-validation
 - [x] BM25-vs-semantic comparison (Q3.5/Q4.5), warm/cold sliced where available — see Benchmarking Status above and ADR-008
 - [x] Register on Codabench MIND competition (implicit — engineer confirmed session could proceed; EB-NeRD competition registration still separately unconfirmed)
-- [x] MINDlarge built, benchmarked, and Q5's format converter validated against real ground truth (Parts 1-3, this session — see Session Notes 2026-08-11)
-- [ ] Part 4: generate MINDlarge_test (blind) predictions, submit to the MIND Codabench leaderboard, capture screenshot — needs the engineer's own account/login
-- [ ] Q6: write the design note (≤4 pages) — ADR-008's Interpretation section plus this session's MINDlarge-scale findings are now the primary source material
-- [ ] EB-NeRD's own Codabench submission format is separate and still unverified — explicitly out of scope for this session, not forgotten
+- [x] MINDlarge built, benchmarked, and Q5's format converter validated against real ground truth (Parts 1-3, 2026-08-11 — see Session Notes)
+- [x] Part 4 (local half): generate MINDlarge_test (blind) predictions with embeddings, validate row count/format — `submissions/mind_large_test_embed/prediction.zip` ready (2026-08-12 — see Session Notes)
+- [ ] Part 4 (manual half): upload `prediction.zip` to the MIND Codabench leaderboard, capture screenshot — needs the engineer's own account/login
+- [ ] Q6: write the design note (≤4 pages) — ADR-008's Interpretation section plus MINDlarge-scale findings are now the primary source material
+- [ ] EB-NeRD's own Codabench submission format is separate and still unverified — explicitly out of scope so far, not forgotten
 
 ## Upcoming
 
-- Part 4 (blind MINDlarge_test predictions + actual Codabench upload) and Q6 (design note) are the next session's objective.
-- `README.md` needs a `scripts/run_embed_experiment.py` / `--method embed` usage note, plus `scripts/generate_mind_predictions.py` — not updated this session, flagged for next.
+- Manual Codabench upload of `submissions/mind_large_test_embed/prediction.zip` + Q6 (design note) are the next session's objective (or whenever the engineer completes the upload).
+- `README.md` needs a `scripts/run_embed_experiment.py` / `--method embed` usage note, plus `scripts/generate_mind_predictions.py` — not updated yet, flagged again for next.
 - `ebnerd_large` remains undownloaded/unverified — lower priority unless the assignment specifically requires the `large` tier for leaderboard submission.
 - ADR-008 flags a possible future investigation (not required this session): a curated near-duplicate/paraphrase evaluation set to validate the encoder's discrimination quality more directly than the category-proxy check used here.
-- A pre-existing pandas `FutureWarning` (`Index.insert` with object-dtype, inside `validate_table`) surfaced repeatedly this session — cosmetic, not chased down, worth a quick look next session.
+- A pre-existing pandas `FutureWarning` (`Index.insert` with object-dtype, inside `validate_table`) surfaced repeatedly in recent sessions — cosmetic, not chased down, worth a quick look eventually.
+- BM25 test-split predictions were not generated this session (embeddings won clearly on dev — AUC 0.6335 vs. 0.5699 — so this is the already-justified single-method choice per this session's brief); can be added later if wanted.
 
 ---
 
 # Session Notes
+
+## August 12, 2026 — Part 4: MINDlarge_test Predictions Generated and Validated
+
+### Completed
+
+- **Framing correction before implementation.** The session brief characterized Part 4 as pure execution on an already-validated pipeline. Reading the actual processed tree before running anything showed that wasn't quite true: Part 4 had never been exercised end-to-end (explicitly deferred every prior session), so two real bugs in code paths only Part 4 touches had never surfaced. Both were found by inspection/reproduction before generating any real predictions, not discovered via a crash in a throwaway run — consistent with CLAUDE.md's "benchmark/verify before trusting" discipline extended to "exercise the code path before trusting it's ready."
+- **Bug 1 — `MINDlarge_test`'s `user_history` was computed then discarded.** `src/datasets/mind.py::parse_mind_test_candidates` called the same `_parse_behaviors_tsv` helper train/dev use (which always computes `user_history` regardless of `has_labels`), but discarded the result via `candidates, _user_history = ...`; `src/pipeline/orchestrator.py::build_mind_test` never wrote it. A unit test even asserted the old (incomplete) key set as if this were intentional. Query construction (BM25 or embedding) needs history independent of whether labels exist — the prior "no `clicked` column" framing (a real, correct ADR-002 constraint) had been conflated with "test doesn't need history." Fixed: `parse_mind_test_candidates` now returns `user_history`; `build_mind_test` writes it via the same `_write_table`/`USER_HISTORY_SCHEMA` convention `build_mind_split` already uses. Rebuilt the real `data/processed/mind/large/test/` tree with the fix (702,005 users with history — exactly matching every user referenced in `candidates.parquet`, zero missing). Commit `65f6bfc`.
+- **Bug 2 — `Scorer` crashed on a candidate id absent from the corpus.** First real prediction-generation attempt crashed after ~430s with `KeyError: 'mind:N89741'`. Investigated directly against the raw zip rather than guessing: `MINDlarge_test/behaviors.tsv` references `N89741` as a candidate in 32 of 2,370,727 impressions, but that article is genuinely absent from `MINDlarge_test/news.tsv` — confirmed train and dev have zero such gaps, so this is a one-article quirk isolated to the raw test files, not a parser bug. Both `BM25Scorer` and `EmbeddingScorer` shared the same unguarded `id_to_col[c]` lookup in `src/retrieval/score.py`. This is a distinct situation from ADR-005/008's cold-start handling (no *query* → every candidate ties) — here the *item* has no representation. Fixed with a shared `_lookup_scores` helper: an unknown id scores `-inf`, ranking it last deterministically (verified: `N89741` lands at rank 138/138 in its one inspected impression, and strictly last in all 32 affected impressions); the fast vectorized path is unchanged for the common case. Commit `a120c45`.
+- Both fixes covered by new unit tests; full fast suite re-verified clean after each (153 passed → 155 passed, up from the prior session's 152).
+- **Part 4 (local half) — generated and validated MINDlarge_test predictions.** Ran `scripts/generate_mind_predictions.py --split test --method embed` as a detached (`nohup`+`disown`) background process — embeddings only, per the session brief (won clearly on dev, AUC 0.6335 vs. BM25's 0.5699; BM25 not run this session, already a defensible single-method choice). Encode+index build took ~12s on the restart (articles embedding cache from the crashed first attempt was reused); full scoring of 2,370,727 impressions took ~6,946s (~1.9hr), in line with the session's 1-2hr estimate. Validated before treating the output as upload-ready, same class of check Part 3 used to catch silent truncation: line count matches the raw zip's real impression count exactly (2,370,727); every line parses as a valid rank permutation (0 malformed); the 32 `N89741`-affected impressions individually spot-checked. Packaged as `submissions/mind_large_test_embed/prediction.zip` (`prediction.txt` zipped at the archive root, matching `evaluate.py`'s expected `submit_dir/prediction.txt` layout).
+
+### Key Outcomes
+
+- Part 4's "execution, not discovery" framing was half right: local prediction generation needed no new design decisions, but two real implementation gaps only Part 4 could expose were still hiding in already-committed code, caught and fixed with the same rigor as any other engineering decision (root-caused against real data, tested, documented) rather than patched around or silently absorbed.
+- `submissions/mind_large_test_embed/prediction.zip` is ready for upload; the only remaining step is manual (Codabench login/upload/screenshot), which Claude Code cannot perform regardless of local readiness.
+
+### Next Session
+
+- Manual: log into Codabench, upload `submissions/mind_large_test_embed/prediction.zip`, screenshot the leaderboard result for Q6.
+- Q6: write the design note (≤4 pages).
+- `README.md` still needs the `run_embed_experiment.py`/`generate_mind_predictions.py` usage notes flagged in prior sessions.
+
+---
 
 ## August 11, 2026 — MINDlarge Build, Benchmark, and Q5 Dev-Set Validation
 

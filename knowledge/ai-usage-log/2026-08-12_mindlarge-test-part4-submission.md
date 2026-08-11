@@ -77,5 +77,78 @@ convention `build_mind_split` already uses. Updated the unit test's
 assertion set and the schema-conformance integration test to match, then
 re-ran `build_mind_test` against the real `MINDlarge_test.zip` to
 regenerate the processed tree with the fix in place. Full fast test suite
-re-verified clean after the change.
-</content>
+re-verified clean after the change (153 passed, up from 152). Committed
+separately (`65f6bfc`) before starting the long-running generation job, per
+this session's own instruction not to let work accumulate uncommitted.
+
+### Second failure: a candidate id genuinely absent from the corpus
+
+First real `generate_mind_predictions.py --split test --method embed` run
+crashed ~430s in with `KeyError: 'mind:N89741'`, inside the shared
+`Scorer.score()` lookup (`src/retrieval/score.py`) both `BM25Scorer` and
+`EmbeddingScorer` use. Investigated against the raw zip directly rather
+than assuming a parser bug: `MINDlarge_test/behaviors.tsv` references
+`N89741` as a candidate in 32 of 2,370,727 impressions, but that id is
+genuinely absent from `MINDlarge_test/news.tsv` itself. Checked train/dev
+the same way — zero such gaps in either — so this is a one-article quirk
+isolated to the real MINDlarge_test raw files, not something our own
+pipeline introduced.
+
+This is a different situation from ADR-005/008's existing cold-start
+handling (no *query* → every candidate scores an explicit tie); here the
+*candidate* itself has no content to score against. Fixed with a shared
+`_lookup_scores` helper in `score.py`: an id missing from `id_to_col`
+scores `-inf`, so it's deterministically ranked last rather than crashing
+or landing arbitrarily among candidates we do have signal for. Kept the
+existing fast vectorized path for the common case (all ids known) and only
+falls back to a per-item loop for an impression that actually hits a
+missing id. Added unit tests for both scorers; full fast suite
+re-verified clean (155 passed, up from 153). Committed separately
+(`a120c45`).
+
+Restarted the generation job (embedding cache from the crashed first
+attempt was still on disk, so the ~430s encode step was skipped on
+restart). Ran to completion: 2,370,727 prediction lines in ~6,946s.
+
+## Prompt 2
+
+```
+its been some time just check progress
+```
+
+AI-generated: status check only (ran `ps`/log inspection, no code
+changes), reported line count (758,033/2,370,727 at that point) and ETA.
+
+## Prompt 3
+
+```
+its been some time just check progress
+```
+
+AI-generated: status check — this time the job had actually finished
+(2,370,727/2,370,727 lines, matching the raw zip's real impression count
+exactly). Validated before treating it as upload-ready: every line parses
+as a valid rank permutation (0 malformed out of 2,370,727); the 32
+`N89741`-affected impressions individually spot-checked (article lands at
+rank 138/138, i.e. strictly last, in the one inspected case, and strictly
+last in all 32 when checked in aggregate). Packaged as
+`submissions/mind_large_test_embed/prediction.zip` — `prediction.txt`
+zipped at the archive root (not nested in a folder), matching
+`evaluation/official/evaluate.py`'s `submit_dir/prediction.txt` layout,
+which is the standard Codabench/CodaLab upload convention this project
+hadn't needed to apply until now. Updated `PROJECT_STATE.md` (Current
+Phase/Objective, Component Status, Deliverables Checklist, Next Actions,
+new Session Notes entry for 2026-08-12) and this log to reflect the
+session's real end state, then committed both as their own checkpoint.
+
+### Human vs. AI split, this session
+
+AI-generated: all investigation (reading `PROJECT_STATE.md`/code/raw zip
+contents), both root-cause diagnoses, all code changes
+(`src/datasets/mind.py`, `src/pipeline/orchestrator.py`,
+`src/retrieval/score.py`, associated tests), running the pipeline/tests,
+generating and validating the prediction file, packaging the zip, and all
+documentation updates (this log, `PROJECT_STATE.md`, commit messages).
+Human-written: none this session. Human-in-the-loop: the two "check
+progress" prompts above, and the still-outstanding manual Codabench
+upload + Q6 design note, which remain the engineer's own steps.
