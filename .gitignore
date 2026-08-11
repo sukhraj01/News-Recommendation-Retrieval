@@ -40,6 +40,9 @@ data/
 # Experiments (results)
 experiments/
 
+# Submissions (generated prediction/truth files, large + regenerable)
+submissions/
+
 # Model checkpoints
 *.pt
 *.pth

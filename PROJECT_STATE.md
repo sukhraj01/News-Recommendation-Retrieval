@@ -2,11 +2,11 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 9, 2026 (Phase 2 Complete — Data Pipeline Implementation)
+**Last Updated:** August 11, 2026 (MINDlarge built + benchmarked; Q5 dev-set validation passing against the official Codabench scorer)
 
-**Current Phase:** Phase 3 — Retrieval (BM25 + semantic) design and implementation (Phase 2 complete for MINDsmall + ebnerd_demo; MINDlarge slow-tier available but not run by default)
+**Current Phase:** MIND Codabench submission (Q5), Parts 1-3. MINDlarge feature store built and row-count-verified against Wu et al. (2020); BM25 and embeddings benchmarked at real MINDlarge scale (both stay local, no Kaggle detour needed); `src/submission/mind_format.py` (official rank-format converter) implemented and validated end-to-end against the real `evaluate.py` script for both methods on MINDlarge_dev. Part 4 (real Codabench test submission) not yet started — needs the engineer's own account/login regardless of local readiness.
 
-**Current Objective:** Design and implement BM25 lexical retrieval, then semantic retrieval, over the Phase 2 feature store
+**Current Objective:** Part 4 — generate MINDlarge_test (blind) predictions with the better-performing method (embeddings, per this session's dev-set comparison) and/or both, then the engineer submits to Codabench and captures the leaderboard screenshot for Q6. Q6 (design note) itself remains not started.
 
 ---
 
@@ -14,12 +14,26 @@
 
 | Component | Status | Progress | Notes |
 |-----------|--------|----------|-------|
-| Data Pipeline | ✅ Complete (fast tier) | 100% | `make data` builds MINDsmall + ebnerd_demo end-to-end per ADR-001/ADR-002. MINDlarge implemented but excluded from default scope (slow tier, `include_mind_large=True`). |
-| Lexical Retrieval (BM25) | ⏳ Not Started | 0% | Awaiting architecture decisions |
-| Semantic Retrieval | ⏳ Not Started | 0% | Awaiting embedding model decision |
-| Evaluation Harness | ⏳ Not Started | 0% | Design phase |
-| Benchmarking Framework | ⏳ Not Started | 0% | Repository structure prepared |
-| Leaderboard Submission | ⏳ Not Started | 0% | Planned for final phase |
+| Data Pipeline | ✅ Complete (fast tier + ebnerd_small + MINDlarge) | 100% | `make data` builds MINDsmall + ebnerd_demo end-to-end per ADR-001/ADR-002. `ebnerd_small` built and verified (ADR-002 addendum) via opt-in `include_ebnerd_small=True`. **MINDlarge built and row-count-verified this session** (`include_mind_large=True`) — required three real algorithmic fixes to `src/datasets/mind.py`/`src/pipeline/validators.py` to survive MINDlarge's row counts on this 8GB machine (naive-loop hang, 27GB memory projection, two separate `map_infer_mask` scaling bugs); see Session Notes below. |
+| Lexical Retrieval (BM25) | ✅ Complete (fast tier + ebnerd_small + MINDlarge) | 100% | `scripts/run_bm25_experiment.py --dataset {mind,ebnerd} [--bundle {small,demo}]` per ADR-005/ADR-006. Benchmarked against MINDsmall-dev, ebnerd_demo-validation, ebnerd_small-validation, **and MINDlarge-dev this session** (ADR-006 addendum) — stays local, ~10 min projected for the full 255,990-user run. |
+| Semantic Retrieval | ✅ Complete (fast tier + MINDlarge) | 100% | `scripts/run_embed_experiment.py --dataset {mind,ebnerd} [--bundle {small,demo}]` per ADR-008. `paraphrase-multilingual-MiniLM-L12-v2` encoder, brute-force cosine ANN, disk-cached embeddings. Benchmarked against the same three corpora BM25 covers **plus MINDlarge-dev this session** (ADR-008 addendum) — stays local, brute-force still sufficient, FAISS still unjustified. |
+| Evaluation Harness | ✅ Complete | 100% | `src/evaluation/metrics.py` (recall@K), `src/evaluation/ranking_metrics.py` (Q4: AUC/MRR/nDCG@5/nDCG@10/diversity/novelty/coverage), `src/evaluation/bootstrap.py` (shared CI substrate), `src/retrieval/score.py` (generic `Scorer` interface — BM25 and `EmbeddingScorer` both implemented, exercised through the identical unchanged harness). All bootstrap CI, warm/cold slicing (Q4.3/Q4.4). See ADR-007/ADR-008. |
+| Benchmarking Framework | ✅ Complete (BM25 + semantic) | 100% | `experiments/{bm25,embed,ranking_bm25,ranking_embed}_{dataset}_{date}/{config,results}.json` pattern applied to both retrieval methods on all three fast-tier corpora plus MINDlarge-dev |
+| Codabench Submission Format | ✅ Complete (converter + dev-set validation) | 100% | `src/submission/mind_format.py` — official `impression_id [rank_1,...,rank_N]` format, re-reads the raw zip directly to preserve original candidate order (the processed feature store's deterministic sort destroys it). Validated end-to-end against the real `evaluation/official/evaluate.py` on MINDlarge_dev for both BM25 and embeddings: AUC/nDCG match the project's own `ranking_metrics.py` almost exactly; the one real MRR disagreement is a verified, fully-explained metric-definition difference (official sums 1/rank over all clicked items vs. this project's first-hit-only MRR), not a converter bug. |
+| Leaderboard Submission | 🟡 In progress | ~75% | Part 3 (dev-set validation) passing. Part 4 (blind MINDlarge_test predictions + actual Codabench upload) not yet done — the upload/screenshot step needs the engineer's own account regardless (see Deliverables Checklist) |
+
+---
+
+# Deliverables Checklist (Q7)
+
+Honest status against the assignment's four required deliverables, updated at the start of each session rather than assumed complete.
+
+| # | Deliverable | Status | Notes |
+|---|-------------|--------|-------|
+| 1 | Code (GitHub Classroom) | 🟡 In progress | Data pipeline (now including MINDlarge), BM25 retrieval, semantic (embedding) retrieval, Q4 evaluation harness, and the Q5 official-format converter (`src/submission/mind_format.py`) all implemented and tested (ADR-005/006/007/008 + this session's addenda). `README.md` documents one-command reproduce (`make data`, `make test`) — still not updated with `scripts/run_embed_experiment.py`/`scripts/generate_mind_predictions.py` usage, flagged again for next session. `.gitignore` verified against Q8's explicit list — MINDlarge's new `data/processed/mind/large/` tree and raw zips confirmed covered by the existing `data/` rule, nothing new needed. Still missing: Part 4's actual test-set submission generation. |
+| 2 | Design note (≤4 pages, Moodle) | ⬜ Not started | Was deferred until semantic retrieval produced real numbers to compare against (met, ADR-008) and now also has MINDlarge-scale numbers to draw on (this session) — ready to start next session |
+| 3 | Leaderboard screenshots (both Codabench competitions) | 🟡 In progress (MIND) / ⬜ Not started (EB-NeRD) | MIND: Parts 1-3 of the Q5 submission pipeline complete and validated against the real official scorer this session; Part 4 (blind test predictions + actual upload) remains — **the upload itself needs the engineer's own Codabench account/login, which Claude Code cannot do regardless of local readiness.** EB-NeRD's own Codabench submission (competition 2469) not started this session — explicitly out of scope, not forgotten. |
+| 4 | AI usage log (prompts + AI-vs-human marking) | 🟢 Ongoing | `knowledge/ai-usage-log/` exists; one file per session (`YYYY-MM-DD_<topic>.md`), written live per CLAUDE.md's "Prompt & Session Logging" section, not reconstructed after the fact (this session's log: `2026-08-11_mindlarge-codabench-submission.md`) |
 
 ---
 
@@ -85,6 +99,12 @@
 |-----|-------|--------|------|
 | ADR-001 | Temporal Split Strategy | Decided | Use official train/val splits as-is (7-day windows) |
 | ADR-002 | Unified Data Schema | Decided | Three tables (articles, impressions, user_history) with mandatory core + optional fields |
+| ADR-005 | Query Construction | Decided | Unweighted concatenation of full history (title+abstract), no recency weighting (avoids MIND's unverified history-order assumption); cold threshold = history length < 5 (EB-NeRD paper's own active-user filter). Stopword removal added mid-flight after benchmarking showed the raw query mass was dominated by function words. |
+| ADR-006 | BM25 Variant | Decided | BM25Okapi (title+abstract is short/bounded, doesn't need BM25L/BM25+'s long-document correction). Scoring implemented as a precomputed sparse weight matrix, not `rank_bm25.get_scores()` directly — the latter was measured infeasible at real scale (~10hr projected vs. ~80s actual). |
+| ADR-002 (addendum) | ebnerd_small Verification | Decided | Schema identical to `ebnerd_demo`; cold cohort empty by construction at this tier too (structural, not demo-only); recall@200 lower in absolute terms (larger corpus) but higher relative-to-random lift (2.87x vs. 2.37x). |
+| ADR-007 | Q4 Ranking Evaluation Harness Design | Decided | Deterministic per-impression-seeded pseudo-random tie-break (cold users produce total ties); diversity/novelty K=10 (anchored to nDCG@10); novelty popularity from train split only (Q9 anti-gaming), Laplace-smoothed; coverage reported as a point estimate, no bootstrap CI (set-union statistics are mechanically biased under with-replacement resampling). |
+| ADR-008 | Semantic Retrieval Design | Decided | Compute one embedding model ourselves over both datasets (rejects using EB-NeRD's provided embeddings + a separate MIND model — same single-code-path argument as ADR-002). Encoder: `paraphrase-multilingual-MiniLM-L12-v2`, chosen over `multilingual-e5-small` after a real discrimination-gap benchmark (e5's asymmetric query/passage convention doesn't fit this project's symmetric use case — confirmed empirically, not just argued). ANN: brute-force cosine similarity (0.99ms/query measured at 42,416-doc scale — FAISS unjustified). Cold-start: mirrors ADR-005's reporting posture exactly (`None`/all-zero-tie), no new fallback built. **Addendum (2026-08-11): re-verified at real MINDlarge-dev scale (72,023 articles, 255,990 users) — brute-force stays sufficient, full run projects to ~10.4 min, stays local.** |
+| ADR-006 (addendum) | MINDlarge-Scale BM25 Benchmark | Decided | Resolves ADR-006's own flagged revisit trigger. Real MINDlarge-dev numbers (not projected): sparse weight matrix 23.5MB, full 255,990-user retrieval projects to ~9.8 min. Stays local, no Kaggle migration needed. |
 
 ---
 
@@ -92,16 +112,18 @@
 
 The following decisions will be resolved during the architecture phase:
 
-- Which BM25 variant should be implemented?
-- How should user queries be constructed?
-- Which embedding model should be used?
-- Which ANN backend should be adopted?
-- How should user embeddings be represented?
-- What cold-start strategy should be used?
+- ~~Which BM25 variant should be implemented?~~ **Resolved (ADR-006): BM25Okapi.**
+- ~~How should user queries be constructed?~~ **Resolved (ADR-005): unweighted concatenation of full history, stopwords removed.**
+- Is the hand-built Danish+English stopword list (`src/retrieval/tokenize.py`) complete enough, or would a validated NLP resource change the recall numbers meaningfully? (ADR-005 flags this as a revisit trigger, not yet tested)
+- ~~Does `ebnerd_small`/`ebnerd_large` also have zero cold-start users under the `<5` threshold, or is that specific to `ebnerd_demo`'s active-user filtering?~~ **Resolved for `ebnerd_small` (ADR-002 addendum, 2026-08-10): yes, zero cold-start users (min history = 5), same as demo — structural to the active-user-filtered bundle construction, not a demo-only artifact. `ebnerd_large` remains unverified.**
+- ~~Which embedding model should be used?~~ **Resolved (ADR-008): `paraphrase-multilingual-MiniLM-L12-v2`, chosen over `multilingual-e5-small` after a real category-based discrimination-gap benchmark on MINDsmall-dev.**
+- ~~Which ANN backend should be adopted?~~ **Resolved (ADR-008): brute-force cosine similarity — measured 0.99ms/query at the largest corpus (42,416 docs), FAISS unjustified at this scale.**
+- ~~How should user embeddings be represented?~~ **Resolved (ADR-008): mean-pooled, L2-renormalized embedding of full click history, no recency weighting — mirrors ADR-005's BM25 query-construction reasoning exactly.**
+- ~~What cold-start strategy should be used?~~ **Resolved (ADR-008): no new strategy — zero-history users produce `None`/an all-zero-tie for embeddings, mirroring BM25's own structural cold-start ceiling (ADR-005), reported the same way rather than papered over with an unbenchmarked fallback.**
 - What temporal split strategy should be adopted?
-- Which EB-NeRD population does the assignment's ~2.7M users / 600M+ impressions figure describe vs. the paper's ~1M / 37M active-user-filtered (5–1,000 clicks, May 18–Jun 8) subset? **Partially resolved in ADR-002 (medium confidence):** assignment figure = full raw traffic log; paper figure = active-user-filtered subset that `ebnerd_large`/`ebnerd_small` are sampled from; `ebnerd_demo` (loaded: 1,590 train-window users / 1,562 validation-window users, 24,724 + 25,356 impressions) structurally matches the paper's filtered-subset methodology (21-day history / 7-day window, verified in ADR-001). Still unverified against `ebnerd_small`/`ebnerd_large` directly — remains open until those bundles are downloaded and inspected.
-- `ebnerd_small`/`ebnerd_large` schema unverified against Phase 2's loaders (built and tested strictly against `ebnerd_demo`) — re-verify before trusting for final leaderboard submission, per ADR-002's own revisit condition.
-- What feature-store read API does Retrieval actually need (raw `pd.read_parquet`, or a thin loader helper)? Deferred deliberately — ARCHITECTURE.md's Feature Store section notes this should be determined by Retrieval's first real consumer, not designed speculatively ahead of it.
+- Which EB-NeRD population does the assignment's ~2.7M users / 600M+ impressions figure describe vs. the paper's ~1M / 37M active-user-filtered (5–1,000 clicks, May 18–Jun 8) subset? **Partially resolved in ADR-002 (medium confidence), now with a second data point:** assignment figure = full raw traffic log; paper figure = active-user-filtered subset that `ebnerd_large`/`ebnerd_small` are sampled from; `ebnerd_demo` (1,590 train-window users / 1,562 validation-window users, 24,724 + 25,356 impressions) and `ebnerd_small` (15,143 train-window users / 15,342 validation-window users, 2,585,747 + 2,928,942 impressions — measured directly, 2026-08-10) both structurally match the paper's filtered-subset methodology (21-day history / 7-day window, verified in ADR-001; same window boundaries confirmed for `ebnerd_small` in the ADR-002 addendum). Still unverified against `ebnerd_large` directly — remains open until that bundle is downloaded and inspected.
+- ~~`ebnerd_small`/`ebnerd_large` schema unverified against Phase 2's loaders (built and tested strictly against `ebnerd_demo`)~~ **Resolved for `ebnerd_small` (ADR-002 addendum, 2026-08-10): schema conformance, referential integrity, and row-count checks all pass, identical to `ebnerd_demo`; feature store built at `data/processed/ebnerd/small/`. `ebnerd_large` remains unverified and out of scope for this session.**
+- ~~What feature-store read API does Retrieval actually need?~~ **Resolved:** direct `pd.read_parquet()` was sufficient — no loader abstraction was needed in practice (ARCHITECTURE.md updated).
 
 ---
 
@@ -113,20 +135,116 @@ The following decisions will be resolved during the architecture phase:
 | `pyproject.toml` dependency drift on Python 3.14 | Realized once (pyarrow silently dropped, uncommitted) | High | `pyarrow` re-pinned to `^22.0.0` (first cp314 wheel); re-verify any future dependency bump against `poetry lock` succeeding, not just "no error" | Resolved this session, monitor on future bumps |
 | Submission format mismatch | Low | High | Dry-run before submission | Planned |
 | Timeline pressure near deadline | Medium | Medium | Weekly milestone reviews | Monitoring |
+| Naive `rank_bm25.get_scores()` doesn't scale to real user/corpus counts | Realized once (measured ~10hr projected at MINDsmall-dev scale) | High | Replaced with a verified-equivalent sparse-matrix scorer (~80s actual); re-benchmark before MINDlarge enters scope (ADR-006) | Resolved this session, monitor at larger scale |
+| Unweighted BM25 query concatenation can silently underperform random retrieval | Realized once (EB-NeRD pre-fix recall@50/100 below random baseline) | High | Stopword removal added and benchmarked (ADR-005); hand-built stopword list not independently validated | Resolved this session, monitor if query construction changes |
 
 ---
 
 # Benchmarking Status
 
-**Current Status:** No experiments have been executed yet.
+**Current Status:** BM25 and semantic (embedding) baselines both complete on all three corpora (fast tier). Full BM25-vs-semantic comparison done — see below and ADR-008.
 
-**Planned Baselines**
+**BM25 Results** (`experiments/bm25_mind_2026-08-10/`, `experiments/bm25_ebnerd_2026-08-10/`; full detail in ADR-006):
 
-- BM25 baseline (MIND-small)
-- Semantic baseline (MIND-small)
-- BM25 vs. Semantic comparison on both datasets
+| Dataset | recall@50 | recall@100 | recall@200 | Random baseline @200 |
+|---|---|---|---|---|
+| MIND-small dev (overall) | 0.73% | 1.50% | 2.62% | 0.47% |
+| MIND-small dev (warm, n=41,986) | 0.73% | 1.54% | 2.73% | — |
+| MIND-small dev (cold, n=8,014) | 0.72% | 1.19% | 1.78% | — |
+| EB-NeRD-demo validation (overall = warm, n=1,562) | 1.01% | 2.13% | 4.02% | 1.70% |
+| EB-NeRD-demo validation (cold) | n/a — 0 users below threshold | | | |
 
-Experiment results will be recorded in the `experiments/` directory as implementation progresses.
+Both datasets clear their random baseline by a real margin (MIND ~5.6x, EB-NeRD ~2.4x). MIND shows warm > cold at every k, consistent with the Day-1 working hypothesis; EB-NeRD's cold cohort is structurally empty in the `demo` bundle (min history length = 5, by construction of its active-user filter) so no warm/cold comparison is possible there — see ADR-005.
+
+**`ebnerd_small` verification run** (`experiments/bm25_ebnerd_small_2026-08-10/`; full detail in ADR-002's addendum): overall = warm (n=15,342) recall@50/100/200 = 0.72% / 1.44% / 2.77% (random baseline @200 = 0.96%, 2.87x lift — slightly *higher* relative lift than demo's 2.37x, despite lower absolute recall, because the corpus is 1.76x larger at this tier). Cold cohort is again structurally empty (min history = 5) — confirms this is a property of EB-NeRD's active-user-filtered bundles, not a `demo`-only artifact.
+
+**Q4 Ranking Metrics** (`experiments/ranking_bm25_mind_2026-08-10/`,
+`experiments/ranking_bm25_ebnerd_small_2026-08-10/`; full detail + interpretation in ADR-007):
+
+| Metric | MIND overall | MIND warm | MIND cold | EB-NeRD-small overall/warm | EB-NeRD-small cold |
+|---|---|---|---|---|---|
+| AUC | 0.5692 | 0.5766 | 0.5242 | 0.5288 | n/a (0 cold users) |
+| MRR | 0.3115 | 0.3138 | 0.2975 | 0.3412 | n/a |
+| nDCG@5 | 0.2887 | 0.2888 | 0.2879 | 0.3745 | n/a |
+| nDCG@10 | 0.3486 | 0.3485 | 0.3490 | 0.4543 | n/a |
+| Diversity@10 | 0.8367 | 0.8314 | 0.8690 | 0.7949 | n/a |
+| Novelty@10 | 16.30 | 16.29 | 16.38 | 17.17 | n/a |
+| Coverage@10 (point est.) | 0.0834 | 0.0804 | 0.0450 | 0.2057 | n/a |
+
+Warm > cold on AUC for MIND (confirms recall@K's existing pattern);
+nDCG@5/@10 barely differ warm-vs-cold, which looks contradictory until
+accounting for the tie-break (cold rankings are random permutations, and a
+random ranking already scores non-trivially on nDCG when candidate lists
+are short) — a genuine finding about why Q4 mandates multiple metrics, not
+a bug. EB-NeRD's nDCG is higher than MIND's despite EB-NeRD's *lower* AUC —
+explained by EB-NeRD's much shorter candidate lists (median 9–12 vs.
+MIND's 23), not better ranking quality; AUC (list-length-invariant)
+resolves the apparent contradiction. See ADR-007's Interpretation for the
+full reasoning.
+
+**Semantic (Embedding) Results** (`experiments/embed_mind_2026-08-10/`,
+`experiments/embed_ebnerd_2026-08-10/`, `experiments/embed_ebnerd_small_2026-08-10/`;
+full detail + interpretation in ADR-008. `paraphrase-multilingual-MiniLM-L12-v2`,
+mean-pooled user query, brute-force cosine similarity):
+
+| Dataset | recall@50 | recall@100 | recall@200 |
+|---|---|---|---|
+| MIND-small dev (overall) | 0.90% | 1.60% | 2.78% |
+| MIND-small dev (warm, n=41,986) | 0.93% | 1.67% | 2.92% |
+| MIND-small dev (cold, n=8,014) | 0.65% | 1.10% | 1.81% |
+| EB-NeRD-demo validation (overall = warm, n=1,562) | 0.32% | 0.94% | 2.57% |
+| EB-NeRD-small validation (overall = warm, n=15,342) | 0.14% | 0.43% | 1.21% |
+
+**Q4 Ranking Metrics, embeddings** (`experiments/ranking_embed_mind_2026-08-10/`,
+`experiments/ranking_embed_ebnerd_2026-08-10/`,
+`experiments/ranking_embed_ebnerd_small_2026-08-10/`):
+
+| Metric | MIND overall | MIND warm | MIND cold | EB-NeRD-demo | EB-NeRD-small |
+|---|---|---|---|---|---|
+| AUC | 0.6340 | 0.6439 | 0.5737 | 0.5437 | 0.5430 |
+| MRR | 0.3486 | 0.3523 | 0.3258 | 0.3433 | 0.3437 |
+| nDCG@5 | 0.3314 | 0.3329 | 0.3221 | 0.3804 | 0.3804 |
+| nDCG@10 | 0.3903 | 0.3918 | 0.3807 | 0.4587 | 0.4591 |
+| Diversity@10 | 0.8269 | 0.8213 | 0.8607 | 0.7893 | 0.7890 |
+| Novelty@10 | 16.15 | 16.12 | 16.30 | 14.79 | 17.19 |
+| Coverage@10 (point est.) | 0.0782 | 0.0740 | 0.0440 | 0.2158 | 0.2050 |
+
+**BM25 vs. Semantic — Q3.5/Q4.5, the headline comparison (both recall@K and
+Q4 metrics, same corpora, same warm/cold split):**
+
+- **MIND: embeddings win outright**, on both recall@K (2.78% vs. 2.62% @
+  k=200) and Q4 AUC (0.634 vs. 0.569, +0.065). This does **not** match the
+  Day-1 working hypothesis's framing ("BM25 favors warm/entity-heavy
+  MIND") — semantic retrieval is ahead on *both* warm and cold cohorts, not
+  just cold. The warm/cold AUC gap itself is similar in size for both
+  methods (BM25 Δ0.052, embed Δ0.067) — embeddings raise the whole curve,
+  they don't specifically close the cold-start gap. Reported as a genuine
+  finding against the hypothesis, not smoothed over.
+- **EB-NeRD: the two evaluation questions disagree.** BM25 clearly wins
+  whole-corpus recall@K (demo: 4.02% vs. 2.57%; small: 2.77% vs. 1.21% —
+  roughly 1.6–2.3x higher), but embeddings slightly *edge out* BM25 on Q4's
+  already-curated-candidate-list ranking (AUC 0.544 vs. 0.533 demo; 0.543
+  vs. 0.529 small). Plausible (not yet isolated) explanation: EB-NeRD's
+  long median history (81–93 articles) produces a diffuse mean-pooled query
+  that struggles to stand out against the *whole* catalog but still
+  discriminates adequately within EB-NeRD's much shorter median candidate
+  list (9–12/impression) once that list is already curated upstream.
+- **Diversity/novelty/coverage are nearly identical between methods on
+  every corpus** — accuracy differs, beyond-accuracy metrics mostly don't.
+  This is exactly the kind of pattern ADR-007's multi-metric harness design
+  was built to surface, not a null result being glossed over.
+- **True (zero-history) cold-start is a shared ceiling, not something
+  either method solves.** MIND's cold-cohort recall@200 is nearly identical
+  between methods (BM25 1.78% vs. embed 1.81%) — both degrade to a
+  structural miss for zero-history users (no vocabulary to match / no
+  vector to compute), which is why the aggregate cold numbers converge even
+  though the underlying failure mode differs.
+
+Full reasoning, the encoder-selection benchmark that led to
+`paraphrase-multilingual-MiniLM-L12-v2` over `multilingual-e5-small`, and
+the brute-force-vs-FAISS ANN benchmark are all in ADR-008.
+
+Experiment results are recorded in the `experiments/` directory as implementation progresses.
 
 ---
 
@@ -137,18 +255,116 @@ Experiment results will be recorded in the `experiments/` directory as implement
 - [x] Implement data pipeline (download + parse + split + feature store build)
 - [x] Run temporal-split leakage tests
 - [x] Verify unified schema works for both datasets in practice
-- [ ] Design BM25 indexing strategy (query construction, variant choice — open questions above)
-- [ ] Design semantic retrieval (embedding model, ANN backend — open questions above)
+- [x] Design BM25 indexing strategy (query construction, variant choice — ADR-005/ADR-006)
+- [x] Implement + benchmark BM25 retrieval on MINDsmall-dev and ebnerd_demo-validation
+- [x] Verify `ebnerd_small` against Phase 2's loaders; benchmark BM25 against it (ADR-002 addendum)
+- [x] Design + implement Q4's ranking evaluation harness (AUC/MRR/nDCG/diversity/novelty/coverage, ADR-007); run against BM25 on both datasets
+- [x] Design semantic retrieval (embedding model, ANN backend, user representation, cold-start — ADR-008)
+- [x] Implement + benchmark embedding retrieval (recall@K and Q4 harness) on MINDsmall-dev, ebnerd_demo-validation, ebnerd_small-validation
+- [x] BM25-vs-semantic comparison (Q3.5/Q4.5), warm/cold sliced where available — see Benchmarking Status above and ADR-008
+- [x] Register on Codabench MIND competition (implicit — engineer confirmed session could proceed; EB-NeRD competition registration still separately unconfirmed)
+- [x] MINDlarge built, benchmarked, and Q5's format converter validated against real ground truth (Parts 1-3, this session — see Session Notes 2026-08-11)
+- [ ] Part 4: generate MINDlarge_test (blind) predictions, submit to the MIND Codabench leaderboard, capture screenshot — needs the engineer's own account/login
+- [ ] Q6: write the design note (≤4 pages) — ADR-008's Interpretation section plus this session's MINDlarge-scale findings are now the primary source material
+- [ ] EB-NeRD's own Codabench submission format is separate and still unverified — explicitly out of scope for this session, not forgotten
 
 ## Upcoming
 
-- Design evaluation framework (metrics, Q4 diversity/coverage slicing).
-- Consider running `make data --include-mind-large` once retrieval needs the larger bundle (currently untested at scale beyond MINDsmall).
-- Re-verify `ebnerd_small`/`ebnerd_large` schema against Phase 2's loaders before final leaderboard submission.
+- Part 4 (blind MINDlarge_test predictions + actual Codabench upload) and Q6 (design note) are the next session's objective.
+- `README.md` needs a `scripts/run_embed_experiment.py` / `--method embed` usage note, plus `scripts/generate_mind_predictions.py` — not updated this session, flagged for next.
+- `ebnerd_large` remains undownloaded/unverified — lower priority unless the assignment specifically requires the `large` tier for leaderboard submission.
+- ADR-008 flags a possible future investigation (not required this session): a curated near-duplicate/paraphrase evaluation set to validate the encoder's discrimination quality more directly than the category-proxy check used here.
+- A pre-existing pandas `FutureWarning` (`Index.insert` with object-dtype, inside `validate_table`) surfaced repeatedly this session — cosmetic, not chased down, worth a quick look next session.
 
 ---
 
 # Session Notes
+
+## August 11, 2026 — MINDlarge Build, Benchmark, and Q5 Dev-Set Validation
+
+### Completed
+
+- **Part 1 — MINDlarge feature store build.** `include_mind_large=True` had never actually been exercised before this session — treated as a real test, per the session's own instructions, and it found real bugs. First attempt hung indefinitely (heavy CPU + swap growth, no progress after 7+ minutes) in `src/datasets/mind.py::_explode_impressions`'s per-token Python loop at MINDlarge_train's real scale (~2.2M impressions x ~37 avg candidates ≈ 80M+ exploded rows) — never a problem at MINDsmall's ~14x-smaller scale. Root-caused and fixed in three separate rounds, each found by directly profiling the actual stuck process (via macOS `sample`) rather than guessing from theory:
+  1. Vectorized the explode via `DataFrame.explode` instead of a per-row dict-building loop.
+  2. That fix alone projected to **~27GB** in memory (measured directly) because pandas' object dtype repeats each ~37x-duplicated prefixed ID string as a distinct Python object per row. Fixed with `category` dtype for the three ID columns and the four always-null EB-NeRD-only columns (12.5x measured reduction, ~2.2GB projected) — but this exposed a second real bug: `src/pipeline/validators.py::_is_null`'s `series.map(a_python_function)` returned `category`-dtype output for a categorical input in this pandas version, which `.sum()` couldn't reduce. Fixed by switching to plain `series.isna()` (verified to have byte-identical semantics, including the "empty list is never null" case `_is_null` exists for) — this also turned out to be the *actual* runtime bottleneck (a full build hung for over an hour with zero progress; profiling showed nearly all the time inside `map_infer_mask`), not just a dtype bug.
+  3. A third, separate `map_infer_mask` bottleneck was found the same way (profiling a build that was still slow after fix #2): `_explode_impressions` was building the full ~40-char prefixed ID string via `+` concatenation *before* converting to `category`, and separately running `.str.rsplit("-", n=1, expand=True)` on the full ~81M-row exploded token Series — both are elementwise Python loops under the hood, not vectorized C ops, paying their cost 81M times instead of the ~2.2M (or fewer) times actually needed. Fixed by categorizing raw (unprefixed) values first and prefixing only the small category array, and by splitting article/label tokens at the raw ~2.2M-row level (before exploding) instead of after.
+  - Every fix was verified exact-match against the original loop implementation on real data before being trusted (same discipline as ADR-006's BM25 scoring rewrite), and the full test suite (152 tests) re-verified clean after each round.
+  - Final real numbers: MINDlarge_train's ~83.5M-row exploded impressions table builds in ~163s (512K rows/s) at ~5.2GB peak memory (measured, not projected) — the full `build_all(include_mind_large=True)` run completes in well under the time these fixes made obvious was otherwise impossible.
+  - Row counts verified against Wu et al. (2020)'s real published Table 2/Section 3.2 statistics — fetched via WebFetch and text-extracted with `pypdf` since `ACL2020_MIND.pdf` isn't present anywhere in this repo or the wider filesystem (flagged explicitly rather than silently using memorized numbers). Found and explained a real discrepancy, not a bug: raw parsed counts (train 2,232,748 / dev 376,471 / test 2,370,727) exceed the paper's reported post-filter counts (2,186,683 / 365,200 / 2,341,619) by exactly the count of empty-history rows in each split (verified directly against the raw zips: train diff = 46,065 = exactly the empty-history row count; test matches exactly; dev matches within 1 row). The paper explicitly states "we only kept the samples with non-empty news click history" when reporting its own statistics — the publicly released files (and this project's parser, deliberately, per ADR-005's cold-start philosophy) keep them. Total union article/user counts across train/dev/test (130,379 articles / see test for users) are meaningfully below the paper's full-corpus 161,013/1,000,000 — explained by the paper's own construction description (each split's own news.tsv only covers its own narrow time window, not the full 6-week raw-log period the headline totals describe), documented as a sanity-bound test rather than a false-precision tolerance check.
+  - New tests: `tests/integration/test_schema_conformance.py`'s MINDlarge block (schema conformance, impression-count-vs-paper with the empty-history explanation, article/user-count sanity bounds), all `@pytest.mark.slow`.
+  - Confirmed raw zips and the new `data/processed/mind/large/` tree stay out of git — already covered by the existing `.gitignore`'s `data/` rule, nothing new needed.
+- **Part 2 — Benchmark before trusting anything at MINDlarge scale.** Both BM25 and embeddings benchmarked directly on MINDlarge_dev's real corpus (72,023 articles — this split's own catalog, not the paper's 161,013 full-corpus figure, per ADR-005's "each split's own catalog is the query-time universe" convention) and real user counts (255,990), not projected from MINDsmall. BM25: index build 1.70s, sparse weight matrix 23.5MB (ADR-006's flagged memory-footprint trigger resolved — nowhere near a bottleneck), full retrieval projects to ~9.8 min. Embeddings: encoder throughput 373.6 articles/s (warm-cache; faster than ADR-008's original 172.4/s, plausibly a warm-vs-cold-cache effect), full encode+cache 264.4s, full retrieval projects to ~10.4 min. **Decision: both stay local** — combined full run is well under 25 minutes, far short of the >2hr/exceeds-RAM threshold that would justify a Kaggle GPU detour under CLAUDE.md's Resource Availability clause. Documented as ADR-006 and ADR-008 addenda (not new ADRs, since the fix is the same kind of "benchmark before trusting" verification each ADR's own decision confidence already called for, not a structurally different decision).
+- **Part 3 — Official-format converter, validated against ground truth.** New module `src/submission/mind_format.py`: converts per-impression `Scorer` output into the official `impression_id [rank_1,...,rank_N]` format. The core design problem this module exists to solve: `src/pipeline/orchestrator.py::_write_table` always sorts `impressions`/`candidates` alphabetically by `article_id` before writing to parquet (ADR-002's deterministic-output requirement) — this destroys the original within-impression candidate order the official format needs, so the module re-reads the raw zip directly for ordering (never for scoring, which still goes through the exact same `Scorer`/index interfaces everything else uses). 7 new unit tests (`tests/unit/test_mind_format.py`) using the existing committed MIND fixture zips. Smoke-tested against the real `evaluate.py` on a 3-impression hand-verifiable case first (computed AUC matched a by-hand calculation exactly) before trusting it at real scale.
+  - Generated MINDlarge_dev predictions for both BM25 and embeddings (376,471 impressions each, `scripts/generate_mind_predictions.py`), plus a local ground-truth file from dev's own real labels (Codabench's actual private test-set ground truth is never available to us; dev is the only labeled MINDlarge split usable for this kind of validation).
+  - Ran the real `evaluation/official/evaluate.py` against both prediction sets and compared against `scripts/run_ranking_eval.py --bundle large --method {bm25,embed}`'s own numbers: **AUC and nDCG@5/@10 match almost exactly for both methods** (largest gap 0.0002) — strong evidence the converter's rank extraction and ordering are correct. **MRR disagrees by a real margin** (BM25: 0.3124 vs 0.2706; embed: 0.3476 vs 0.3036) — investigated rather than dismissed, and fully explained: `evaluate.py`'s `mrr_score` sums `1/rank` over *every* clicked candidate and normalizes by click count, while this project's `mrr()` credits only the first hit (the standard single-hit MRR definition) — verified with certainty by recomputing both formulas directly from the same prediction/truth files (28.72% of MINDlarge-dev impressions are multi-click; the two recomputed values matched each tool's reported number to 4 decimal places). Not a bug — a genuine, now-documented metric-definition difference between the two implementations.
+  - **On MINDlarge-dev, embeddings win clearly** (AUC 0.6335 vs BM25's 0.5699, nDCG@10 0.3897 vs 0.3497) — consistent with ADR-008's original MINDsmall finding (embeddings win outright on MIND).
+- Two real, unrelated test regressions found and fixed along the way (not silently worked around): `tests/integration/test_pipeline_end_to_end.py::test_default_build_does_not_touch_mindlarge` was checking the shared real `processed_dir` fixture, which now legitimately has `mind/large` built into it — moved to an isolated `tmp_path` build so the test checks `build_all()`'s own default-argument behavior, not incidental ambient state.
+- Machine-stability notes for future sessions: this 8GB-RAM machine restarted once mid-session (not just slept) during the heaviest build attempt, and two background jobs run concurrently at MINDlarge scale came within a hair of looking like an OOM kill (later confirmed to be a monitor-script false-positive, not an actual crash — both jobs had completed successfully). Running MINDlarge-scale jobs one at a time, not concurrently, is the safer default on this hardware going forward.
+
+### Key Outcomes
+
+- MINDlarge is no longer an unverified, never-exercised code path — it's built, row-count-verified against the real paper, and every real scaling bug it exposed (three in the data pipeline, none in BM25/embedding scoring itself) is fixed, verified, and documented with the actual measured numbers, not estimates.
+- The local-vs-Kaggle resource decision CLAUDE.md's own collaboration model calls for was made with real evidence, not assumption: both retrieval methods comfortably stay local at MINDlarge scale on this machine.
+- Q5's format-conversion risk (the assignment's own README originally guessed the wrong CSV format before the real `evaluate.py` script was found) is now fully retired for the labeled dev split — the same code path Part 4 will use for the blind test split has already been proven correct against real ground truth, not just unit-tested against fixtures.
+
+### Next Session
+
+- Part 4: generate MINDlarge_test (blind) predictions — embeddings won clearly on dev, so that's the primary candidate; BM25 also ready if both are wanted. No local scoring is possible for test (no ground truth), so Part 3's already-passing validation is what stands in for it.
+- Actual Codabench upload + leaderboard screenshot (Q6) needs the engineer's own account/login — cannot be done by Claude Code regardless of how ready the local artifacts are.
+- Q6 design note itself remains not started.
+- Minor, non-blocking: a pre-existing pandas `FutureWarning` (`Index.insert` with object-dtype, inside `validate_table`) surfaced during this session's runs — unrelated to this session's fixes, not chased down.
+
+---
+
+## August 10, 2026 — Housekeeping + Phase 4: Semantic Retrieval Complete
+
+### Completed
+
+- **Part 0 — Housekeeping:** Confirmed `knowledge/ai-usage-log/` is live and this session's prompts are being logged verbatim as the session proceeds (`2026-08-10_phase4-semantic-retrieval-design.md`), not reconstructed afterward. Added a Deliverables Checklist (Q7) to this file, honestly flagging that **Codabench registration for both competitions is still outstanding** — this requires the engineer's own account and cannot be done by Claude Code; flagged explicitly rather than silently skipped.
+- **Part 1 — ADR-008 design (plan mode):** Bundled four sub-decisions (embedding source, encoder choice, ANN backend, user representation/cold-start), following ADR-005/007's precedent. Chose to compute one embedding model over both datasets rather than use EB-NeRD's provided embeddings + a separate MIND model — same single-code-path argument ADR-002 already established for the schema, reapplied here. Added `sentence-transformers` as a new dependency (verified `poetry lock && poetry install` succeeds, per the pyarrow-incident lesson).
+- **Encoder selection, empirically decided, not assumed:** Benchmarked `paraphrase-multilingual-MiniLM-L12-v2` against `multilingual-e5-small` on real MINDsmall-dev articles — both cleared the throughput bar (~6-7 min projected for the full ~75k-article corpus on this machine's MPS backend, no cloud GPU needed), but a same-category-vs-different-category cosine-similarity discrimination check (1,500 real articles, 3,000 sampled pairs) showed MiniLM meaningfully discriminates topically related from unrelated articles (2.4x same/diff ratio, 0.05–0.13 dynamic range) while e5-small — even using its own documented `passage:` prefix convention — compresses nearly everything into a narrow, largely undifferentiated 0.75–0.78 band. This confirmed, with real data, the pre-registered concern that e5's asymmetric retrieval-training objective doesn't fit this project's symmetric user-profile-vs-catalog-article use case. MiniLM chosen.
+- **ANN backend:** Measured brute-force cosine similarity at 0.99ms/query against the largest corpus (MIND-dev, 42,416×384) — confirmed FAISS unjustified at this scale, same "benchmark before adding complexity" lesson ADR-006 established for BM25 scoring. `faiss-cpu` stays an unused, documented pyproject dependency.
+- **Implementation:** `src/retrieval/embed.py` (`EmbeddingIndex`, disk-cached embedding computation, mean-pooled user query construction), `EmbeddingScorer` added to `src/retrieval/score.py` (mirrors `BM25Scorer`'s identity-caching shape; `None` query → all-zero tie, deliberately resolving ADR-007's own flagged Research Trigger about a non-BM25 scorer's cold-start behavior), `embed_retrieve_top_k` added to `src/retrieval/retrieve.py` (factored a shared `_top_k_from_scores` helper out of `retrieve_top_k` for reuse — a justified small refactor, verified behavior-preserving). `scripts/run_embed_experiment.py` (recall@K, mirrors `run_bm25_experiment.py`'s exact shape) and `scripts/run_ranking_eval.py --method embed` (generalized the previously-hardcoded BM25 dispatch into `_build_method`, re-verified byte-identical against ADR-007's recorded BM25 numbers after the refactor).
+- **Benchmarks run on all three corpora BM25 already covers** (MINDsmall-dev, ebnerd_demo-validation, ebnerd_small-validation), both recall@K and the Q4 ranking harness; also backfilled a missing `ranking_bm25_ebnerd_2026-08-10` (demo bundle) run, since ADR-007 had only benchmarked `ebnerd_small` for Q4 ranking, not `demo` — needed for full parity. See Benchmarking Status above and ADR-008 for the complete BM25-vs-semantic comparison.
+- 20 new unit tests (`test_embed.py`, plus `EmbeddingScorer`/`embed_retrieve_top_k` cases added to `test_score.py`/`test_retrieval.py`) and 2 new integration tests (real-encoder end-to-end retrieval on a small real MINDsmall-dev sample; cold-start short-circuit) added. Full suite re-verified: 145 passed, 1 skipped (MIND leakage, expected — no per-click timestamps), 1 deselected (`slow` MINDlarge test, expected), no regressions.
+- Wrote `decisions/ADR-008-semantic-retrieval-design.md`.
+
+### Key Outcomes
+
+- **The Day-1 working hypothesis does not hold as stated.** On MIND, embeddings beat BM25 on *both* recall@K and Q4 AUC, across *both* warm and cold cohorts — not just cold, as the hypothesis predicted. The warm/cold gap itself is similar in size for both methods; embeddings raise the whole curve rather than specifically closing the cold-start gap. Reported honestly as a finding against the hypothesis, not reframed to fit it.
+- **On EB-NeRD, recall@K and Q4 ranking disagree on which method is better** — BM25 clearly wins whole-corpus recall@K (1.6–2.3x higher), embeddings slightly edge out BM25 on ranking the already-curated candidate list. A structurally real result (different evaluation questions), not noise — plausibly explained by EB-NeRD's much longer median history producing a diffuse whole-catalog query that still discriminates adequately within a short, pre-curated candidate list.
+- **True (zero-history) cold-start remains a shared ceiling neither method solves** — MIND's cold-cohort recall@200 converges to nearly the same number under both methods (1.78% BM25 vs. 1.81% embed), for different underlying reasons (no vocabulary vs. no vector). Consistent with, not a new instance of, ADR-005's original cold-start finding — reported the same way rather than treated as requiring a new fallback strategy.
+- The encoder-selection benchmark is a clean example of this project's evidence hierarchy in practice: theoretical reasoning (the Sentence-BERT paper) correctly picked the right *category* of solution, but a real measurement was needed to pick the right *model within that category* — and it overturned the naive assumption that a retrieval-tuned model would obviously win.
+
+### Next Session
+
+- Q5: generate Codabench prediction files, submit to both leaderboards (blocked on the engineer completing Codabench registration first), capture screenshots.
+- Q6: write the design note (≤4 pages) — ADR-008's Interpretation section and this session's comparison table are the primary source material.
+- Update `README.md` with `run_embed_experiment.py` usage (flagged, not done this session).
+
+---
+
+## August 10, 2026 — ebnerd_small Verification + Q4 Ranking Evaluation Harness Complete
+
+### Completed
+
+- **Part 1 — `ebnerd_small` verification:** Downloaded `ebnerd_small.zip` (publicly accessible, no registration wall despite `download.py`'s docstring claiming otherwise — flagged as minor documentation drift, not corrected this session), inspected its raw zip structure against `ebnerd_demo`'s before trusting the existing parser, wired it into `orchestrator.build_all(include_ebnerd_small=True)` mirroring the `include_mind_large` opt-in pattern, and built the full feature store (20,738 articles; 15,143/15,342 train/validation users; 2,585,747/2,928,942 impressions). Schema conformance, referential integrity, and row-count regression checks all pass, identical to `ebnerd_demo`. Confirmed the cold-start finding generalizes: `ebnerd_small`'s validation split also has zero users below the `<5` threshold (min history = 5) — structural to the active-user-filtered bundle construction, not a `demo`-only artifact. Re-ran the BM25 benchmark against it (added `--bundle` to `run_bm25_experiment.py`): recall@200 = 2.77% (lower in absolute terms than demo's 4.02%, but the corpus is 1.76x larger; relative-to-random lift is actually higher, 2.87x vs. 2.37x). Documented as an ADR-002 addendum, ticked the relevant "Conditions for Revisiting" checkboxes in both ADR-002 and ADR-005 rather than leaving them stale.
+- **Part 2 — Q4 ranking evaluation harness:** Designed via a dedicated Plan-agent pass grounded in real impression-candidate-count/click-rate statistics pulled from the processed data before implementing (median 23 candidates/impression for MIND, 9–12 for EB-NeRD; 0 degenerate all-clicked/all-unclicked impressions found in either dataset; multi-click impressions real, up to 24 in one MIND impression). Extracted `src/retrieval/score.py` (`score_all`, `Scorer` Protocol, `BM25Scorer`) from logic previously inlined in `retrieve_top_k`, adding `id_to_col` to `BM25Index` — this is the generic scoring seam Phase 4's embedding scorer will plug into as a second consumer. Extracted `src/evaluation/bootstrap.py` from `recall_at_k`'s previously-inlined bootstrap logic, pinned behavior-identical by a new test (`test_metrics.py`) written *before* the refactor, per CLAUDE.md's "extend, don't duplicate" guidance. Implemented `src/evaluation/ranking_metrics.py`: AUC (sklearn, degenerate-impression-safe), MRR, nDCG@5/@10 (binary relevance), intra-list diversity (category-based), novelty (train-split-only popularity per Q9's anti-gaming requirement, Laplace-smoothed against ADR-002's measured 32.9%/45.7% train/validation article-set gap), and catalog coverage (deliberately given no bootstrap CI — a set-union statistic is mechanically biased under with-replacement resampling, a structural argument, not a style choice). Built `scripts/run_ranking_eval.py` and ran it against BM25 on both MINDsmall-dev (73,152 impressions) and `ebnerd_small`-validation (244,647 impressions).
+- Wrote `decisions/ADR-007-ranking-evaluation-design.md`, bundling four related sub-decisions (tie-break rule, diversity/novelty K=10, novelty's train-only popularity source, coverage's CI omission) the same way ADR-005 bundled three — they're facets of one question, not independent choices.
+- 41 new unit/integration tests added (`test_score.py`, `test_bootstrap.py`, `test_metrics.py`, `test_ranking_metrics.py`, `test_ranking_eval_pipeline.py`, plus `ebnerd_small` schema-conformance cases); full existing suite re-verified with no regressions (`retrieve_top_k`'s behavior unchanged after the `score_all` extraction; `recall_at_k`'s bootstrap output byte-identical after the refactor).
+
+### Key Outcomes
+
+- `ebnerd_small` is verified, built, and benchmarked — the last open question ADR-001/ADR-002/ADR-005 all flagged about EB-NeRD's schema/cold-start generalization beyond the `demo` bundle is now resolved with real evidence, not assumption.
+- The Q4 ranking harness surfaced a genuine, non-obvious finding rather than just producing numbers: AUC and nDCG *disagree* on which dataset "ranks better" (MIND wins on AUC, EB-NeRD wins on nDCG), and the disagreement is fully explained by candidate-list-length differences between the datasets, not a bug — directly demonstrating why Q4 mandates multiple metrics instead of one. On MIND specifically, warm/cold shows the expected AUC gap but a much smaller nDCG gap, traced to the cold-user tie-break producing near-random (but honestly, not artificially inflated) rankings.
+- Both this session's real engineering decisions (score-vs-rank interface split, bootstrap extraction, tie-break rule, novelty/coverage definitions) were made and documented *before* being needed by a second consumer — Phase 4 (semantic retrieval) should be able to plug into `Scorer` and the harness without rewriting either, which was the explicit design goal, not an incidental benefit.
+
+### Next Session
+
+- Begin Phase 4: semantic retrieval design (embedding model choice — provided EB-NeRD embeddings vs. computing MIND's own via BERT/XLM-RoBERTa — and ANN backend, per the assignment's Q3).
+- Implement a `Scorer` + query-builder pair for the chosen embedding method; run it through the existing, unchanged Q4 harness for the BM25-vs-semantic comparison this project has been building toward since Day 1's working hypothesis.
+
+---
 
 ## August 5, 2026 — Project Initialization
 
@@ -223,6 +439,32 @@ Experiment results will be recorded in the `experiments/` directory as implement
 
 - Begin Phase 3: BM25 retrieval design (variant choice, query construction) — first open engineering question in the list above.
 - Consider whether semantic retrieval design should proceed in parallel or sequentially after BM25 is benchmarked.
+
+---
+
+## August 10, 2026 — Phase 3: BM25 Lexical Retrieval Complete
+
+### Completed
+
+- Designed query construction and BM25 variant via plan mode before implementing, grounded in ADR-002's flagged MIND-history-order risk (rejected recency weighting on that basis) and the EB-NeRD paper's own active-user filter (5–1,000 clicks, adopted directly as the warm/cold threshold rather than inventing a project-local number).
+- Implemented `src/retrieval/{tokenize,index,query,retrieve}.py` and `src/evaluation/metrics.py` (recall@K + bootstrap CI), plus `scripts/run_bm25_experiment.py`.
+- Found and fixed two real defects, neither visible without running the real pipeline at real scale (both documented as benchmark-driven ADR amendments, not silently absorbed into the implementation):
+  - `rank_bm25.get_scores()`'s per-query-token Python loop projected to 10+ hours at MINDsmall-dev's real scale (50,000 users x 42,416 articles); replaced with a sparse-matrix scorer reproducing the exact same formula (`idf`/`doc_freqs`/`doc_len`/`avgdl`/`k1`/`b` all taken directly from a fitted `rank_bm25.BM25Okapi`), verified byte-for-byte against the library's own output on 30 real users before being trusted, cutting the full run to ~80 seconds.
+  - EB-NeRD's long per-user histories (up to 1,459 articles), concatenated unweighted into one query, produced queries whose term-count mass was dominated by high-document-frequency Danish/English function words — measured directly to push recall@50/100 *below* the random-retrieval baseline. Root-caused (not guessed) by inspecting a real query's most frequent tokens, then fixed with stopword removal in the shared tokenizer, verified via a 4-way tokenization variant comparison on a 1,500-impression sample (chosen variant: multiset + stopwords removed, NOT deduplication — deduplication was tested and made things worse).
+- Ran full production benchmarks on both datasets (`experiments/bm25_mind_2026-08-10/`, `experiments/bm25_ebnerd_2026-08-10/`): MIND-small dev recall@200 = 2.62% (warm 2.73% / cold 1.78%, 8,014 cold users incl. 1,407 zero-history); EB-NeRD validation recall@200 = 4.02% (cold cohort empty by construction — every ebnerd_demo validation user has history length >= 5). Both clear their random baseline by a real margin (5.6x / 2.4x).
+- Wrote ADR-005 (Query Construction) and ADR-006 (BM25 Variant) documenting both the pre-benchmark design reasoning and the mid-flight, evidence-driven corrections above; updated ARCHITECTURE.md's Retrieval component and Feature Store→Retrieval interface from placeholders to the actual implemented design.
+- 17 new unit/integration tests added; full existing suite (76 passed, 1 skipped, 1 slow-deselected) re-verified with no regressions.
+
+### Key Outcomes
+
+- BM25 baseline is implemented, correctness-verified against the mandated library, and benchmarked on both datasets — ready to serve as Q4's lexical-retrieval side of the BM25-vs-semantic comparison.
+- Both real engineering issues this session (the scoring-performance ceiling, the stopword-mass defect) were caught by benchmarking against real data at real scale, not by code review or small unit-test fixtures — neither would have been visible from the tiny hand-built test fixtures alone, consistent with CLAUDE.md's "benchmark before you trust a decision" principle.
+- EB-NeRD demo's structural lack of cold-start users (confirmed: min history = 5) means the warm/cold BM25 comparison the assignment requires is only meaningful for MIND in this project's current data — flagged as an open question for `ebnerd_small`/`ebnerd_large`, not silently glossed over.
+
+### Next Session
+
+- Begin Phase 4: semantic retrieval design (embedding model choice, ANN backend — open questions above).
+- Re-benchmark the BM25 sparse-matrix scorer's memory/time profile before MINDlarge enters scope (unmeasured beyond MINDsmall-dev).
 
 ---
 
