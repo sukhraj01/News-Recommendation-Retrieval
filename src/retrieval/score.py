@@ -59,6 +59,38 @@ class Scorer(Protocol):
         ...
 
 
+def _lookup_scores(full: np.ndarray, id_to_col: dict, candidate_ids: Sequence[str]) -> np.ndarray:
+    """Look up each candidate's precomputed corpus-wide score by column.
+
+    A candidate id absent from the index has no content to score against
+    either method — this is a different situation from ADR-005/008's
+    cold-start (no *query*, every candidate scored identically); here the
+    *item itself* is unrepresented. Discovered on real MINDlarge_test data:
+    `N89741` is referenced in `behaviors.tsv` as a candidate but is absent
+    from that split's own `news.tsv` (confirmed against the raw zip; train
+    and dev have zero such gaps — a one-article quirk isolated to test).
+    Scored -inf so it deterministically ranks last rather than crashing or
+    landing arbitrarily among candidates we do have signal for.
+
+    The common case (all candidates known) stays on the fast vectorized
+    path; the fallback loop only runs for the rare impression that actually
+    hits a missing id.
+    """
+    try:
+        cols = np.fromiter(
+            (id_to_col[c] for c in candidate_ids), dtype=np.int64, count=len(candidate_ids)
+        )
+        return full[cols]
+    except KeyError:
+        pass
+
+    scores = np.empty(len(candidate_ids), dtype=np.float64)
+    for i, c in enumerate(candidate_ids):
+        col = id_to_col.get(c)
+        scores[i] = full[col] if col is not None else -np.inf
+    return scores
+
+
 class BM25Scorer:
     """Scores a fixed candidate subset against a BM25 index.
 
@@ -87,12 +119,7 @@ class BM25Scorer:
         if full is None or full.size == 0:
             return np.zeros(len(candidate_ids))
 
-        cols = np.fromiter(
-            (self.index.id_to_col[c] for c in candidate_ids),
-            dtype=np.int64,
-            count=len(candidate_ids),
-        )
-        return full[cols]
+        return _lookup_scores(full, self.index.id_to_col, candidate_ids)
 
 
 class EmbeddingScorer:
@@ -137,9 +164,4 @@ class EmbeddingScorer:
         if full is None or full.size == 0:
             return np.zeros(len(candidate_ids))
 
-        cols = np.fromiter(
-            (self.index.id_to_col[c] for c in candidate_ids),
-            dtype=np.int64,
-            count=len(candidate_ids),
-        )
-        return full[cols]
+        return _lookup_scores(full, self.index.id_to_col, candidate_ids)

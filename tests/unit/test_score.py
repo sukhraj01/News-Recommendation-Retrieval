@@ -51,6 +51,20 @@ def test_bm25_scorer_subset_matches_score_all_at_same_positions():
     np.testing.assert_array_equal(subset, expected)
 
 
+def test_bm25_scorer_unknown_candidate_id_scores_negative_infinity():
+    """Real MINDlarge_test data quirk: a candidate referenced in
+    behaviors.tsv but absent from that split's own news.tsv (N89741) must
+    not crash scoring — it has no content to score, so it's ranked last
+    deterministically rather than raising KeyError."""
+    index = _index()
+    scorer = BM25Scorer(index)
+    query = ["football"]
+    subset = scorer.score(query, ["a3", "unknown_id", "a1"])
+    assert subset[1] == -np.inf
+    assert np.isfinite(subset[0])
+    assert np.isfinite(subset[2])
+
+
 def test_bm25_scorer_empty_query_returns_correctly_shaped_zero_array():
     index = _index()
     scorer = BM25Scorer(index)
@@ -128,6 +142,16 @@ def test_embedding_scorer_subset_matches_full_at_same_positions():
     subset = scorer.score(query, candidate_ids)
     expected = np.array([full[index.id_to_col[c]] for c in candidate_ids])
     np.testing.assert_array_equal(subset, expected)
+
+
+def test_embedding_scorer_unknown_candidate_id_scores_negative_infinity():
+    index = _embedding_index()
+    scorer = EmbeddingScorer(index)
+    query = np.array([1.0, 0.0], dtype=np.float32)
+    scores = scorer.score(query, ["a1", "unknown_id", "a3"])
+    assert scores[1] == -np.inf
+    assert np.isfinite(scores[0])
+    assert np.isfinite(scores[2])
 
 
 def test_embedding_scorer_none_query_returns_zero_tie():
