@@ -359,7 +359,7 @@ Revisit if:
 
 Revisit if:
 
-- [x] `ebnerd_small`/`ebnerd_large` reveal a different schema than `ebnerd_demo`
+- [x] ~~`ebnerd_small`/`ebnerd_large` reveal a different schema than `ebnerd_demo`~~ **Resolved (2026-08-10 addendum): `ebnerd_small` schema is identical to `ebnerd_demo`; `ebnerd_large` remains unverified.**
 - [ ] Significant new research appears
 
 ---
@@ -488,3 +488,97 @@ Not applicable — see "Expected Benchmarks" above.
 2. `entities` was proposed as "EB-NeRD only." Both datasets have populated entity fields (MIND 73.0% nonempty, EB-NeRD 85.7% nonempty) — they're structurally incompatible with each other (Wikidata-linked vs. Danish NER clusters), not exclusive to one dataset. Documented as present-in-both, raw passthrough.
 3. `source` (articles table) renamed to `dataset` for consistency with the `impressions`/`user_history` tables, which already used `dataset` in the original proposal.
 4. The **discrepancy resolution** (assignment's 2.7M users/600M+ impressions vs. paper's ~1M/37M active-user-filtered subset vs. `ebnerd_demo`'s directly-measured 1,590 train-window users/1,562 validation-window users, 24,724+25,356 impressions) is carried forward from the Phase 1B.2 schema analysis at **medium confidence** — it is inference from the papers' stated methodology plus `ebnerd_demo`'s structural match to that methodology (verified in ADR-001: 21-day-history/7-day-window cadence), not a direct inspection of `ebnerd_small`/`ebnerd_large`, which remain undownloaded. Flagged as a condition for revisiting above.
+
+---
+
+# Addendum — `ebnerd_small` Verification (2026-08-10)
+
+**Status:** Resolves the open question this ADR flagged above ("`ebnerd_small`/`ebnerd_large` haven't been inspected" / "Re-run the same schema inspection against `ebnerd_small`/`ebnerd_large` before relying on them"). Per CLAUDE.md's decision-reversal guidance, this is appended rather than rewriting the original decision — the original schema design was correct; what was unverified is now verified.
+
+## What was checked
+
+`ebnerd_small.zip` (84,135,301 bytes) was downloaded from the assignment's S3 bucket
+(`https://ebnerd-dataset.s3.eu-west-1.amazonaws.com/ebnerd_small.zip`) — publicly
+accessible with no registration/auth wall, which is worth noting since
+`src/pipeline/download.py`'s module docstring currently describes EB-NeRD as
+"consent/terms-gated (registration required)"; that claim is now known to be
+inaccurate for this specific S3 distribution (not corrected in the download
+module itself as part of this addendum — flagged here as a minor,
+non-blocking documentation drift, since `ensure_raw_data()`'s actual behavior,
+manual placement under `data/raw/ebnerd/`, still works regardless of why).
+
+1. **Raw zip structure** — inspected via `unzip -l` before trusting
+   `src/datasets/ebnerd.py`'s existing parse code against it: identical
+   member layout to `ebnerd_demo.zip` (top-level `articles.parquet`,
+   `{train,validation}/behaviors.parquet`, `{train,validation}/history.parquet`,
+   plus the same `__MACOSX/` junk entries the loader already knows to
+   ignore). No structural surprises.
+2. **Schema conformance** — built via the existing, already-generic
+   `build_ebnerd_bundle()` (zero code changes needed, confirming ADR-002's
+   own design goal: the unified schema doesn't care which EB-NeRD bundle
+   feeds it) and validated against `ARTICLES_SCHEMA`/`IMPRESSIONS_SCHEMA`/
+   `USER_HISTORY_SCHEMA` — **passes, identical to `ebnerd_demo`**. Referential
+   integrity (every `article_id` in `impressions`/`user_history` exists in
+   `articles`) and the impressions-row-count-vs-raw-candidate-count
+   regression check both pass. New tests:
+   `tests/integration/test_schema_conformance.py::test_ebnerd_small_*`
+   (mirrors the existing `ebnerd_demo` parametrization).
+3. **Temporal structure** — validation window `2023-05-25 → 2023-06-01`
+   (identical 7-day window to `ebnerd_demo`'s validation split, per
+   ADR-001), confirming the 21-day-history/7-day-window cadence generalizes
+   beyond the demo bundle, not just an artifact of demo's specific sampling.
+4. **Cold-start distribution** — the open question ADR-005 specifically
+   flagged as a revisit trigger: **`ebnerd_small`'s validation split also
+   has zero users below the `<5` history-length threshold** (min history =
+   5, exactly like `ebnerd_demo`). This is not a demo-only artifact — it's
+   structural to how EB-NeRD's `small`/`demo` bundles are both sampled from
+   the paper's active-user-filtered population (5–1,000 clicks). **The
+   warm/cold BM25 comparison remains genuinely unavailable for EB-NeRD**,
+   confirmed at a second, larger, independently-downloaded bundle rather
+   than assumed to generalize from one data point.
+5. **Recall benchmark** (`experiments/bm25_ebnerd_small_2026-08-10/`),
+   compared against the existing demo numbers (ADR-006):
+
+   | Metric | ebnerd_demo (ADR-006) | ebnerd_small | Change |
+   |---|---|---|---|
+   | Corpus size | 11,777 articles | 20,738 articles | 1.76x larger |
+   | Validation users | 1,562 | 15,342 | 9.8x larger |
+   | Positive impressions | 25,356 | 245,622 | 9.7x larger |
+   | recall@50 | 1.01% (0.85–1.17%) | 0.72% (0.68–0.76%) | lower |
+   | recall@100 | 2.13% (1.90–2.37%) | 1.44% (1.38–1.49%) | lower |
+   | recall@200 | 4.02% (3.69–4.39%) | 2.77% (2.69–2.85%) | lower |
+   | Random baseline @200 | 1.70% | 0.96% | — |
+   | Lift over random @200 | 2.37x | **2.87x** | *higher* |
+
+## Interpretation
+
+Absolute recall@K is lower on `ebnerd_small` than `ebnerd_demo`, but this
+tracks the corpus growing 1.76x (recall@fixed-K over a bigger haystack is
+mechanically harder, not a sign the retrieval got worse) — the
+lift-over-random figure, which normalizes for corpus size, is actually
+*higher* on `ebnerd_small` (2.87x vs. 2.37x), consistent with the same BM25
+signal holding up, or even strengthening slightly, at 10x the user/impression
+scale. This is a real, reportable finding (both numbers ship, not just the
+favorable one), not a discrepancy that needed explaining away.
+
+## Confidence impact
+
+This addendum moves several of ADR-002's own "Decision Confidence" caveats
+from unverified to verified: `ebnerd_small` shares `ebnerd_demo`'s exact
+column structure (previously listed as "haven't been inspected"). ADR-002's
+overall confidence should be read as **Medium → Medium-High** as a result —
+still not High, because the Q4 diversity/coverage stress-test and the
+EB-NeRD subcategory-string-mapping gap (both called out in the original
+Decision Confidence section) remain genuinely open, unrelated to this
+addendum.
+
+## Related
+
+- Resolves the `ebnerd_small`/`ebnerd_large` schema-verification open
+  question in this ADR's own "Conditions for Revisiting" and in
+  `PROJECT_STATE.md`'s "Open Engineering Questions."
+- Confirms ADR-005's cold-start-threshold finding ("EB-NeRD has no cold
+  users") is a property of the active-user-filtered `demo`/`small`
+  bundles, not a `demo`-only artifact — ADR-005's own revisit trigger for
+  this is now resolved the same way.
+- `experiments/bm25_ebnerd_small_2026-08-10/{config,results}.json`

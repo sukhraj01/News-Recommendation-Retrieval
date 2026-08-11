@@ -75,12 +75,17 @@ def build_all(
     raw_dir: Path = RAW_DIR,
     processed_dir: Path = PROCESSED_DIR,
     include_mind_large: bool = False,
+    include_ebnerd_small: bool = False,
 ) -> None:
     """Rebuild the entire feature store from raw files.
 
     Default scope (fast tier): MINDsmall (train+dev) + ebnerd_demo
-    (train+validation). MINDlarge is a separate, slower tier — pass
-    include_mind_large=True to also build it (train+dev+test).
+    (train+validation). MINDlarge and ebnerd_small are separate, opt-in
+    tiers — pass include_mind_large=True / include_ebnerd_small=True to
+    also build them. ebnerd_small is EB-NeRD's "final training" tier per
+    the assignment's Part 0 (demo = quick iteration); unlike MINDlarge it's
+    small enough (~93MB zip) not to need a `slow`-marked test, but it's
+    still excluded from the default build since most work only needs demo.
     """
     ensure_raw_data()
     print("✓ Raw data present")
@@ -99,6 +104,9 @@ def build_all(
         build_mind_split(mind_raw / "MINDlarge_train.zip", "train", mind_out / "large")
         build_mind_split(mind_raw / "MINDlarge_dev.zip", "dev", mind_out / "large")
         build_mind_test(mind_raw / "MINDlarge_test.zip", mind_out / "large")
+
+    if include_ebnerd_small:
+        build_ebnerd_bundle(ebnerd_raw / "ebnerd_small.zip", ebnerd_out / "small")
 
     print("✓ Parsed unified schema")
     print("✓ Temporal split preserved (official train/dev/validation boundaries)")
