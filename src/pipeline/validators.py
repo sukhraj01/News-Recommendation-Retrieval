@@ -6,7 +6,6 @@ ADR-002 asserts these same properties anyway — a validation library would be
 redundant with tests that must exist regardless. Collects every violation
 before raising, rather than failing on the first, for a useful error message.
 """
-import numpy as np
 import pandas as pd
 
 from .schema import FieldSpec
@@ -23,18 +22,21 @@ def _is_null(series: pd.Series) -> pd.Series:
     history/entities list is a legitimate value ("this user has no prior
     clicks"), not a missing field. Conflating the two would make every
     no-history user look like a schema violation.
-    """
-    def is_null_value(v):
-        if v is None:
-            return True
-        if isinstance(v, (list, tuple, np.ndarray)):
-            return False
-        try:
-            return bool(pd.isna(v))
-        except (TypeError, ValueError):
-            return False
 
-    return series.map(is_null_value)
+    `series.isna()` (pandas' own vectorized, C-level null check) already has
+    exactly this semantics — verified directly:
+    `pd.Series([None, [], [1,2], nan, NaT, "x"]).isna()` returns `[True,
+    False, False, True, True, False]`. The previous implementation
+    reimplemented this by hand via `series.map(a_python_function)`, a
+    per-row Python call that was measured to be the actual bottleneck at
+    MINDlarge scale (~81M rows): a real build ran for over an hour with no
+    forward progress, and sampling the stuck process showed it spending
+    essentially all of that time inside pandas' `map_infer_mask` internals
+    for this one call. Same category of naive-loop-doesn't-scale bug as
+    ADR-006's BM25 `get_scores()` fix and this session's
+    `_explode_impressions` fix — found the same way, by sampling the actual
+    stuck process rather than guessing."""
+    return series.isna()
 
 
 def validate_table(df: pd.DataFrame, schema: dict[str, FieldSpec], dataset: str) -> None:

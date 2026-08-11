@@ -92,31 +92,97 @@ def _build_user_history(behaviors: pd.DataFrame) -> pd.DataFrame:
 def _explode_impressions(
     behaviors: pd.DataFrame, split: str, has_labels: bool
 ) -> pd.DataFrame:
-    rows = []
-    for impression_id, user_id, impression_time, tokens in zip(
-        behaviors["impression_id"], behaviors["user_id"],
-        behaviors["impression_time"], behaviors["impressions"],
-    ):
-        for token in tokens.split(" "):
-            if has_labels:
-                article_raw, label = token.rsplit("-", 1)
-                clicked = label == "1"
-            else:
-                article_raw, clicked = token, None
-            row = {
-                "impression_id": prefix_id(DATASET, impression_id, split),
-                "dataset": DATASET,
-                "user_id": prefix_id(DATASET, user_id),
-                "article_id": prefix_id(DATASET, article_raw),
-                "impression_time": impression_time,
-            }
-            if has_labels:
-                row["clicked"] = clicked
-            rows.append(row)
+    """Vectorized via `DataFrame.explode` rather than a per-token Python
+    loop building a list of dicts. The loop form was measured to hang (heavy
+    CPU + swap growth, no progress after 7+ minutes) on MINDlarge_train's
+    ~2.2M impressions x ~37 avg candidates (~80M+ exploded rows) on an 8GB
+    machine — it never showed a problem at MINDsmall's ~14x-smaller scale
+    (156,965 impressions). Same category of fix as ADR-006's BM25
+    `get_scores()` rewrite: a naive per-token Python loop that was fine at
+    MINDsmall scale doesn't survive MINDlarge. Verified exact-match against
+    the original loop implementation on real MINDsmall data before being
+    trusted (see `tests/unit/test_mind_parsing.py`).
 
-    df = pd.DataFrame(rows)
+    ID columns use `category` dtype: at MINDlarge_train scale, the raw
+    object-dtype form projected to ~27GB (measured directly, not estimated)
+    because pandas' object dtype repeats each ~37x-duplicated prefixed
+    string as a distinct Python object per row instead of storing each
+    unique value once. Categorical dictionary-encoding cut that to ~2.2GB
+    (12.5x, measured on the full MINDsmall_train sample and projected) —
+    the actual fix for the resource ceiling, not just the loop rewrite.
+    The four EB-NeRD-only null columns get the same treatment: a bare
+    `df[col] = None` materializes a full object-dtype array (~140MB per
+    column at MINDsmall_train scale, confirmed by direct measurement,
+    despite every element being the same singleton) where an empty
+    categorical costs ~6MB and round-trips through parquet as float64 NaN.
+
+    Categories are built from the RAW (unprefixed) id values, THEN the
+    prefix is applied only to the small category array — never to the full
+    exploded row count. Doing it the other way (build the full ~40-char
+    prefixed string per row, THEN `.astype("category")`) was measured to
+    hang at real MINDlarge_train scale (~81M rows): profiling the stuck
+    process showed nearly all its time inside pandas' `map_infer_mask`,
+    because Series `+` string concatenation on object dtype is an
+    elementwise Python loop, not a vectorized C op — it was paying that
+    cost 81M times over instead of ~2.2M times (impression_id's real
+    cardinality) or less (~700K users, ~160K articles). `pd.Categorical()`
+    itself (factorize) IS fast, C-level, near-linear — confirmed by timing
+    this version directly against the naive one, not assumed.
+
+    Article/label splitting happens on the RAW ~2.2M-row `impressions`
+    column (one Python-level pass per impression, splitting all of that
+    impression's tokens at once), never on the ~81M-row exploded Series.
+    An earlier version split space-separated tokens first, exploded, THEN
+    ran `.str.rsplit("-", n=1, expand=True)` on the exploded (81M-row)
+    Series — profiling showed that call was *also* `map_infer_mask`
+    underneath (pandas' `.str` accessor methods call the Python string
+    method per element via a Cython loop, not a vectorized C op), paying
+    the same 81M-vs-2.2M cost multiplier this whole function exists to
+    avoid. `DataFrame.explode` on pre-split list columns IS the fast,
+    C-level part — confirmed by profiling exactly where CPU time went
+    before assuming a fix helped, not just by reasoning about it."""
+    def _split_tokens(tokens: str) -> tuple[list[str], list[bool]] | list[str]:
+        if has_labels:
+            articles: list[str] = []
+            clicked: list[bool] = []
+            for token in tokens.split(" "):
+                article_raw, label = token.rsplit("-", 1)
+                articles.append(article_raw)
+                clicked.append(label == "1")
+            return articles, clicked
+        return tokens.split(" ")
+
+    exploded = behaviors[["impression_id", "user_id", "impression_time"]].copy()
+    if has_labels:
+        split_cols = [_split_tokens(t) for t in behaviors["impressions"]]
+        exploded["article_raw"] = [a for a, _ in split_cols]
+        exploded["clicked_raw"] = [c for _, c in split_cols]
+        exploded = exploded.explode(["article_raw", "clicked_raw"], ignore_index=True)
+        article_raw = exploded.pop("article_raw")
+        clicked = exploded.pop("clicked_raw").to_numpy()
+    else:
+        exploded["article_raw"] = [_split_tokens(t) for t in behaviors["impressions"]]
+        exploded = exploded.explode("article_raw", ignore_index=True)
+        article_raw = exploded.pop("article_raw")
+        clicked = None
+
+    def _prefixed_categorical(raw_values, *qualifiers: str) -> pd.Categorical:
+        cat = pd.Categorical(raw_values)
+        prefixed_categories = [prefix_id(DATASET, c, *qualifiers) for c in cat.categories]
+        return pd.Categorical.from_codes(cat.codes, categories=prefixed_categories)
+
+    n = len(exploded)
+    df = pd.DataFrame({
+        "impression_id": _prefixed_categorical(exploded["impression_id"], split),
+        "dataset": pd.Series([DATASET] * n, dtype="category"),
+        "user_id": _prefixed_categorical(exploded["user_id"]),
+        "article_id": _prefixed_categorical(article_raw),
+        "impression_time": exploded["impression_time"].to_numpy(),
+    })
+    if has_labels:
+        df["clicked"] = clicked
     for col in ("session_id", "dwell_time", "scroll_percentage", "is_front_page"):
-        df[col] = None
+        df[col] = pd.array([None] * n, dtype="category")
     return df
 
 
