@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 
+from src.retrieval.embed import EmbeddingIndex
 from src.retrieval.index import build_index
-from src.retrieval.score import BM25Scorer, score_all
+from src.retrieval.score import BM25Scorer, EmbeddingScorer, score_all
 
 
 def _index():
@@ -89,3 +90,81 @@ def test_bm25_scorer_matches_retrieve_top_k_ranking():
     scores = scorer.score(query, all_candidates)
     ranked = [aid for aid, _ in sorted(zip(all_candidates, scores), key=lambda x: -x[1])][:2]
     assert set(ranked) == set(top2)
+
+
+def _embedding_index():
+    # 3 docs, 2-dim unit vectors: a1/a2 near-identical direction, a3 orthogonal.
+    article_ids = ["a1", "a2", "a3"]
+    vectors = np.array([
+        [1.0, 0.0],
+        [0.9, np.sqrt(1 - 0.9 ** 2)],
+        [0.0, 1.0],
+    ], dtype=np.float32)
+    return EmbeddingIndex(
+        article_ids=article_ids,
+        id_to_col={aid: i for i, aid in enumerate(article_ids)},
+        vectors=vectors,
+    )
+
+
+def test_embedding_scorer_ranks_by_cosine_similarity():
+    index = _embedding_index()
+    scorer = EmbeddingScorer(index)
+    query = np.array([1.0, 0.0], dtype=np.float32)  # matches a1 exactly
+    scores = scorer.score(query, ["a1", "a2", "a3"])
+    # a1 (identical direction) > a2 (close) > a3 (orthogonal)
+    assert scores[0] > scores[1] > scores[2]
+    np.testing.assert_allclose(scores[0], 1.0, atol=1e-6)
+    np.testing.assert_allclose(scores[2], 0.0, atol=1e-6)
+
+
+def test_embedding_scorer_subset_matches_full_at_same_positions():
+    index = _embedding_index()
+    scorer = EmbeddingScorer(index)
+    query = np.array([0.0, 1.0], dtype=np.float32)
+    full = scorer.score(query, index.article_ids)
+
+    candidate_ids = ["a3", "a1"]  # deliberately out of index order
+    subset = scorer.score(query, candidate_ids)
+    expected = np.array([full[index.id_to_col[c]] for c in candidate_ids])
+    np.testing.assert_array_equal(subset, expected)
+
+
+def test_embedding_scorer_none_query_returns_zero_tie():
+    index = _embedding_index()
+    scorer = EmbeddingScorer(index)
+    candidate_ids = ["a1", "a2", "a3"]
+    scores = scorer.score(None, candidate_ids)
+    assert scores.shape == (3,)
+    assert np.all(scores == 0)
+
+
+def test_embedding_scorer_caches_by_query_identity_not_equality():
+    index = _embedding_index()
+    scorer = EmbeddingScorer(index)
+    query = np.array([1.0, 0.0], dtype=np.float32)
+
+    scorer.score(query, ["a1"])
+    cached_scores_obj = scorer._cached_scores
+    scorer.score(query, ["a2"])
+    assert scorer._cached_scores is cached_scores_obj  # same object -> cache hit
+
+    equal_but_different_query = np.array([1.0, 0.0], dtype=np.float32)
+    scorer.score(equal_but_different_query, ["a1"])
+    assert scorer._cached_scores is not cached_scores_obj  # different object -> recompute
+
+
+def test_embedding_scorer_none_query_cache_does_not_collide_with_real_query():
+    index = _embedding_index()
+    scorer = EmbeddingScorer(index)
+
+    none_scores = scorer.score(None, ["a1", "a2", "a3"])
+    assert np.all(none_scores == 0)
+
+    real_scores = scorer.score(np.array([1.0, 0.0], dtype=np.float32), ["a1", "a2", "a3"])
+    assert not np.all(real_scores == 0)
+
+    # Calling with None again after a real query must recompute the tie,
+    # not reuse the real query's cached scores.
+    none_again = scorer.score(None, ["a1", "a2", "a3"])
+    assert np.all(none_again == 0)

@@ -6,17 +6,20 @@ fixed-candidate-list ranking (Q4's evaluation harness).
 "turn query tokens into a dense score-per-doc vector" is needed by both
 callers, so it lives here once rather than being duplicated.
 
-The `Scorer` Protocol is the seam a future second retrieval method plugs
-into: BM25 is the first consumer, and neither the ranking metrics nor the
-harness driver need to know which one they're calling. `query` is
-deliberately typed `Any` since a future method's query representation
-won't share BM25's token-list shape, only this call *contract*.
+The `Scorer` Protocol is the seam Phase 4 (semantic retrieval) plugs into:
+BM25 is the first consumer, embeddings the second (`EmbeddingScorer`,
+below), and neither the ranking metrics nor the harness driver need to know
+which one they're calling. `query` is deliberately typed `Any` — BM25's
+query is a token list, an embedding scorer's query is a dense vector (or
+`None` for a true cold-start user); the two methods don't share a query
+*representation*, only this call *contract*.
 """
 from typing import Any, Protocol, Sequence
 
 import numpy as np
 import scipy.sparse as sp
 
+from .embed import EmbeddingIndex
 from .index import BM25Index
 
 
@@ -79,6 +82,56 @@ class BM25Scorer:
         if query is not self._cached_query:
             self._cached_scores = score_all(self.index, query)
             self._cached_query = query
+
+        full = self._cached_scores
+        if full is None or full.size == 0:
+            return np.zeros(len(candidate_ids))
+
+        cols = np.fromiter(
+            (self.index.id_to_col[c] for c in candidate_ids),
+            dtype=np.int64,
+            count=len(candidate_ids),
+        )
+        return full[cols]
+
+
+class EmbeddingScorer:
+    """Scores a fixed candidate subset against an `EmbeddingIndex` via
+    cosine similarity (a plain dot product, since both the index's rows and
+    the query are L2-normalized — see `embed.py`).
+
+    A `None` query (a true cold-start user with no resolvable history
+    embedding, per ADR-005/ADR-008) scores every candidate as an explicit
+    all-zero tie — deliberately mirroring `BM25Scorer`'s own cold-start
+    contract, so ADR-007's existing seeded tie-break stays the single,
+    unchanged mechanism that resolves cold-start rankings for *either*
+    scorer, rather than needing a second cold-start rule.
+
+    Same identity-based per-user caching as `BM25Scorer`, for the same
+    consecutive-impressions-per-user access pattern both harness scripts
+    use — here it's a consistency choice, not a measured bottleneck fix the
+    way it was for BM25's sparse matvec (a single embedding dot product is
+    already cheap).
+    """
+
+    def __init__(self, index: EmbeddingIndex):
+        self.index = index
+        self._cached_query: np.ndarray | None = None
+        self._cached_query_is_none = False
+        self._cached_scores: np.ndarray | None = None
+
+    def score(self, query: np.ndarray | None, candidate_ids: Sequence[str]) -> np.ndarray:
+        is_cache_hit = (
+            (query is None and self._cached_query_is_none)
+            or (query is not None and query is self._cached_query)
+        )
+        if not is_cache_hit:
+            if query is None:
+                self._cached_scores = np.zeros(len(self.index.article_ids))
+            else:
+                self._cached_scores = self.index.vectors @ query
+            self._cached_query = query
+            self._cached_query_is_none = query is None
 
         full = self._cached_scores
         if full is None or full.size == 0:

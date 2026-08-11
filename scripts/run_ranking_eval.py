@@ -10,9 +10,16 @@ candidates ALREADY LISTED in each impression, then evaluates that ranking
 against the click labels — see ADR-007 for the tie-breaking rule, the
 K=10 diversity/novelty cutoff, and why coverage has no bootstrap CI.
 
+Generic over scoring method: `--method bm25` is implemented here via
+`src.retrieval.score.BM25Scorer`; `--method embed` (Phase 4, ADR-008) via
+`src.retrieval.score.EmbeddingScorer`. The core loop below (steps 6-8)
+never references either method by name outside `_build_method`, which is
+the seam Phase 4 plugs into, exactly as this docstring originally promised.
+
 Usage:
     poetry run python scripts/run_ranking_eval.py --dataset mind
     poetry run python scripts/run_ranking_eval.py --dataset ebnerd --bundle small
+    poetry run python scripts/run_ranking_eval.py --dataset mind --method embed
 """
 import argparse
 import json
@@ -26,6 +33,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO_ROOT))
 sys.path.insert(0, str(_REPO_ROOT / "scripts"))
 
+import numpy as np
 import pandas as pd
 
 from run_bm25_experiment import COLD_THRESHOLD, DEFAULT_BUNDLE, dataset_paths
@@ -40,9 +48,16 @@ from src.evaluation.ranking_metrics import (
     ranking_metric_ci,
     safe_auc,
 )
+from src.retrieval.embed import (
+    DEFAULT_MODEL,
+    build_embedding_index,
+    build_user_embedding_query,
+    model_slug,
+)
 from src.retrieval.index import build_index
 from src.retrieval.query import build_user_query
-from src.retrieval.score import BM25Scorer
+from src.retrieval.score import BM25Scorer, EmbeddingScorer
+from src.utils.config import PROCESSED_DIR
 
 K_DIVERSITY_NOVELTY = 10  # anchored to nDCG@10's cutoff, per ADR-007
 N_BOOTSTRAP = 2000
@@ -50,11 +65,56 @@ SEED = 0
 METRIC_COLUMNS = ["auc", "mrr", "ndcg5", "ndcg10", "diversity10", "novelty10"]
 
 
+def _build_method(method: str, articles: pd.DataFrame, history: pd.DataFrame, paths: dict):
+    """Returns `(scorer, query_by_user, history_len_by_user, index_build_seconds)`.
+
+    The only place `run()` knows which retrieval method it's driving —
+    everything downstream (the per-impression scoring loop, metrics) is
+    written against the `Scorer` Protocol only, per ADR-007's design intent.
+    """
+    if method == "bm25":
+        t0 = time.time()
+        index = build_index(articles)
+        scorer = BM25Scorer(index)
+        build_s = time.time() - t0
+
+        text_lookup = dict(zip(
+            articles["article_id"],
+            articles["title"].fillna("") + " " + articles["abstract"].fillna(""),
+        ))
+        query_by_user: dict[str, list[str]] = {}
+        history_len_by_user: dict[str, int] = {}
+        for row in history.itertuples(index=False):
+            query_by_user[row.user_id] = build_user_query(row.article_ids, text_lookup)
+            history_len_by_user[row.user_id] = len(row.article_ids)
+        return scorer, query_by_user, history_len_by_user, build_s
+
+    if method == "embed":
+        cache_path = paths["articles"].parent / "embeddings" / f"{model_slug(DEFAULT_MODEL)}.npy"
+        t0 = time.time()
+        index = build_embedding_index(articles, model_name=DEFAULT_MODEL, cache_path=cache_path)
+        scorer = EmbeddingScorer(index)
+        build_s = time.time() - t0
+
+        vector_lookup = dict(zip(index.article_ids, index.vectors))
+        query_by_user: dict[str, np.ndarray | None] = {}
+        history_len_by_user: dict[str, int] = {}
+        for row in history.itertuples(index=False):
+            query_by_user[row.user_id] = build_user_embedding_query(row.article_ids, vector_lookup)
+            history_len_by_user[row.user_id] = len(row.article_ids)
+        return scorer, query_by_user, history_len_by_user, build_s
+
+    raise ValueError(f"Unknown method {method!r}")
+
+
 def _train_impressions_path(dataset: str, bundle: str) -> Path:
-    return Path(_REPO_ROOT / "data" / "processed" / dataset / bundle / "train" / "impressions.parquet")
+    return PROCESSED_DIR / dataset / bundle / "train" / "impressions.parquet"
 
 
-def run(dataset: str, bundle: str | None = None) -> tuple[dict, dict]:
+def run(dataset: str, bundle: str | None = None, method: str = "bm25") -> tuple[dict, dict]:
+    if method not in ("bm25", "embed"):
+        raise ValueError(f"Unknown method {method!r}")
+
     bundle = bundle or DEFAULT_BUNDLE[dataset]
     paths = dataset_paths(dataset, bundle)
 
@@ -63,23 +123,13 @@ def run(dataset: str, bundle: str | None = None) -> tuple[dict, dict]:
     impressions = pd.read_parquet(paths["impressions"])
     train_impressions = pd.read_parquet(_train_impressions_path(dataset, bundle))
 
-    t0 = time.time()
-    index = build_index(articles)
-    scorer = BM25Scorer(index)
-    index_build_s = time.time() - t0
-
-    text_lookup = dict(zip(
-        articles["article_id"],
-        articles["title"].fillna("") + " " + articles["abstract"].fillna(""),
-    ))
     # Precomputed once per user (not lazily) so the SAME query object is
-    # reused across that user's impressions — the scorer's identity cache
-    # only hits when the query object is literally the same reference.
-    query_by_user: dict[str, list[str]] = {}
-    history_len_by_user: dict[str, int] = {}
-    for row in history.itertuples(index=False):
-        query_by_user[row.user_id] = build_user_query(row.article_ids, text_lookup)
-        history_len_by_user[row.user_id] = len(row.article_ids)
+    # reused across that user's impressions — both scorers' identity caches
+    # only hit when the query object is literally the same reference.
+    scorer, query_by_user, history_len_by_user, index_build_s = _build_method(
+        method, articles, history, paths
+    )
+    empty_query = [] if method == "bm25" else None
 
     category_lookup = dict(zip(articles["article_id"], articles["category"]))
     popularity = build_train_popularity(train_impressions, n_catalog=len(articles), alpha=1.0)
@@ -103,7 +153,7 @@ def run(dataset: str, bundle: str | None = None) -> tuple[dict, dict]:
     ):
         candidate_ids = group["article_id"].tolist()
         clicked = group["clicked"].to_numpy(dtype=bool)
-        query = query_by_user.get(user_id, [])
+        query = query_by_user.get(user_id, empty_query)
         cohort = cohort_by_user.get(user_id, "cold")
 
         scores = scorer.score(query, candidate_ids)
@@ -157,7 +207,7 @@ def run(dataset: str, bundle: str | None = None) -> tuple[dict, dict]:
     config = {
         "dataset": dataset,
         "bundle": bundle,
-        "method": "bm25",
+        "method": method,
         "split": paths["split_name"],
         "corpus_split": paths["corpus_split"],
         "cold_threshold": COLD_THRESHOLD,
@@ -189,13 +239,14 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", choices=["mind", "ebnerd"], required=True)
     parser.add_argument("--bundle", default=None,
                          help="Defaults to 'small' for mind, 'demo' for ebnerd.")
+    parser.add_argument("--method", choices=["bm25", "embed"], default="bm25")
     args = parser.parse_args()
 
     bundle = args.bundle or DEFAULT_BUNDLE[args.dataset]
-    config, results = run(args.dataset, bundle)
+    config, results = run(args.dataset, bundle, args.method)
 
     dataset_part = args.dataset if bundle == DEFAULT_BUNDLE[args.dataset] else f"{args.dataset}_{bundle}"
-    out_dir = _REPO_ROOT / "experiments" / f"ranking_bm25_{dataset_part}_{date.today().isoformat()}"
+    out_dir = _REPO_ROOT / "experiments" / f"ranking_{args.method}_{dataset_part}_{date.today().isoformat()}"
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "config.json").write_text(json.dumps(config, indent=2))
     (out_dir / "results.json").write_text(json.dumps(results, indent=2))
