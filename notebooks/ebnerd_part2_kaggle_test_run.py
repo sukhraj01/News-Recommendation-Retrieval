@@ -38,6 +38,14 @@ Before running:
    reading that projection. Do not flip it blind.
 5. Copy the printed Cell 6 projection (and Cell 3's discovery output) back
    to the engineer — same relay pattern as Part 0.
+6. **If Cell 6's real projection is close to or over a single Kaggle
+   session's cap** (confirmed the case on a free-tier account,
+   2026-08-12: ~12.8h projected vs. a ~9-12h cap): Cell 7 checkpoints
+   itself across sessions rather than needing the whole run to fit in one
+   sitting — create a private Kaggle Dataset up front (e.g.
+   "ebnerd-part2-checkpoint") to hold the in-progress prediction file
+   between sessions; Cell 7's own docstring has the exact cross-session
+   workflow.
 """
 
 # %% CELL 0 — download the two source files directly into the notebook.
@@ -105,7 +113,7 @@ from src.retrieval.embed import DEFAULT_MODEL, build_embedding_index, build_user
 from src.retrieval.index import build_index
 from src.retrieval.query import build_user_query
 from src.retrieval.score import BM25Scorer, EmbeddingScorer
-from src.submission.ebnerd_format import iter_raw_impressions, ranks_for_impression, sample_raw_impressions
+from src.submission.ebnerd_format import iter_raw_impressions_from, ranks_for_impression, sample_raw_impressions
 from src.utils.io import read_zip_parquet
 
 TESTSET_ZIP = found["ebnerd_testset.zip"]
@@ -439,33 +447,53 @@ print(
     "isolated cost) against that budget for whichever method(s) are in "
     "RUN_METHODS (set in Cell 5).\n"
     "If a projection is comfortably under budget: proceed to Cell 7.\n"
-    "If a projection is borderline or over budget, real alternatives "
-    "(per CLAUDE.md's Resource Availability clause — pick one "
-    "deliberately, don't silently downgrade):\n"
-    "  (a) run embeddings only, not both (Cell 5's current default) — "
-    "Part 1 already showed embeddings winning on ebnerd_small-validation "
-    "(AUC 0.5430 vs. BM25's 0.5288), and this session found BM25's query "
-    "construction alone costs ~10.6x more RAM (~12.25GB vs. ~1.16GB "
-    "projected for the real 807,677-user test set), so it's the "
-    "defensible single choice on both accuracy and resource grounds;\n"
-    "  (b) split the run across multiple Kaggle sessions using an "
-    "impression-index checkpoint/resume (would need a small code change "
-    "to this notebook's Cell 7 loop — not built here since it's only "
-    "needed if the real projection actually demands it);\n"
-    "  (c) use Kaggle's 'Save & Run All (Commit)' to run in the "
-    "background beyond an interactive session's own timeout, if your "
-    "account's session/quota limits allow it."
+    "If a projection is borderline or over budget: Cell 7 below now "
+    "checkpoints itself across sessions (per CLAUDE.md's Resource "
+    "Availability clause — a real fix, not a silent downgrade), so a "
+    "single session's cap no longer has to fit the whole projected run; "
+    "read Cell 7's own docstring for the cross-session workflow before "
+    "running it."
 )
 
 
-# %% CELL 7 — THE FULL RUN. Gated behind RUN_FULL_JOB — set it to True
-# only after reading Cell 6's real projection. Uses RUN_METHODS as set in
-# Cell 5 (not redefined here — redefining it in this cell would silently
-# discard a deliberate choice made back in Cell 5, e.g. adding "bm25").
-# Writes directly to /kaggle/working/ (streamed, one line at a time — the
-# whole point of this session's src/ fix), with periodic progress printed
-# so a long run is inspectable rather than a black box.
+# %% CELL 7 — THE FULL RUN, with cross-session checkpointing.
+#
+# Added 2026-08-12: Cell 6's real (post-methodology-fix) projection landed
+# close to or over a free-tier Kaggle GPU session's commonly-cited ~9-12h
+# cap — confirmed as a genuine Kaggle-vs-local hardware/BLAS speed
+# difference (Cell 6's isolated diagnostic: 7.2ms/call real vs. 2.9ms
+# projected from ADR-008 on different hardware), not something more code
+# can fix. Rather than let Kaggle kill this mid-run (risking a truncated
+# last line) or hope "Save & Run All (Commit)" happens to have a longer
+# cap, this cell stops ITSELF cleanly on a self-imposed time budget
+# (MAX_RUNTIME_HOURS, deliberately well under the platform's real limit,
+# not up against it) and resumes from wherever a previous attempt left
+# off — same session or a fresh one.
+#
+# Cross-session workflow:
+#   1. Set RUN_FULL_JOB = True and run this cell.
+#   2. If it prints DONE, the whole file is written — go to Cell 8.
+#   3. If it prints CHECKPOINT instead, download
+#      /kaggle/working/predictions_<method>.txt via Kaggle's file browser.
+#   4. Upload it as a new version of a private Kaggle Dataset (reuse the
+#      same dataset each time — Kaggle Datasets -> your checkpoint dataset
+#      -> "New Version" -> upload the file — rather than a fresh dataset
+#      per attempt).
+#   5. Start a new Kaggle session, attach that checkpoint dataset (and the
+#      src bundle, as before) as Data sources, re-run Cells 1-6 (rebuilds
+#      the corpus index/queries — unavoidable per-session cost, a few
+#      minutes) then this cell again. It will find the checkpoint under
+#      /kaggle/input and resume from the row count already written — no
+#      re-scoring of already-done rows, only the cheap per-row parsing
+#      cost for skipped rows (via `iter_raw_impressions_from`'s
+#      `.iloc[start_row:]`, not a full re-walk).
+#   6. Repeat until DONE, then proceed to Cell 8.
+#
+# Uses RUN_METHODS as set in Cell 5 (not redefined here — redefining it in
+# this cell would silently discard a deliberate choice made back in Cell 5,
+# e.g. adding "bm25").
 RUN_FULL_JOB = False  # <-- set True deliberately, after reading Cell 6
+MAX_RUNTIME_HOURS = 8.0  # stop cleanly this far into a session -- tune down if your account's real cap is lower than the commonly-cited 9-12h
 
 if not RUN_FULL_JOB:
     print("RUN_FULL_JOB is False — not running. Set it True after "
@@ -474,13 +502,61 @@ else:
     import json
 
     PROGRESS_EVERY = 500_000
+    CHECK_DEADLINE_EVERY = 1_000  # frequent, cheap (a time.time() call) -- keeps the actual stop close to MAX_RUNTIME_HOURS rather than overshooting by a full PROGRESS_EVERY batch
+    deadline = time.time() + MAX_RUNTIME_HOURS * 3600
+
     for name in RUN_METHODS:
         scorer, q_by_user, empty_query = methods[name]
         out_path = f"/kaggle/working/predictions_{name}.txt"
+
+        # Find any existing checkpoint -- this session's own in-progress
+        # /kaggle/working file takes priority (it's always at least as far
+        # along as anything re-attached from a prior session), falling
+        # back to an attached checkpoint Dataset under /kaggle/input.
+        checkpoint_path = None
+        for search_root in ["/kaggle/working", "/kaggle/input"]:
+            for root, _dirs, files in os.walk(search_root):
+                candidate = os.path.join(root, f"predictions_{name}.txt")
+                if os.path.exists(candidate):
+                    checkpoint_path = candidate
+                    break
+            if checkpoint_path:
+                break
+
+        resume_from = 0
+        if checkpoint_path:
+            with open(checkpoint_path) as f:
+                lines = f.readlines()
+            # Only the LAST line can ever be a partial write -- this cell
+            # only stops after a clean flush otherwise -- so only that one
+            # needs validating, not a full-file rescan.
+            n_valid = len(lines)
+            if lines:
+                try:
+                    impid, ranks_raw = lines[-1].rstrip("\n").split(" ", 1)
+                    ranks = json.loads(ranks_raw)
+                    assert sorted(ranks) == list(range(1, len(ranks) + 1))
+                except Exception:
+                    n_valid = len(lines) - 1
+                    print(f"  [{name}] last checkpoint line looked truncated — "
+                          f"dropping it, resuming from the line before")
+            resume_from = n_valid
+            if checkpoint_path != out_path or n_valid != len(lines):
+                with open(out_path, "w") as f:
+                    f.writelines(lines[:n_valid])
+            print(f"[{name}] found checkpoint at {checkpoint_path}: "
+                  f"resuming from row {resume_from}/{EXPECTED_TOTAL} "
+                  f"({100 * resume_from / EXPECTED_TOTAL:.1f}%)")
+
+        if resume_from >= EXPECTED_TOTAL:
+            print(f"[{name}] already complete ({resume_from} lines) — nothing to do")
+            continue
+
         t0 = time.time()
-        n = 0
-        with open(out_path, "w") as f:
-            for row in iter_raw_impressions(TESTSET_ZIP, "test", has_labels=False):
+        n = resume_from
+        stopped_early = False
+        with open(out_path, "a") as f:
+            for row in iter_raw_impressions_from(TESTSET_ZIP, "test", has_labels=False, start_row=resume_from):
                 query = q_by_user.get(row["user_id"], empty_query)
                 scores = scorer.score(query, row["article_ids"])
                 ranks = ranks_for_impression(scores, row["raw_impression_id"], seed=0)
@@ -488,18 +564,33 @@ else:
                 n += 1
                 if n % PROGRESS_EVERY == 0:
                     elapsed = time.time() - t0
-                    rate = n / elapsed
+                    rate = (n - resume_from) / elapsed
                     eta_s = (EXPECTED_TOTAL - n) / rate
                     print(f"  [{name}] {n}/{EXPECTED_TOTAL} "
                           f"({100 * n / EXPECTED_TOTAL:.1f}%), "
                           f"{rate:.1f} impressions/s, ETA {eta_s / 60:.1f} min")
-        elapsed = time.time() - t0
-        print(f"[{name}] DONE: {n} lines in {elapsed:.1f}s -> {out_path}")
+                if n % CHECK_DEADLINE_EVERY == 0 and time.time() >= deadline:
+                    f.flush()
+                    stopped_early = True
+                    break
+        if stopped_early:
+            print(f"\n[{name}] CHECKPOINT — stopped cleanly at {n}/{EXPECTED_TOTAL} "
+                  f"({100 * n / EXPECTED_TOTAL:.1f}%) after {MAX_RUNTIME_HOURS}h. "
+                  f"Download {out_path}, upload it as a new version of your "
+                  f"Kaggle checkpoint Dataset, attach it in a fresh session, "
+                  f"and re-run this notebook from Cell 1 — Cell 7 will "
+                  f"resume from here automatically.")
+        else:
+            elapsed = time.time() - t0
+            print(f"[{name}] DONE: {n} total lines ({n - resume_from} written "
+                  f"this session in {elapsed:.1f}s) -> {out_path}")
 
 
 # %% CELL 8 — VALIDATE line count and format before packaging/downloading
 # anything. Same class of cheap full-file check the MINDlarge_test session
-# used before trusting a multi-hour job's output.
+# used before trusting a multi-hour job's output. Distinguishes a
+# still-in-progress checkpoint (expected, routine now with Cell 7's
+# cross-session resume) from a genuinely malformed file.
 import json as _json
 
 for name in RUN_METHODS:
@@ -518,9 +609,17 @@ for name in RUN_METHODS:
                 assert sorted(ranks) == list(range(1, len(ranks) + 1))
             except Exception:
                 n_malformed += 1
-    ok = (n_lines == EXPECTED_TOTAL) and (n_malformed == 0)
+    if n_malformed > 0:
+        status = f"FAILED — {n_malformed} malformed line(s), do not package/upload"
+    elif n_lines < EXPECTED_TOTAL:
+        status = (f"INCOMPLETE — {100 * n_lines / EXPECTED_TOTAL:.1f}% written so "
+                  f"far, re-run Cell 7 (resumes automatically) to continue")
+    elif n_lines > EXPECTED_TOTAL:
+        status = f"FAILED — {n_lines} > expected {EXPECTED_TOTAL}, investigate before packaging"
+    else:
+        status = "OK"
     print(f"[{name}] lines: {n_lines} (expected {EXPECTED_TOTAL}), "
-          f"malformed: {n_malformed} -> {'OK' if ok else 'FAILED — do not package/upload'}")
+          f"malformed: {n_malformed} -> {status}")
 
 
 # %% CELL 9 — PACKAGE. predictions_large_random.zip's confirmed real

@@ -104,6 +104,31 @@ def iter_raw_impressions(zip_path: Path, split: str, has_labels: bool) -> Iterat
         yield _row_to_impression(raw_impression_id, raw_user_id, inview, clicked_ids, has_labels)
 
 
+def iter_raw_impressions_from(
+    zip_path: Path, split: str, has_labels: bool, start_row: int
+) -> Iterator[dict]:
+    """Same as `iter_raw_impressions`, but skips the per-row transform for
+    the first `start_row` rows (a pandas-level `.iloc[start_row:]` slice,
+    no wasted `prefix_id`/list-comprehension work on rows the caller
+    already has) — for resuming a long write across separate Kaggle
+    sessions. See `ebnerd_part2_kaggle_test_run.py`'s Cell 7 (2026-08-12
+    checkpointing addendum): a single session can't fit the real EB-NeRD
+    testset's projected full-run time, so Cell 7 stops cleanly on its own
+    time budget, and a later session resumes from the row count already
+    written rather than restarting or (worse) re-parsing every already-done
+    row just to discard it.
+    """
+    behaviors = read_zip_parquet(zip_path, f"{split}/behaviors.parquet", columns=_columns_needed(has_labels))
+    behaviors = behaviors.iloc[start_row:]
+    clicked_col = behaviors["article_ids_clicked"] if has_labels else [None] * len(behaviors)
+
+    for raw_impression_id, raw_user_id, inview, clicked_ids in zip(
+        behaviors["impression_id"], behaviors["user_id"],
+        behaviors["article_ids_inview"], clicked_col,
+    ):
+        yield _row_to_impression(raw_impression_id, raw_user_id, inview, clicked_ids, has_labels)
+
+
 def sample_raw_impressions(
     zip_path: Path, split: str, has_labels: bool, row_positions: Sequence[int]
 ) -> list[dict]:

@@ -14,6 +14,7 @@ import pytest
 
 from src.submission.ebnerd_format import (
     iter_raw_impressions,
+    iter_raw_impressions_from,
     ranks_for_impression,
     read_raw_impressions,
     sample_raw_impressions,
@@ -101,6 +102,23 @@ def test_sample_raw_impressions_supports_repeated_positions():
     full = read_raw_impressions(DEMO_ZIP, "validation", has_labels=False)
     sample = sample_raw_impressions(DEMO_ZIP, "validation", has_labels=False, row_positions=[0, 0, 1])
     assert sample == [full[0], full[0], full[1]]
+
+
+def test_iter_raw_impressions_from_zero_matches_full_iteration():
+    full = read_raw_impressions(DEMO_ZIP, "validation", has_labels=True)
+    resumed = list(iter_raw_impressions_from(DEMO_ZIP, "validation", has_labels=True, start_row=0))
+    assert resumed == full
+
+
+def test_iter_raw_impressions_from_skips_already_written_rows():
+    full = read_raw_impressions(DEMO_ZIP, "validation", has_labels=True)
+    resumed = list(iter_raw_impressions_from(DEMO_ZIP, "validation", has_labels=True, start_row=1))
+    assert resumed == full[1:]
+
+
+def test_iter_raw_impressions_from_past_the_end_yields_nothing():
+    resumed = list(iter_raw_impressions_from(DEMO_ZIP, "validation", has_labels=False, start_row=999))
+    assert resumed == []
 
 
 def test_ranks_for_impression_best_score_gets_rank_1():

@@ -446,3 +446,122 @@ verification pass, and the documentation updates. Human-written: none —
 the session brief (Prompt 5) contained the full investigation scope and
 constraints (don't touch Cell 7, confirm before deciding between
 checkpointing/background-commit) but no code or prose reused verbatim.
+
+---
+
+## Prompt 6 (real Cell 6 output relayed)
+
+```
+[relayed real Kaggle Cell 1-6 output: Cells 1-5 clean (807,677 users,
+125,541 articles, encode 147.9s @ 849.1 articles/s, RAM settling at
+13.3-13.7GB available); Cell 6:
+embed: isolated cache-miss cost = 7.1980 ms/call (22 candidates) --
+  compare against ADR-008's 0.99ms/query @ 42,416 docs (this corpus:
+  125541 docs, 2.96x -> ~2.93ms projected)
+embed: 100000 sampled impressions (locality-preserving chunks) in 340.5s
+  (3.405 ms/impression, 2.1x faster than the isolated cache-miss cost
+  above -> real caching benefit) -> projected full run: 12.80 hours
+RUN_FULL_JOB is False -- not running.
+[Cell 9/10 guards both fired correctly, no crash]
+```
+
+AI-generated: interpretation and the decision-point framing below.
+Human-written: none — relayed real output.
+
+### What was done
+
+Interpreted the decomposed real numbers directly: isolated cache-miss
+cost (7.198ms) vs. this session's own local-machine measurement (2.90ms)
+for the identical operation at the identical corpus scale confirms a
+real, genuine ~2.48x Kaggle-vs-local hardware/BLAS speed difference — not
+a bug. The realistic chunked-sample cost (3.405ms/impression, 2.1x
+caching benefit) confirms the ~52%-locality finding held on the real
+13,536,710-row file. Full-run projection: 12.80h, down from the old
+flawed benchmark's ~39.6h — the original 3.5x gap decomposes cleanly into
+~2.5x genuine hardware slowness and just under 2x from the two
+benchmark-methodology bugs already fixed.
+
+Per the session brief two prompts back ("decide between the checkpointing
+and background-commit options" once a legitimate scaling difference is
+confirmed, not just a code bug) — this was now confirmed. 12.80h is
+genuinely borderline against a free-tier Kaggle account's commonly-cited
+~9-12h cap, and this session has no visibility into the engineer's actual
+account tier or remaining weekly quota, which directly determines which
+path is right. Used `AskUserQuestion` rather than guess: asked (1) the
+engineer's real Kaggle tier/limits, (2) which path to build. Answers:
+free tier, and build checkpointing (the more robust choice regardless of
+exactly where Kaggle's real cap falls, vs. hoping a commit run happens to
+have enough headroom).
+
+### Human vs. AI split, this exchange
+
+AI-generated: the interpretation of the relayed numbers. Human-written:
+the relayed Cell 1-6 output (Prompt 6) and the two `AskUserQuestion`
+answers (free tier; build checkpointing) — a real decision only the
+engineer could make, correctly not guessed.
+
+---
+
+## Prompt 7 (implicit — proceed with checkpointing per the AskUserQuestion answers)
+
+AI-generated: the full checkpointing design and implementation described
+below, driven by the two answers above rather than a new verbatim prompt.
+
+### What was done
+
+Designed cross-session checkpointing carefully, since correctness bugs
+here (resuming from the wrong row, corrupting a partial write, silently
+duplicating or dropping rows across a session boundary) are worse than
+just being slow:
+
+- Added `iter_raw_impressions_from(zip_path, split, has_labels, start_row)`
+  to `src/submission/ebnerd_format.py` — reuses the shared
+  `_row_to_impression` transform (added in the Cell 6 fix), does a
+  `.iloc[start_row:]` slice first so resuming costs only the remaining
+  rows' parsing, not a wasted re-walk of everything already written.
+- Rewrote Cell 7 around a self-imposed `MAX_RUNTIME_HOURS` (default 8.0,
+  deliberately under the ~9-12h real cap) — stops the write loop cleanly
+  (finishes the current line, flushes) rather than risking Kaggle killing
+  the process mid-write. On start, searches `/kaggle/working` then
+  `/kaggle/input` for an existing `predictions_<method>.txt`; if found,
+  validates only the *last* line (the one place a partial write could
+  ever land, since a clean stop always flushed a complete line first),
+  discards it if malformed, computes `resume_from`, and continues via
+  `iter_raw_impressions_from`. Documented the manual cross-session
+  workflow (download partial file -> upload as a new Kaggle Dataset
+  version -> re-attach in a fresh session -> re-run) directly in Cell 7's
+  own docstring, chosen over relying on any implicit Kaggle
+  session-persistence behavior this session can't verify with certainty.
+- Updated Cell 8 to distinguish `INCOMPLETE` (valid, just not finished —
+  now the expected, routine case) from `FAILED` (genuinely malformed).
+
+Verified rigorously before reporting this fixed, per this session's
+standing "verify before handing back" memory — this being the
+highest-risk new code so far (multi-session correctness):
+- 3 new unit tests (`iter_raw_impressions_from` matches full iteration
+  from row 0, correctly skips already-written rows, empty past the file
+  end). Full suite: 175 passed (up from 172), no regressions.
+- A standalone harness running Cell 7's *exact* real logic (copied, not
+  reimplemented) against the real `ebnerd_small.zip` validation split
+  (244,647 real rows, real `BM25Scorer`): a full uninterrupted reference
+  run, then a deliberately interrupted run (stopped at 50,000 rows, last
+  line artificially truncated to simulate a mid-write kill, checkpoint
+  moved to a directory simulating a fresh session's `/kaggle/input`,
+  resumed to completion in a fresh working directory) — the two outputs
+  are byte-for-byte identical. Confirms truncation handling,
+  resume-from-row correctness, and that `ranks_for_impression`'s seeded
+  tie-break (seeded by `impression_id`, not call order) is correctly
+  insensitive to session boundaries.
+
+Rebuilt and re-verified `notebooks/ebnerd_part2_src_bundle.zip` (imports
+resolve in isolation, including the two new functions). Updated
+`PROJECT_STATE.md` with the full decomposed finding and the checkpointing
+design/verification.
+
+### Human vs. AI split, this exchange
+
+AI-generated: the checkpointing design, `iter_raw_impressions_from`, the
+Cell 7 rewrite, the Cell 8 update, all new tests, the standalone
+correctness harness and its interpretation, the bundle rebuild, and the
+documentation updates. Human-written: none this exchange — driven by the
+`AskUserQuestion` answers from Prompt 6's exchange.

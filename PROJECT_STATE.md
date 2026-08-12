@@ -2,7 +2,7 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 12, 2026 (EB-NeRD Codabench submission — Part 2's Kaggle notebook is mid-execution on the engineer's real Kaggle session; four real issues found and fixed live: a zip-packaging assumption, a `str`-vs-`Path` bug, an unconditional ~12GB BM25 query-construction cost now gated behind opt-in, and — most recently — a benchmark-sampling methodology bug that measured a near-worst-case "cache always misses" scenario instead of Cell 7's real access pattern, confirmed via direct profiling that the embedding scoring path itself is correctly vectorized and matches MIND's own benchmarked code path)
+**Last Updated:** August 12, 2026 (EB-NeRD Codabench submission — Part 2's Kaggle notebook is mid-execution on the engineer's real Kaggle session. Confirmed a real, decomposed 12.80-hour full-run projection: ~2.48x genuine Kaggle-vs-local hardware/BLAS slowdown (not a bug) plus real caching benefit from EB-NeRD's natural user locality, both now measured with real Kaggle numbers. Since that's borderline against a free-tier session cap, built and verified (byte-identical output vs. an uninterrupted reference run) cross-session checkpointing for Cell 7 — the full run itself has not been executed yet)
 
 **Current Phase:** MIND Codabench submission (Q5) Parts 1-4 complete on the local side (see prior session notes below). EB-NeRD Codabench submission (competition 2469): Part 0 and Part 1 complete (see the August 12 "Part 0 Resolved + Part 1 Converter" notes below). **Part 2 is now prepped, not yet executed** — `notebooks/ebnerd_part2_kaggle_test_run.py` (a paste-into-Kaggle-cells script, same pattern as Part 0's investigation script) is written, and `notebooks/ebnerd_part2_src_bundle.zip` (this project's own validated `src/` scoring/converter code, minimal subtree, upload as a private Kaggle Dataset) is built and import-verified. Neither has been run on Kaggle yet — that's the engineer's own next step (GPU accelerator + Kaggle account required, same class of action Claude Code cannot perform directly).
 
@@ -546,6 +546,102 @@ isolated-cost and chunked-sample numbers for both — if the isolated cost
 is still far above ~2.9ms, that's the real hardware-difference signal; if
 the chunked sample now shows a large caching benefit and a much lower
 projected full-run time, the original plan may simply proceed.
+
+### Addendum 4 (same day) — the fixed Cell 6 ran for real: confirmed a
+### genuine ~2.48x Kaggle-hardware slowdown, projection dropped to 12.80h;
+### built cross-session checkpointing since that's borderline against a
+### free-tier session cap
+
+Engineer re-ran the corrected notebook on Kaggle (Tesla T4, ~30GB RAM).
+Cells 1-5 completed cleanly with the real numbers Addendum 2/3 already
+anticipated (807,677 users, 125,541 articles; embedding encode 147.9s at
+849.1 articles/s on the T4; embedding query_by_user 105.3s; RAM settled
+at 13.3-13.7GB available, comfortable). Cell 6's decomposed diagnostics,
+against the real file:
+
+- **Isolated cache-miss cost: 7.198ms/call** (22 candidates) vs. this
+  session's local-machine measurement of 2.90ms for the identical
+  operation at the identical corpus scale — confirms a real, genuine
+  **~2.48x Kaggle-vs-local hardware/BLAS speed difference** for the raw
+  `index.vectors @ query` matvec. Not a bug, not fixable in code — numpy's
+  matvec is plain CPU regardless of the encode step's GPU device, and
+  Kaggle's numpy/BLAS backend is measurably slower at this operation than
+  the engineer's Mac's Accelerate/vecLib BLAS.
+- **Realistic chunked-sample cost: 3.405ms/impression**, with a real
+  **2.1x caching benefit** over the isolated cost — confirms the
+  ~52%-locality finding (Addendum 3) holds on the real 13,536,710-row
+  file, not just `ebnerd_small`. Projected full run: **12.80 hours**, down
+  from the old (methodologically flawed) benchmark's ~39.6-hour
+  projection — roughly a 3.1x improvement from fixing the sampling bugs
+  alone, layered on top of the genuine ~2.48x hardware factor.
+
+So the original 3.5x gap decomposes cleanly: ~2.5x genuine Kaggle
+hardware slowness × a bit under 2x from the two benchmark-methodology
+bugs Addendum 3 fixed. Neither number is in question anymore — this is
+the real, trustworthy projection.
+
+**Decision point:** 12.80h is genuinely borderline against a free-tier
+Kaggle account's commonly-cited ~9-12h session/commit-run cap (confirmed
+by the engineer: free tier). Per the session brief's own instruction to
+"decide between the checkpointing and background-commit options" once a
+legitimate scaling difference is confirmed (not just a code bug) — asked
+the engineer directly rather than guessing their account limits; they
+confirmed free tier and asked for checkpointing to be built (the more
+robust option regardless of exactly where Kaggle's real cap falls, vs.
+hoping "Save & Run All (Commit)" happens to have enough headroom).
+
+**Built:**
+- `iter_raw_impressions_from` (new, `src/submission/ebnerd_format.py`):
+  same per-row transform as `iter_raw_impressions`/`sample_raw_impressions`
+  (reuses the shared `_row_to_impression` helper), but does a
+  `.iloc[start_row:]` slice first — resuming from row N costs the parquet
+  read plus parsing only the *remaining* rows, not a wasted re-parse of
+  everything already written.
+- Cell 7 rewritten around a self-imposed `MAX_RUNTIME_HOURS` (default
+  8.0, deliberately under the ~9-12h real cap) that stops the write loop
+  cleanly — current line finished, file flushed — rather than letting
+  Kaggle kill the process mid-write and risk a truncated last line. On
+  start, searches `/kaggle/working` then `/kaggle/input` for an existing
+  `predictions_<method>.txt` (this session's own in-progress file takes
+  priority over a re-attached checkpoint from an earlier session, since
+  it's always at least as far along); if found, validates only the *last*
+  line (the one place a partial write could ever land, since every clean
+  stop already flushed a complete line) and discards it if malformed,
+  computes `resume_from` from the valid line count, and continues writing
+  from there via `iter_raw_impressions_from`. Cross-session workflow
+  (download the partial file, upload as a new version of a private
+  checkpoint Dataset, re-attach in a fresh session, re-run from Cell 1) is
+  documented in Cell 7's own docstring.
+- Cell 8 now distinguishes `INCOMPLETE` (valid so far, just not finished —
+  expected and routine now) from `FAILED` (malformed content) rather than
+  reporting both as one undifferentiated failure.
+
+**Verified before reporting this fixed** (per this session's own standing
+"verify before handing back" memory): 3 new unit tests for
+`iter_raw_impressions_from` (matches full iteration from row 0, correctly
+skips already-written rows, empty result past the end of the file); full
+suite 175 passed (up from 172), no regressions. Beyond unit tests, wrote
+a standalone harness running Cell 7's *exact* real logic (checkpoint
+discovery, last-line truncation validation, resume-from-row) against the
+real `ebnerd_small.zip` validation split (244,647 real rows, real BM25
+scorer): a full uninterrupted reference run, then a deliberately
+interrupted run (stopped at 50,000 rows, last line artificially truncated
+to simulate a mid-write kill, checkpoint moved to a separate directory
+simulating a fresh session's `/kaggle/input`, resumed to completion) —
+**the two outputs are byte-for-byte identical**, confirming truncation
+handling, resume-from-row correctness, and that the seeded tie-break in
+`ranks_for_impression` (seeded by `impression_id`, not call order) is
+correctly insensitive to session boundaries. Rebuilt and re-verified
+`notebooks/ebnerd_part2_src_bundle.zip`.
+
+**Next:** engineer creates a private Kaggle Dataset to hold checkpoints
+(e.g. "ebnerd-part2-checkpoint"), re-uploads the bundle (changed again
+this round), re-pastes the notebook, sets `RUN_FULL_JOB = True`, and lets
+Cell 7 run — expect it to stop itself at the `MAX_RUNTIME_HOURS` budget
+and print a `CHECKPOINT` message with exact next-session instructions,
+likely needing 2 sessions total for the real 12.80h projection against an
+8.0h budget. Relay back each session's final printed status (`CHECKPOINT`
+or `DONE`) so progress stays visible across the multi-session run.
 
 ---
 
