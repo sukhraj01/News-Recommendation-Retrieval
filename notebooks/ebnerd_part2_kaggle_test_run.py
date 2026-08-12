@@ -209,6 +209,7 @@ print(hist_lens.describe())
 # hard evidence for Cell 6's projection rather than something benchmarked
 # separately.
 import time
+from pathlib import Path
 
 t0 = time.time()
 bm25_index = build_index(articles)
@@ -217,7 +218,11 @@ bm25_mb = bm25_index.weights_t.data.nbytes / 1024**2
 print(f"BM25 index: {bm25_build_s:.1f}s, weights_t {bm25_mb:.1f} MB "
       f"({bm25_index.weights_t.nnz} nonzeros)")
 
-embed_cache_path = "/kaggle/working/embeddings_cache/" + model_slug(DEFAULT_MODEL) + ".npy"
+# build_embedding_index's disk cache (_load_cache/_write_cache) calls
+# cache_path.with_suffix(...), which only exists on Path — a plain string
+# here raises AttributeError (hit for real on Kaggle: str has no attribute
+# with_suffix). Must be a Path, not str + str concatenation.
+embed_cache_path = Path("/kaggle/working/embeddings_cache") / (model_slug(DEFAULT_MODEL) + ".npy")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 t0 = time.time()
 embed_index = build_embedding_index(
