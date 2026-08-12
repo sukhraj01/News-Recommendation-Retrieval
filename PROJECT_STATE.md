@@ -2,7 +2,7 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 12, 2026 (EB-NeRD Codabench submission — Part 2's Kaggle notebook prepared and ready to run; a real memory-scaling bug found and fixed in the process)
+**Last Updated:** August 12, 2026 (EB-NeRD Codabench submission — Part 2's Kaggle notebook is mid-execution on the engineer's real Kaggle session; three real bugs found and fixed live against the actual `ebnerd_testset.zip`/hardware: a zip-packaging assumption, a `str`-vs-`Path` bug, and — most consequential — an unconditional ~12GB BM25 query-construction cost that's now gated behind explicit opt-in)
 
 **Current Phase:** MIND Codabench submission (Q5) Parts 1-4 complete on the local side (see prior session notes below). EB-NeRD Codabench submission (competition 2469): Part 0 and Part 1 complete (see the August 12 "Part 0 Resolved + Part 1 Converter" notes below). **Part 2 is now prepped, not yet executed** — `notebooks/ebnerd_part2_kaggle_test_run.py` (a paste-into-Kaggle-cells script, same pattern as Part 0's investigation script) is written, and `notebooks/ebnerd_part2_src_bundle.zip` (this project's own validated `src/` scoring/converter code, minimal subtree, upload as a private Kaggle Dataset) is built and import-verified. Neither has been run on Kaggle yet — that's the engineer's own next step (GPU accelerator + Kaggle account required, same class of action Claude Code cannot perform directly).
 
@@ -359,6 +359,69 @@ to the same Kaggle Dataset (or a new one) and re-runs from Cell 1. Given
 Cell 3 already confirmed `test/history.parquet` exists and the real
 resource headroom (T4 GPU, ~30GB RAM), Cells 4 onward should now be
 unblocked.
+
+### Addendum 2 (same day) — `str`-vs-`Path` bug, then a real ~12GB memory
+### risk found and fixed before it could be hit
+
+Re-running Cell 4 after Addendum 1's fix (no bundle re-upload needed — the
+zip-packaging bug was in `src/`, this one was notebook-only) hit a second,
+unrelated real error: `embed_cache_path` was built via plain string
+concatenation, but `build_embedding_index`'s disk-cache helpers call
+`cache_path.with_suffix(...)`, which only exists on `Path`. Fixed by
+building it as a `Path`. Confirmed by the real Kaggle output that
+everything upstream was already healthy: BM25 index built cleanly (4.8s,
+1,892,580 nonzeros), and Cell 3 had already surfaced the real corpus/user
+scale this run is dealing with — 125,541 articles, 807,677 users with
+history (mean 144.6 articles/user, up to 1,530).
+
+That real history-length distribution motivated a deeper look before
+telling the engineer to just re-run: Cell 5 (not yet reached) builds a
+per-user query dict for **every** method unconditionally, including BM25,
+whose query is an unweighted concatenation of a user's *entire* history
+(ADR-005 — no dedup). Measured directly (real EB-NeRD text, real
+`tokenize()`, realistic history-length sampling): ~17.05 tokens/article
+after stopword removal, ~15.9KB/user for a query list — projecting to
+**~12.25GB** for all 807,677 test users. Embeddings, by contrast, mean-pool
+to one fixed 384-dim vector/user regardless of history length —
+**~1.16GB** projected for the same population. A real, measured ~10.6x gap,
+not a rounding difference, and it would have landed on top of whatever's
+already resident (the engineer's own Cell 2 output showed available RAM
+dropping from 29.6GB to 15.5GB just from re-running earlier cells in the
+same kernel across attempts — likely allocator fragmentation from
+repeated in-place reruns rather than genuine leaked state, but a real
+signal that headroom was already tighter than the first successful run
+suggested).
+
+Restructured Cells 5-7 around a single `RUN_METHODS` list (now defined in
+Cell 5, the config's natural home) that gates query construction,
+benchmarking, and the full run alike — BM25 is opt-in, not built by
+default, updating this session's earlier "build both, decide at Cell 6"
+plan with new evidence (CLAUDE.md's Decision Reversal principle: embeddings
+already won on `ebnerd_small`-validation accuracy, and now also costs an
+order of magnitude less RAM to even attempt). Also found and removed a
+stale duplicate `methods = {...}` block left in Cell 6 from before this
+restructuring — it referenced the old `bm25_query_by_user`/`embed_scorer`
+variable names directly and would have raised `NameError` immediately;
+and removed a variable-shadowing landmine (Cell 6/7's per-method loop
+reused the name `query_by_user`, shadowing Cell 5's `{method: {user:
+query}}` dict of dicts with a single flat dict — not yet a live bug given
+current usage, but fragile, renamed to `q_by_user`).
+
+Before handing this back, ran a full local simulation of the restructured
+Cells 4-9 against real data (`ebnerd_small.zip`'s validation split
+standing in for the real test split — same code paths, smaller scale) for
+**both** `RUN_METHODS` configurations (`["embed"]` and `["bm25",
+"embed"]`): index build, gated query construction, benchmark sampling,
+the full write loop (244,647 real lines each), validation (0 malformed),
+and packaging — all passed cleanly before this was reported fixed, per
+this session's own "stop patching reactively, verify before handing back"
+correction from the engineer.
+
+**Next:** re-paste Cell 5 through Cell 7 (or the whole file) from the
+corrected `notebooks/ebnerd_part2_kaggle_test_run.py` — no dataset
+re-upload needed this round, only the notebook script changed. Consider a
+kernel restart first given the RAM-drop-across-reruns observation above,
+for a clean baseline before trusting Cell 5's printed RAM figures.
 
 ---
 

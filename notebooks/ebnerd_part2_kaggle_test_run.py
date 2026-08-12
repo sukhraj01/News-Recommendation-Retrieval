@@ -236,35 +236,67 @@ print(f"Embedding index ({device}): {embed_build_s:.1f}s "
       f"vectors {embed_mb:.1f} MB")
 
 
-# %% CELL 5 — build per-user queries for both methods from the real
-# test/history.parquet (Cell 3 already loaded it into `history`).
-text_lookup = dict(zip(
-    articles["article_id"],
-    articles["title"].fillna("") + " " + articles["abstract"].fillna(""),
-))
-vector_lookup = dict(zip(embed_index.article_ids, embed_index.vectors))
+# %% CELL 5 — CONFIG + build per-user queries, gated by RUN_METHODS.
+#
+# Real evidence found this session (measured against real EB-NeRD text and
+# the real 807,677-user/144.6-avg-history-length distribution Cell 3
+# reported): BM25's query dict concatenates a user's ENTIRE history as an
+# unweighted token multiset (ADR-005 — no dedup, repeats are informative),
+# so its per-user cost scales with history length. Measured ~15.9KB/user
+# -> projects to ~12.25GB for all 807,677 users. Embeddings mean-pool to
+# one fixed 384-dim vector/user regardless of history length -> ~1.16GB.
+# That's a real ~10.6x gap, not a rounding difference, and it lands on top
+# of whatever's already resident (Cell 2 showed available RAM dropping
+# from 29.6GB to 15.5GB just from re-running earlier cells in this same
+# kernel — if you're seeing something similar, restart the kernel for a
+# clean baseline before trusting any of these numbers).
+#
+# Combined with embeddings already winning on ebnerd_small-validation
+# accuracy (AUC 0.5430 vs. BM25's 0.5288, Part 1), BM25 is now opt-in
+# here, not built by default — this updates this session's earlier "build
+# both, decide at Cell 6" plan with new evidence, per CLAUDE.md's Decision
+# Reversal principle. Add "bm25" below only after confirming real headroom
+# (check the RAM print at the end of this cell) — everything from here
+# through Cell 9 (query build, Cell 6's benchmark, Cell 7's full run) is
+# driven by this one list.
+RUN_METHODS = ["embed"]  # add "bm25" too only if you've confirmed ~12GB headroom
 
-t0 = time.time()
-bm25_query_by_user = {
-    row.user_id: build_user_query(row.article_ids, text_lookup)
-    for row in history.itertuples(index=False)
-}
-print(f"BM25 query_by_user: {len(bm25_query_by_user)} users, "
-      f"{time.time() - t0:.1f}s")
+query_by_user = {}
+scorers = {}
+empty_queries = {}
 
-t0 = time.time()
-embed_query_by_user = {
-    row.user_id: build_user_embedding_query(row.article_ids, vector_lookup)
-    for row in history.itertuples(index=False)
-}
-print(f"Embedding query_by_user: {len(embed_query_by_user)} users, "
-      f"{time.time() - t0:.1f}s")
+if "bm25" in RUN_METHODS:
+    text_lookup = dict(zip(
+        articles["article_id"],
+        articles["title"].fillna("") + " " + articles["abstract"].fillna(""),
+    ))
+    t0 = time.time()
+    query_by_user["bm25"] = {
+        row.user_id: build_user_query(row.article_ids, text_lookup)
+        for row in history.itertuples(index=False)
+    }
+    print(f"BM25 query_by_user: {len(query_by_user['bm25'])} users, "
+          f"{time.time() - t0:.1f}s")
+    scorers["bm25"] = BM25Scorer(bm25_index)
+    empty_queries["bm25"] = []
+    vm = psutil.virtual_memory()
+    print(f"  RAM available after BM25 query build: {vm.available / 1024**3:.1f} GB")
 
-bm25_scorer = BM25Scorer(bm25_index)
-embed_scorer = EmbeddingScorer(embed_index)
+if "embed" in RUN_METHODS:
+    vector_lookup = dict(zip(embed_index.article_ids, embed_index.vectors))
+    t0 = time.time()
+    query_by_user["embed"] = {
+        row.user_id: build_user_embedding_query(row.article_ids, vector_lookup)
+        for row in history.itertuples(index=False)
+    }
+    print(f"Embedding query_by_user: {len(query_by_user['embed'])} users, "
+          f"{time.time() - t0:.1f}s")
+    scorers["embed"] = EmbeddingScorer(embed_index)
+    empty_queries["embed"] = None
+    vm = psutil.virtual_memory()
+    print(f"  RAM available after embedding query build: {vm.available / 1024**3:.1f} GB")
 
-vm = psutil.virtual_memory()
-print(f"\nRAM available after index+query build: {vm.available / 1024**3:.1f} GB")
+methods = {name: (scorers[name], query_by_user[name], empty_queries[name]) for name in RUN_METHODS}
 
 
 # %% CELL 6 — BENCHMARK on a real sample of THIS file, on THIS Kaggle
@@ -280,8 +312,6 @@ print(f"\nRAM available after index+query build: {vm.available / 1024**3:.1f} GB
 # (e.g. entirely inside the 200,000-row is_beyond_accuracy block) and bias
 # the throughput estimate. This also exercises iter_raw_impressions'
 # streaming path end-to-end on the real file before the full run does.
-import itertools
-
 SAMPLE_SIZE = 100_000
 STRIDE = max(1, EXPECTED_TOTAL // SAMPLE_SIZE)
 
@@ -290,17 +320,16 @@ def sample_rows(has_labels=False):
         if i % STRIDE == 0:
             yield row
 
-methods = {
-    "bm25": (bm25_scorer, bm25_query_by_user, []),
-    "embed": (embed_scorer, embed_query_by_user, None),
-}
-
+# methods (name -> (scorer, query_by_user_dict, empty_query)) is built in
+# Cell 5, gated by RUN_METHODS — not redefined here, so this cell only
+# ever benchmarks whatever was actually built (avoids referencing a query
+# dict that was deliberately skipped for memory reasons).
 projections = {}
-for name, (scorer, query_by_user, empty_query) in methods.items():
+for name, (scorer, q_by_user, empty_query) in methods.items():
     t0 = time.time()
     n = 0
     for row in sample_rows():
-        query = query_by_user.get(row["user_id"], empty_query)
+        query = q_by_user.get(row["user_id"], empty_query)
         scores = scorer.score(query, row["article_ids"])
         ranks_for_impression(scores, row["raw_impression_id"], seed=0)
         n += 1
@@ -323,17 +352,18 @@ print(
     "Kaggle GPU sessions are commonly capped around 9-12h per run and "
     "~30h/week of GPU quota total (check your own account's actual "
     "limit — this notebook can't see your quota). Compare the projected "
-    "hours above against that budget for whichever method(s) you intend "
-    "to run.\n"
-    "If a projection is comfortably under budget: proceed to Cell 7 with "
-    "that method in RUN_METHODS.\n"
+    "hours above against that budget for whichever method(s) are in "
+    "RUN_METHODS (set in Cell 5).\n"
+    "If a projection is comfortably under budget: proceed to Cell 7.\n"
     "If a projection is borderline or over budget, real alternatives "
     "(per CLAUDE.md's Resource Availability clause — pick one "
     "deliberately, don't silently downgrade):\n"
-    "  (a) run embeddings only, not both — Part 1 already showed "
-    "embeddings winning on ebnerd_small-validation (AUC 0.5430 vs. "
-    "BM25's 0.5288), so it's the defensible single choice if compute is "
-    "tight;\n"
+    "  (a) run embeddings only, not both (Cell 5's current default) — "
+    "Part 1 already showed embeddings winning on ebnerd_small-validation "
+    "(AUC 0.5430 vs. BM25's 0.5288), and this session found BM25's query "
+    "construction alone costs ~10.6x more RAM (~12.25GB vs. ~1.16GB "
+    "projected for the real 807,677-user test set), so it's the "
+    "defensible single choice on both accuracy and resource grounds;\n"
     "  (b) split the run across multiple Kaggle sessions using an "
     "impression-index checkpoint/resume (would need a small code change "
     "to this notebook's Cell 7 loop — not built here since it's only "
@@ -345,12 +375,13 @@ print(
 
 
 # %% CELL 7 — THE FULL RUN. Gated behind RUN_FULL_JOB — set it to True
-# only after reading Cell 6's real projection and picking RUN_METHODS
-# deliberately. Writes directly to /kaggle/working/ (streamed, one line
-# at a time — the whole point of this session's src/ fix), with periodic
-# progress printed so a long run is inspectable rather than a black box.
+# only after reading Cell 6's real projection. Uses RUN_METHODS as set in
+# Cell 5 (not redefined here — redefining it in this cell would silently
+# discard a deliberate choice made back in Cell 5, e.g. adding "bm25").
+# Writes directly to /kaggle/working/ (streamed, one line at a time — the
+# whole point of this session's src/ fix), with periodic progress printed
+# so a long run is inspectable rather than a black box.
 RUN_FULL_JOB = False  # <-- set True deliberately, after reading Cell 6
-RUN_METHODS = ["embed"]  # add "bm25" too only if Cell 6's projection allows
 
 if not RUN_FULL_JOB:
     print("RUN_FULL_JOB is False — not running. Set it True after "
@@ -360,13 +391,13 @@ else:
 
     PROGRESS_EVERY = 500_000
     for name in RUN_METHODS:
-        scorer, query_by_user, empty_query = methods[name]
+        scorer, q_by_user, empty_query = methods[name]
         out_path = f"/kaggle/working/predictions_{name}.txt"
         t0 = time.time()
         n = 0
         with open(out_path, "w") as f:
             for row in iter_raw_impressions(TESTSET_ZIP, "test", has_labels=False):
-                query = query_by_user.get(row["user_id"], empty_query)
+                query = q_by_user.get(row["user_id"], empty_query)
                 scores = scorer.score(query, row["article_ids"])
                 ranks = ranks_for_impression(scores, row["raw_impression_id"], seed=0)
                 f.write(f"{row['raw_impression_id']} {json.dumps(ranks, separators=(',', ':'))}\n")

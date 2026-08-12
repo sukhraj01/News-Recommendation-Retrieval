@@ -266,3 +266,75 @@ Human-in-the-loop: relaying the real Kaggle cell output verbatim (Prompt
 2, above) — the only way this bug was discoverable, since it depends on
 the real file's actual packaging, not anything derivable from code
 review or the fixture files already in this repo.
+
+---
+
+## Prompt 3 (real output relayed, second crash)
+
+```
+[relayed Kaggle output — Cell 1-3 now pass cleanly (real counts:
+13,536,710 test impressions, 200,000 is_beyond_accuracy, 125,541
+articles, 807,677 users with history, mean 144.6 articles/user); BM25
+index built cleanly (4.8s); then:
+AttributeError: 'str' object has no attribute 'with_suffix'
+  at embed_index = build_embedding_index(..., cache_path=embed_cache_path, ...)
+```
+
+AI-generated: diagnosis (embed_cache_path built via string concatenation,
+but build_embedding_index's cache helpers call .with_suffix(), Path-only)
+and fix (wrap in Path(...)). Human-written: none — relayed output again.
+
+## Prompt 4
+
+```
+bro make change sinthe fiel we have to submit htat too dont ask me too
+patch it
+```
+
+Read as: stop handing back single-line patches to paste into a live
+Kaggle cell — fix the actual `.py` file completely (it's a submission
+artifact itself) so re-pasting from it is the only step needed, instead
+of an iterative per-crash patch cycle.
+
+AI-generated response: rather than just applying the one-line Path fix
+and calling it done, used the now-known real scale facts (807,677 users,
+mean 144.6 articles/user, up to 1,530) to check whether Cell 5 — not yet
+reached, but next — would actually survive. Measured directly (real
+EB-NeRD article text through the project's own `tokenize()`, realistic
+history-length sampling matching the real distribution): BM25's per-user
+query dict projects to ~12.25GB for all 807,677 users (unweighted,
+non-deduplicated token concatenation of a user's entire history, per
+ADR-005) vs. embeddings' ~1.16GB (fixed 384-dim vector regardless of
+history length) — a real, measured ~10.6x gap that Cell 5 would have hit
+unconditionally (it built both query dicts regardless of which method(s)
+were actually going to run). Restructured Cells 5-7 around a single
+`RUN_METHODS` list (moved to Cell 5, gating query construction,
+benchmarking, and the full run together) with BM25 opt-in rather than
+default — updates this session's earlier "build both, decide later" plan
+with new evidence, per CLAUDE.md's Decision Reversal principle. Also found
+and removed a stale duplicate `methods = {...}` block in Cell 6 (a
+leftover from before this restructuring, referencing variable names that
+no longer existed — would have raised `NameError` immediately) and a
+variable-shadowing landmine (`query_by_user` reused as both Cell 5's
+`{method: {user: query}}` dict-of-dicts and a per-method loop variable in
+Cells 6/7 — renamed the loop variable to `q_by_user`).
+
+Before reporting this fixed, ran a full local simulation of the
+restructured Cells 4-9 against real data (`ebnerd_small.zip`'s validation
+split as a stand-in for the real test split) for both `RUN_METHODS`
+configurations — index build, gated query construction, benchmark
+sampling, the full write loop (244,647 real lines each), 0-malformed
+validation, and correct packaging, all passing — specifically because the
+engineer's prompt was a direct correction against reactive, unverified
+patching.
+
+### Human vs. AI split, this exchange
+
+AI-generated: the `str`-vs-`Path` diagnosis and fix, the memory
+measurement and its interpretation, the Cells 5-7 restructuring, the
+stale-code/shadowing cleanup, the full local verification pass, and the
+documentation updates (this log, `PROJECT_STATE.md`). Human-written: the
+relayed Kaggle output (Prompt 3) and the explicit correction (Prompt 4)
+that changed how this session verified its own fixes before reporting
+them — a real process correction, not just a bug report, saved to
+`feedback` memory for future sessions.
