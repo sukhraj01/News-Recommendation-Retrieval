@@ -13,6 +13,7 @@ import numpy as np
 import pytest
 
 from src.submission.ebnerd_format import (
+    iter_raw_impressions,
     ranks_for_impression,
     read_raw_impressions,
     write_predictions,
@@ -54,6 +55,30 @@ def test_read_raw_impressions_unlabeled_has_no_clicked():
     assert [r["raw_impression_id"] for r in rows] == ["3", "4"]
     assert rows[0]["article_ids"] == ["ebnerd:101", "ebnerd:102"]
     assert rows[0]["clicked"] is None
+
+
+def test_iter_raw_impressions_is_lazy_and_matches_read_raw_impressions():
+    """Real motivation: `read_raw_impressions` materializes a full
+    `list[dict]` before returning, which is what turned out not to scale to
+    ebnerd_testset's 13,536,710 rows (see the module docstring's 2026-08-12
+    addendum). `iter_raw_impressions` is the generator `write_predictions`/
+    `write_truth_file` actually consume now; `read_raw_impressions` is kept
+    only as `list(iter_raw_impressions(...))` for callers that want a list.
+    This test pins that the two stay in exact agreement, and that the
+    "iter" name is honest (no full list built until something consumes it)."""
+    gen = iter_raw_impressions(DEMO_ZIP, "validation", has_labels=True)
+    assert not isinstance(gen, list)
+    assert hasattr(gen, "__next__")  # a real generator, not eagerly a list
+
+    streamed = list(gen)
+    materialized = read_raw_impressions(DEMO_ZIP, "validation", has_labels=True)
+    assert streamed == materialized
+
+
+def test_iter_raw_impressions_unlabeled_matches_read_raw_impressions():
+    streamed = list(iter_raw_impressions(DEMO_ZIP, "validation", has_labels=False))
+    materialized = read_raw_impressions(DEMO_ZIP, "validation", has_labels=False)
+    assert streamed == materialized
 
 
 def test_ranks_for_impression_best_score_gets_rank_1():

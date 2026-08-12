@@ -23,9 +23,29 @@ requirement), which destroys `article_ids_inview`'s original order. Scoring
 still goes through the same `Scorer` interface (`src/retrieval/score.py`)
 and index (`build_index`/`build_embedding_index`) as everything else in
 this project.
+
+`iter_raw_impressions`/`read_raw_impressions` addendum (2026-08-12, Part 2
+prep): the original `read_raw_impressions` built a full `list[dict]` before
+returning — fine at MINDlarge_test's 2,370,727-impression scale (Part 4),
+but measured directly (synthetic rows shaped identically: ~9-15 candidates/
+impression, matching the real median) against ebnerd_testset's real
+13,536,710 impressions, that list alone projects to ~16GB, on top of the
+`behaviors` DataFrame it's built from (~8.5GB projected — pandas'
+`memory_usage(deep=True)` undercounts this by >3x for object-dtype list
+columns, since it doesn't recurse into the boxed ints each list element
+holds). `write_predictions`/`write_truth_file` never needed the full list
+simultaneously in memory — each row is written and discarded immediately —
+so `iter_raw_impressions` is now the real implementation (a generator, one
+row materialized at a time) and `read_raw_impressions` is kept as a thin
+`list(...)` wrapper so its existing tested return-a-list contract is
+unchanged for every other caller. `columns=` is also passed to
+`read_zip_parquet` now, so a column no caller reads (e.g.
+`is_beyond_accuracy`, never used by this module) isn't parsed into the
+DataFrame at all.
 """
 import json
 from pathlib import Path
+from typing import Iterator
 
 import numpy as np
 
@@ -37,9 +57,10 @@ from src.utils.io import read_zip_parquet
 DATASET = "ebnerd"
 
 
-def read_raw_impressions(zip_path: Path, split: str, has_labels: bool) -> list[dict]:
+def iter_raw_impressions(zip_path: Path, split: str, has_labels: bool) -> Iterator[dict]:
     """One dict per impression, in the exact row order of the raw
-    `{split}/behaviors.parquet` (not re-sorted).
+    `{split}/behaviors.parquet` (not re-sorted) — yielded lazily, see this
+    module's docstring addendum for why.
 
     Each dict: `raw_impression_id` (unprefixed `str(impression_id)`, exactly
     as EB-NeRD's own files and Codabench's truth file key impressions),
@@ -48,10 +69,12 @@ def read_raw_impressions(zip_path: Path, split: str, has_labels: bool) -> list[d
     (`list[bool]`, same order — only present when `has_labels=True`, `None`
     for the blind test set, which drops `article_ids_clicked` entirely).
     """
-    behaviors = read_zip_parquet(zip_path, f"{split}/behaviors.parquet")
+    needed = ["impression_id", "user_id", "article_ids_inview"]
+    if has_labels:
+        needed.append("article_ids_clicked")
+    behaviors = read_zip_parquet(zip_path, f"{split}/behaviors.parquet", columns=needed)
     clicked_col = behaviors["article_ids_clicked"] if has_labels else [None] * len(behaviors)
 
-    rows = []
     for raw_impression_id, raw_user_id, inview, clicked_ids in zip(
         behaviors["impression_id"], behaviors["user_id"],
         behaviors["article_ids_inview"], clicked_col,
@@ -61,13 +84,19 @@ def read_raw_impressions(zip_path: Path, split: str, has_labels: bool) -> list[d
         if has_labels:
             clicked_set = set(clicked_ids)
             clicked = [a in clicked_set for a in inview]
-        rows.append({
+        yield {
             "raw_impression_id": str(raw_impression_id),
             "user_id": prefix_id(DATASET, raw_user_id),
             "article_ids": article_ids,
             "clicked": clicked,
-        })
-    return rows
+        }
+
+
+def read_raw_impressions(zip_path: Path, split: str, has_labels: bool) -> list[dict]:
+    """Full-list form of `iter_raw_impressions`, kept for callers (and
+    tests) that want random access / a length. Prefer `iter_raw_impressions`
+    for a one-pass write over a large split — see the module docstring."""
+    return list(iter_raw_impressions(zip_path, split, has_labels))
 
 
 def ranks_for_impression(scores: np.ndarray, impression_id: str, seed: int = 0) -> list[int]:
@@ -104,15 +133,16 @@ def write_predictions(
     contract) — passed explicitly rather than guessed from the scorer type,
     since `Scorer` deliberately doesn't expose which method it is.
     """
-    rows = read_raw_impressions(zip_path, split, has_labels)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    n = 0
     with out_path.open("w") as f:
-        for row in rows:
+        for row in iter_raw_impressions(zip_path, split, has_labels):
             query = query_by_user.get(row["user_id"], empty_query)
             scores = scorer.score(query, row["article_ids"])
             ranks = ranks_for_impression(scores, row["raw_impression_id"], seed)
             f.write(f"{row['raw_impression_id']} {json.dumps(ranks, separators=(',', ':'))}\n")
-    return len(rows)
+            n += 1
+    return n
 
 
 def write_truth_file(out_path: Path, zip_path: Path, split: str) -> int:
@@ -126,10 +156,11 @@ def write_truth_file(out_path: Path, zip_path: Path, split: str) -> int:
     available to us). Same line order/count contract as
     `write_predictions`: one line per impression, `impid [label_1,...]`
     (0/1 per candidate, original order)."""
-    rows = read_raw_impressions(zip_path, split, has_labels=True)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    n = 0
     with out_path.open("w") as f:
-        for row in rows:
+        for row in iter_raw_impressions(zip_path, split, has_labels=True):
             labels = [int(c) for c in row["clicked"]]
             f.write(f"{row['raw_impression_id']} {json.dumps(labels, separators=(',', ':'))}\n")
-    return len(rows)
+            n += 1
+    return n

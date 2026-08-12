@@ -36,6 +36,11 @@ ENV/
 data/
 *.zip
 *.tar.gz
+# ...except small, deliberate source-code bundles committed for Kaggle
+# handoff (see notebooks/ebnerd_part0_kaggle_investigation.py's docstring
+# for the pattern) — these are build artifacts of tracked src/, not raw
+# data, and need to be committed so the engineer can upload them as-is.
+!notebooks/*.zip
 
 # Experiments (results)
 experiments/

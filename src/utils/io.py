@@ -31,11 +31,14 @@ def read_zip_tsv(zip_path: Path, member_name: str, names: list[str]) -> pd.DataF
     )
 
 
-def read_zip_parquet(zip_path: Path, member_name: str) -> pd.DataFrame:
+def read_zip_parquet(zip_path: Path, member_name: str, columns: list[str] | None = None) -> pd.DataFrame:
+    """`columns=None` reads every column (default, unchanged behavior).
+    Passing an explicit subset avoids materializing columns a caller never
+    reads — real cost at real scale (see `ebnerd_format.py`'s addendum)."""
     import io
 
     raw = read_zip_member_bytes(zip_path, member_name)
-    return pd.read_parquet(io.BytesIO(raw))
+    return pd.read_parquet(io.BytesIO(raw), columns=columns)
 
 
 def write_parquet(df: pd.DataFrame, path: Path) -> None:
