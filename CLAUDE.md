@@ -404,6 +404,20 @@ efficiency gain.
 
 ---
 
+## Memory Estimation
+
+Before running any step against a new data scale for the first time,
+project peak memory from measured per-unit numbers — same discipline as
+time-benchmarking, not a guess. Compare against the local machine's known
+RAM ceiling (PROJECT_STATE.md) with real headroom, not the raw total —
+leave enough free for the OS that swapping doesn't start. If the
+projection is close to or crosses that margin, stop before execution and
+default to Kaggle immediately, no local attempt first. The estimate should
+be fast; don't burn time trying to force it locally once the numbers say
+no.
+
+---
+
 ## Decision Reversal
 
 Engineering decisions are not permanent.

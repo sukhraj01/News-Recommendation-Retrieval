@@ -137,6 +137,7 @@ The following decisions will be resolved during the architecture phase:
 | Timeline pressure near deadline | Medium | Medium | Weekly milestone reviews | Monitoring |
 | Naive `rank_bm25.get_scores()` doesn't scale to real user/corpus counts | Realized once (measured ~10hr projected at MINDsmall-dev scale) | High | Replaced with a verified-equivalent sparse-matrix scorer (~80s actual); re-benchmark before MINDlarge enters scope (ADR-006) | Resolved this session, monitor at larger scale |
 | Unweighted BM25 query concatenation can silently underperform random retrieval | Realized once (EB-NeRD pre-fix recall@50/100 below random baseline) | High | Stopword removal added and benchmarked (ADR-005); hand-built stopword list not independently validated | Resolved this session, monitor if query construction changes |
+| Local machine has 8GB RAM — large-scale runs can thrash/OOM without a pre-flight memory estimate | Medium, grows with scale | High (thrashing/OOM loses in-progress work) | Memory projected from measured per-unit numbers before every new-scale run (CLAUDE.md's Memory Estimation clause); move to Kaggle immediately if projection nears ~8GB, no local attempt first | Ongoing |
 
 ---
 
