@@ -2,11 +2,11 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 12, 2026 (MINDlarge_test embeddings predictions generated, validated, and packaged for Codabench upload)
+**Last Updated:** August 12, 2026 (EB-NeRD Codabench submission, Part 0 format investigation started — blocked on Kaggle execution, handed off to the engineer)
 
-**Current Phase:** MIND Codabench submission (Q5), Parts 1-4. MINDlarge feature store built and row-count-verified against Wu et al. (2020); BM25 and embeddings benchmarked at real MINDlarge scale (both stay local, no Kaggle detour needed); `src/submission/mind_format.py` (official rank-format converter) implemented and validated end-to-end against the real `evaluate.py` script for both methods on MINDlarge_dev. Part 4's local half (blind test predictions, row-count-validated) is now done — the actual Codabench upload + leaderboard screenshot remains, needing the engineer's own account/login regardless of local readiness.
+**Current Phase:** MIND Codabench submission (Q5) Parts 1-4 complete on the local side (see prior session notes below); EB-NeRD Codabench submission (competition 2469) now started. Part 0's locally-executable pieces are done: the paper's Appendix A (Tables 6-8) schema extracted, the `jppol-ai/ebnerd-benchmark` starter repo inspected and confirmed to contain only server-side CodaBench compute-worker setup (not a submission-format spec or scoring script), and a ready-to-run Kaggle investigation script (`notebooks/ebnerd_part0_kaggle_investigation.py` + `notebooks/ebnerd_small_demo_article_ids.csv`) prepared. The remaining Part 0 checks (real `predictions_large_random.zip` structure, real `ebnerd_testset.zip` schema, `articles_large_only.zip` coverage) require Kaggle execution this environment cannot perform — no `kaggle` CLI, no API token, no browser access. Per CLAUDE.md's Resource Availability clause, this was surfaced explicitly rather than guessed around; the engineer chose to run the prepared notebook script on Kaggle and relay results back.
 
-**Current Objective:** Manual: upload `submissions/mind_large_test_embed/prediction.zip` to the MIND Codabench competition and capture the leaderboard screenshot for Q6. Q6 (design note) itself remains not started.
+**Current Objective:** Manual (engineer): run `notebooks/ebnerd_part0_kaggle_investigation.py` on Kaggle against the dataset containing `predictions_large_random.zip`/`ebnerd_testset.zip`/`articles_large_only.zip` (upload `notebooks/ebnerd_small_demo_article_ids.csv` alongside it), paste the printed output back. That output drives Part 1 (`src/submission/ebnerd_format.py`, built against ebnerd_small's known-label validation split) — not started until the real submission format is confirmed, per the task's own explicit instruction not to guess it from the paper's schema docs. Separately, MIND's Q6 design note and the manual Codabench upload/screenshot (`submissions/mind_large_test_embed/prediction.zip`) also remain outstanding from the prior session.
 
 ---
 
@@ -32,8 +32,8 @@ Honest status against the assignment's four required deliverables, updated at th
 |---|-------------|--------|-------|
 | 1 | Code (GitHub Classroom) | 🟡 In progress | Data pipeline (now including MINDlarge), BM25 retrieval, semantic (embedding) retrieval, Q4 evaluation harness, and the Q5 official-format converter (`src/submission/mind_format.py`) all implemented and tested (ADR-005/006/007/008 + this session's addenda). `README.md` documents one-command reproduce (`make data`, `make test`) — still not updated with `scripts/run_embed_experiment.py`/`scripts/generate_mind_predictions.py` usage, flagged again for next session. `.gitignore` verified against Q8's explicit list — MINDlarge's new `data/processed/mind/large/` tree and raw zips confirmed covered by the existing `data/` rule, nothing new needed. **This session: two real bugs found and fixed while exercising Part 4 for the first time** (`data/datasets/mind.py::parse_mind_test_candidates` silently discarded `user_history` for the test split; `src/retrieval/score.py`'s `Scorer`s crashed on a candidate id absent from the corpus — see Session Notes). Part 4's blind-prediction generation is now done and validated. |
 | 2 | Design note (≤4 pages, Moodle) | ⬜ Not started | Was deferred until semantic retrieval produced real numbers to compare against (met, ADR-008) and now also has MINDlarge-scale numbers to draw on — ready to start next session |
-| 3 | Leaderboard screenshots (both Codabench competitions) | 🟡 In progress (MIND) / ⬜ Not started (EB-NeRD) | MIND: Parts 1-4's local half complete — `submissions/mind_large_test_embed/prediction.zip` ready to upload. **The upload itself needs the engineer's own Codabench account/login, which Claude Code cannot do regardless of local readiness.** EB-NeRD's own Codabench submission (competition 2469) not started — explicitly out of scope, not forgotten. |
-| 4 | AI usage log (prompts + AI-vs-human marking) | 🟢 Ongoing | `knowledge/ai-usage-log/` exists; one file per session (`YYYY-MM-DD_<topic>.md`), written live per CLAUDE.md's "Prompt & Session Logging" section, not reconstructed after the fact (this session's log: `2026-08-12_mindlarge-test-part4-submission.md`) |
+| 3 | Leaderboard screenshots (both Codabench competitions) | 🟡 In progress (MIND) / 🟡 In progress (EB-NeRD, Part 0 investigation) | MIND: Parts 1-4's local half complete — `submissions/mind_large_test_embed/prediction.zip` ready to upload. **The upload itself needs the engineer's own Codabench account/login, which Claude Code cannot do regardless of local readiness.** EB-NeRD (competition 2469): Part 0's local half done (paper schema, starter-repo check); the Kaggle-only half (real submission format, real test-set schema, article coverage) is blocked on this environment's lack of Kaggle access — handed to the engineer via `notebooks/ebnerd_part0_kaggle_investigation.py`. |
+| 4 | AI usage log (prompts + AI-vs-human marking) | 🟢 Ongoing | `knowledge/ai-usage-log/` exists; one file per session (`YYYY-MM-DD_<topic>.md`), written live per CLAUDE.md's "Prompt & Session Logging" section, not reconstructed after the fact (this session's log: `2026-08-12_ebnerd-codabench-part0-investigation.md`) |
 
 ---
 
@@ -268,11 +268,16 @@ Experiment results are recorded in the `experiments/` directory as implementatio
 - [x] Part 4 (local half): generate MINDlarge_test (blind) predictions with embeddings, validate row count/format — `submissions/mind_large_test_embed/prediction.zip` ready (2026-08-12 — see Session Notes)
 - [ ] Part 4 (manual half): upload `prediction.zip` to the MIND Codabench leaderboard, capture screenshot — needs the engineer's own account/login
 - [ ] Q6: write the design note (≤4 pages) — ADR-008's Interpretation section plus MINDlarge-scale findings are now the primary source material
-- [ ] EB-NeRD's own Codabench submission format is separate and still unverified — explicitly out of scope so far, not forgotten
+- [x] EB-NeRD's own Codabench submission format: Part 0 started this session — paper schema (Table 6-8) extracted, `ebnerd-benchmark` starter repo confirmed to have no format/scoring code (server-infra only), Kaggle investigation script prepared
+- [ ] **Manual (engineer, blocking):** run `notebooks/ebnerd_part0_kaggle_investigation.py` on Kaggle, paste output back — this environment has no `kaggle` CLI/API access to do it directly (Resource Availability clause)
+- [ ] Part 1 (`src/submission/ebnerd_format.py`, validated against ebnerd_small): not started, blocked on the above — building it against guessed format would violate the task's own explicit instruction
+- [ ] Part 2 (real ebnerd_testset run) and Part 3 (submit + screenshot): blocked on Parts 0-1
+- [ ] Q9 design-note note: confirm in writing that `total_inviews`/`total_pageviews`/`total_read-time` are never read anywhere in this pipeline (grep `src/` before writing that claim, don't assert from memory)
 
 ## Upcoming
 
-- Manual Codabench upload of `submissions/mind_large_test_embed/prediction.zip` + Q6 (design note) are the next session's objective (or whenever the engineer completes the upload).
+- Once the engineer relays the Kaggle investigation output: validate it against Table 6-8's documented schema, then implement `src/submission/ebnerd_format.py` against the *confirmed* real format (mirroring `src/submission/mind_format.py`'s pattern — re-read the raw zip for original candidate order, score through the existing `Scorer` interface, no new scoring logic).
+- Manual Codabench upload of `submissions/mind_large_test_embed/prediction.zip` + Q6 (design note) remain outstanding from the MIND side, independent of EB-NeRD's progress.
 - `README.md` needs a `scripts/run_embed_experiment.py` / `--method embed` usage note, plus `scripts/generate_mind_predictions.py` — not updated yet, flagged again for next.
 - `ebnerd_large` remains undownloaded/unverified — lower priority unless the assignment specifically requires the `large` tier for leaderboard submission.
 - ADR-008 flags a possible future investigation (not required this session): a curated near-duplicate/paraphrase evaluation set to validate the encoder's discrimination quality more directly than the category-proxy check used here.
@@ -282,6 +287,31 @@ Experiment results are recorded in the `experiments/` directory as implementatio
 ---
 
 # Session Notes
+
+## August 12, 2026 (later) — EB-NeRD Codabench Submission, Part 0 Investigation Started
+
+### Completed
+
+- **Resource constraint surfaced before implementation, per CLAUDE.md's Resource Availability clause.** The session brief's Part 0/Part 2 explicitly require Kaggle execution. Checked this environment directly rather than assuming: no `kaggle` CLI, no `~/.kaggle` credentials, no browser/notebook access. This is a hard blocker for the Kaggle-only steps, not a style choice — stopped, named the constraint, and asked the engineer how to proceed (three options: prep-and-relay, configure a Kaggle token here, or skip verification and guess from docs). Engineer chose prep-and-relay, the same pattern already established for the MIND Codabench upload (engineer's own login required).
+- **Did everything locally executable first, rather than waiting idle.** Extracted the EB-NeRD paper's Appendix A (Tables 6-8) from `data/ebnerd_paper.pdf` via `pypdf` (ad hoc install into the poetry venv, same one-off pattern as last session's MIND paper extraction) — confirms the documented `behaviors.parquet` test-split schema (drops Article ID/Next read-time/Next scroll percentage/Clicked article IDs, adds `is_beyond_accuracy` across 200,000 samples).
+- **Inspected `jppol-ai/ebnerd-benchmark` without a full clone** — a first `git clone --depth 1` attempt timed out twice over a slow connection; switched to the GitHub REST API (`git/trees?recursive=1` + `raw.githubusercontent.com` for specific files) to pull only what was needed, skipping the repo's NRMS/LSTUR/NAML/NPA model code and notebooks entirely (out of scope per the session brief). Found a genuine negative result worth documenting: `codabench/README.md` describes **server-side compute-worker infrastructure** (a Docker setup for running a CodaBench scoring backend on your own VM) — it is not a submission-format spec or a client-side scoring script. This repo does not contain Part 0's ground truth; inspecting the real `predictions_large_random.zip` on Kaggle is the only way to get it, not one option among several. Also tried `WebFetch` against the competition's Submission Guidelines tab (codabench.org/competitions/2469) — returned only the React SPA shell, confirming that route doesn't work without an actual browser session either.
+- **Computed the local demo+small article-ID reference set** directly from the already-built feature store (`data/processed/ebnerd/{demo,small}/articles.parquet`): 21,700 unique raw article IDs, published_time up to 2023-07-11. Exported as `notebooks/ebnerd_small_demo_article_ids.csv` so the Kaggle-side coverage check (does `articles_large_only.zip` cover test-period articles that demo/small don't?) doesn't need to re-derive this on Kaggle.
+- **Wrote `notebooks/ebnerd_part0_kaggle_investigation.py`** — a paste-into-Kaggle-cells script, auto-discovering input files by filename under `/kaggle/input` (doesn't depend on knowing the engineer's exact dataset slug). Covers all four remaining Part 0 checks: `predictions_large_random.zip`'s literal file layout/line format; `ebnerd_testset.zip`'s real `behaviors.parquet` columns checked against Table 7 (`is_beyond_accuracy` presence + value_counts, the four expected-absent columns, beyond-accuracy rows' fixed-pool structure); and `articles_large_only.zip`'s in-view coverage, cross-checked against both itself and the local demo+small CSV.
+- **Committed a small pre-existing housekeeping gap first** (`7423a51`): `CLAUDE.md`'s Memory Estimation clause and its matching `PROJECT_STATE.md` risk-table row were fully written in the working tree from the prior session but never committed. Verified complete and self-contained before committing separately, ahead of this session's own changes.
+
+### Key Outcomes
+
+- Part 0 is genuinely half-done, not stalled: everything answerable without Kaggle access (paper schema, starter-repo scope, WebFetch dead-end) is resolved with real evidence, and the negative result on the starter repo (no format spec there) is itself useful — it rules out a shortcut before the engineer spends Kaggle time.
+- No submission-format code has been written yet, deliberately — the session brief explicitly warned against guessing the format from Table 6/7's schema docs, and building `ebnerd_format.py` before Part 0's Kaggle results would be exactly that guess. Part 1 stays blocked until real data confirms the format.
+- Reusable pattern establishing itself across both Codabench submissions (MIND and EB-NeRD): Claude Code does all locally-executable investigation and implementation; anything requiring an external account, browser, or platform access is prepped as an exact, ready-to-run artifact (script, upload list, or instructions) and handed to the engineer, who relays results back rather than Claude Code attempting a workaround.
+
+### Next Session
+
+- **Blocking on the engineer:** run `notebooks/ebnerd_part0_kaggle_investigation.py` on Kaggle (upload `notebooks/ebnerd_small_demo_article_ids.csv` alongside the existing dataset), paste the full printed output back.
+- Once that lands: validate it against Table 6-8, then implement `src/submission/ebnerd_format.py` (Part 1) against the confirmed real format, generate + cross-check predictions against `ebnerd_small`'s validation split for both BM25 and embeddings, same discipline as MIND's Part 3.
+- MIND's Q6 design note and manual Codabench upload/screenshot remain independently outstanding.
+
+---
 
 ## August 12, 2026 — Part 4: MINDlarge_test Predictions Generated and Validated
 
