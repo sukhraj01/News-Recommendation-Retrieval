@@ -565,3 +565,88 @@ Cell 7 rewrite, the Cell 8 update, all new tests, the standalone
 correctness harness and its interpretation, the bundle rebuild, and the
 documentation updates. Human-written: none this exchange — driven by the
 `AskUserQuestion` answers from Prompt 6's exchange.
+
+---
+
+## Prompt 8
+
+```
+Current Objective: Adjust for a single-session commit run instead of
+multi-session checkpointing — real Kaggle limit is ~25h , well
+above the 12.80h projection.
+
+1. Raise MAX_RUNTIME_HOURS from the current default (8.0) to something
+   like 20 — comfortable buffer under the real ~25h limit, well above the
+   12.80h projected full run, so Cell 7 doesn't self-checkpoint
+   unnecessarily partway through.
+2. Confirm RUN_FULL_JOB = True is set in Cell 5/7 before this gets
+   committed — double-check this explicitly, since a 12+ hour run doing
+   nothing because this was left False would be the exact kind of mistake
+   we're trying to avoid here.
+3. Leave the checkpoint/resume logic itself untouched — it stays as a
+   safety net in case the run does get interrupted (Kaggle killing the
+   session unexpectedly, a commit-mode time limit shorter than expected,
+   etc.), it just shouldn't trigger unnecessarily at the old 8h default.
+4. Confirm nothing else in Cell 7's logic assumes it will stop and resume
+   across multiple sessions — it should run cleanly start-to-finish in one
+   pass if given the full 12.80h+ it needs.
+
+I'll run this via Kaggle's "Save & Run All (Commit)" rather than an
+interactive session, so it runs in the background without needing to stay
+connected. Confirm the bundle is ready for that before I upload the final
+version and commit.
+```
+
+AI-generated: all changes and verification below.
+
+### What was done
+
+Straightforward per items 1-3: raised `MAX_RUNTIME_HOURS` 8.0 -> 20.0, set
+`RUN_FULL_JOB = True`, left the checkpoint/resume mechanism itself
+unmodified. Also anchored Cell 7's deadline to a new `NOTEBOOK_START_TIME`
+captured at the top of Cell 1 rather than Cell 7's own start — real,
+worth doing given the stakes: in a commit run, Cells 0-6's setup (~10 min
+per Addendum 4's real relayed numbers) happens before Cell 7 begins, and
+the confirmed ~25h limit applies to the whole commit run's wall time.
+
+For item 4 ("confirm nothing else assumes multi-session behavior"),
+traced through Cell 7's actual logic rather than just eyeballing it, and
+found a real gap: this run is now unattended (nobody watching "Save & Run
+All" live to catch a problem in real time), so the existing checkpoint-
+discovery logic would have silently trusted ANY file named
+`predictions_embed.txt` it found under `/kaggle/working` or
+`/kaggle/input` as a genuine resume point — including a stale leftover
+from an unrelated earlier attempt. Cell 8's line-count/format validation
+would not catch this (a stale prefix is still well-formed JSON, just
+wrong content). Added a cross-check: two cheap single-row lookups against
+the real zip (via `sample_raw_impressions`) confirming the checkpoint's
+first and last `impression_id` actually match what the real file has at
+those row positions; raises `RuntimeError` and stops if not, rather than
+silently mixing stale rows into the output.
+
+Verified all three relevant scenarios against real `ebnerd_small` data via
+a standalone harness running Cell 7's exact current logic (not a
+reimplementation) before reporting this ready, per this session's
+standing "verify before handing back" memory: (1) a single uninterrupted
+pass — the now-default commit scenario — writes all 244,647 lines
+correctly; (2) a genuine matching checkpoint still resumes correctly and
+produces output identical to the uninterrupted case, confirming the new
+safety check doesn't break the real resume path; (3) a stale/mismatched
+checkpoint (fabricated from a different split's row ordering) is
+correctly rejected with a clear error rather than silently trusted.
+
+Confirmed `RUN_METHODS = ["embed"]` in Cell 5 unchanged. Confirmed no
+`src/` files changed this round (only the notebook script), so the
+already-uploaded `notebooks/ebnerd_part2_src_bundle.zip` from the prior
+commit does not need re-uploading. Updated `PROJECT_STATE.md` with the
+full change set and verification.
+
+### Human vs. AI split, this exchange
+
+AI-generated: all four requested changes, the additional stale-checkpoint
+safety check (a gap the session brief's own item 4 surfaced once traced
+through), the verification harness and its three scenarios, and the
+documentation updates. Human-written: none — the session brief (Prompt 8)
+specified the four required changes; the fifth (stale-checkpoint
+rejection) was found during the requested audit, not separately asked
+for.

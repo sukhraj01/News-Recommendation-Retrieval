@@ -2,7 +2,7 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 12, 2026 (EB-NeRD Codabench submission — Part 2's Kaggle notebook is mid-execution on the engineer's real Kaggle session. Confirmed a real, decomposed 12.80-hour full-run projection: ~2.48x genuine Kaggle-vs-local hardware/BLAS slowdown (not a bug) plus real caching benefit from EB-NeRD's natural user locality, both now measured with real Kaggle numbers. Since that's borderline against a free-tier session cap, built and verified (byte-identical output vs. an uninterrupted reference run) cross-session checkpointing for Cell 7 — the full run itself has not been executed yet)
+**Last Updated:** August 12, 2026 (EB-NeRD Codabench submission — Part 2's Kaggle notebook is ready for a single unattended "Save & Run All (Commit)" pass. Confirmed real Kaggle commit-run limit (~25h) comfortably covers the confirmed 12.80h full-run projection, so `RUN_FULL_JOB=True`/`MAX_RUNTIME_HOURS=20` are now set for a start-to-finish run; the multi-session checkpoint/resume logic built the prior round stays live as a verified safety net, plus a new stale-checkpoint cross-check for the now-unattended run. The full run itself has not been executed yet)
 
 **Current Phase:** MIND Codabench submission (Q5) Parts 1-4 complete on the local side (see prior session notes below). EB-NeRD Codabench submission (competition 2469): Part 0 and Part 1 complete (see the August 12 "Part 0 Resolved + Part 1 Converter" notes below). **Part 2 is now prepped, not yet executed** — `notebooks/ebnerd_part2_kaggle_test_run.py` (a paste-into-Kaggle-cells script, same pattern as Part 0's investigation script) is written, and `notebooks/ebnerd_part2_src_bundle.zip` (this project's own validated `src/` scoring/converter code, minimal subtree, upload as a private Kaggle Dataset) is built and import-verified. Neither has been run on Kaggle yet — that's the engineer's own next step (GPU accelerator + Kaggle account required, same class of action Claude Code cannot perform directly).
 
@@ -642,6 +642,84 @@ and print a `CHECKPOINT` message with exact next-session instructions,
 likely needing 2 sessions total for the real 12.80h projection against an
 8.0h budget. Relay back each session's final printed status (`CHECKPOINT`
 or `DONE`) so progress stays visible across the multi-session run.
+
+### Addendum 5 (same day) — switched to a single "Save & Run All (Commit)"
+### run: engineer confirmed the real Kaggle limit (~25h) comfortably
+### covers the 12.80h projection, no multi-session split actually needed
+
+Engineer confirmed the real Kaggle commit-run limit is ~25h — well above
+the 12.80h real projection from Addendum 4, so the multi-session
+checkpointing plan (built as a real, verified capability in Addendum 4)
+turns out not to be strictly necessary; a single unattended "Save & Run
+All (Commit)" pass should cover the whole run.
+
+**Changed in `notebooks/ebnerd_part2_kaggle_test_run.py`** (no `src/`
+changes this round — the bundle from Addendum 4 already has everything
+this needed):
+
+- `RUN_FULL_JOB` set `True` (was `False`) — the actual green light for
+  the committed run, double-confirmed explicit and correctly placed per
+  the session brief's own concern (a 12+ hour commit doing nothing
+  because this was left `False` would be exactly the failure mode being
+  guarded against).
+- `MAX_RUNTIME_HOURS` raised `8.0` -> `20.0` — comfortable buffer under
+  the confirmed ~25h real limit, well above the ~12.80h this run should
+  actually take, so Cell 7 shouldn't self-checkpoint at all in the normal
+  case.
+- Cell 7's deadline is now anchored to a `NOTEBOOK_START_TIME` captured
+  at the very top of Cell 1, not to Cell 7's own start — real, worth
+  getting right: in a "Save & Run All (Commit)" run, Cells 0-6's setup
+  (encode, query build, the Cell 6 benchmark — real measured cost ~10
+  min from Addendum 4's relayed output) happens before Cell 7 even
+  begins, and the ~25h limit applies to the whole commit run's wall
+  time, not just Cell 7's own portion of it. Anchoring to
+  `NOTEBOOK_START_TIME` means the 20h budget is measured from the true
+  start, closing a real (if small, ~10-20 min) gap in the original
+  Cell-7-local deadline.
+- Checkpoint/resume logic itself is unchanged and stays live as the
+  safety net (Kaggle killing the run unexpectedly, a shorter-than-
+  expected real limit) — per the session brief's explicit instruction.
+- **Added a real safety check the session brief's "confirm nothing else
+  assumes multi-session behavior" prompted**: this run is now unattended
+  (nobody watching "Save & Run All" live), so if Cell 7 happened to find
+  a *stale* `predictions_embed.txt` left over from an unrelated earlier
+  attempt, it would previously have silently trusted it as a genuine
+  resume point — Cell 8's line-count/format check would not catch this,
+  since a stale prefix is still well-formed, just wrong. Added a
+  cross-check (two cheap single-row lookups via `sample_raw_impressions`)
+  comparing the checkpoint's first and last `impression_id` against what
+  the real `ebnerd_testset.zip` actually has at those row positions;
+  raises `RuntimeError` and stops rather than silently proceeding if they
+  don't match.
+
+**Verified all three scenarios against real `ebnerd_small` data** (a
+standalone harness running Cell 7's exact current logic, not a
+reimplementation) before reporting this ready:
+1. A single uninterrupted pass (the now-default commit scenario) writes
+   all 244,647 lines correctly.
+2. A genuine matching checkpoint (from an interrupted-then-resumed run)
+   still resumes correctly and produces output identical to the
+   uninterrupted case — the new safety check doesn't break the real
+   resume path.
+3. A **stale/mismatched checkpoint** (fabricated from `ebnerd_small`'s
+   `train` split's row ordering, standing in for an unrelated leftover
+   file) is correctly **rejected** with a clear `RuntimeError` rather than
+   silently trusted.
+
+Confirmed `RUN_METHODS = ["embed"]` in Cell 5 is unchanged (still the
+right choice — accuracy edge on `ebnerd_small`-validation, and the
+dramatically lower memory cost vs. BM25's ~12.25GB found earlier). No
+`src/` files changed this round, so `notebooks/ebnerd_part2_src_bundle.zip`
+does not need re-uploading — only the notebook script itself changed.
+
+**Next:** engineer re-pastes the updated notebook (bundle unchanged,
+already uploaded), runs "Save & Run All (Commit)" with `RUN_FULL_JOB`
+already `True`, and lets it run unattended. Expect a `DONE` status in
+Cell 7's output on completion (~12.80h, plus ~10-15 min of Cells 0-6
+setup); the `CHECKPOINT` path should not trigger under normal conditions
+but is verified correct if it does. Relay back Cell 7's final status,
+Cell 8's validation line, and Cell 9's packaging confirmation once the
+commit finishes.
 
 ---
 

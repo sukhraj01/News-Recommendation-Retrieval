@@ -64,7 +64,15 @@ Before running:
 # already do).
 import os
 import sys
+import time
 import zipfile
+
+# Captured here, not at Cell 7's own start, so Cell 7's MAX_RUNTIME_HOURS
+# deadline accounts for the WHOLE commit run's wall time (Cells 0-6's
+# setup included -- encode, query build, the Cell 6 benchmark) when this
+# runs unattended via "Save & Run All (Commit)", not just Cell 7's own
+# portion of it. See Cell 7's docstring.
+NOTEBOOK_START_TIME = time.time()
 
 TARGETS = ["ebnerd_testset.zip", "articles_large_only.zip"]
 
@@ -440,23 +448,20 @@ print(
     "caching doesn't help; the ebnerd_small measurement (~52% locality) "
     "makes little-to-no benefit unlikely but not impossible for a "
     "different, larger file.\n\n"
-    "Kaggle GPU sessions are commonly capped around 9-12h per run and "
-    "~30h/week of GPU quota total (check your own account's actual "
-    "limit — this notebook can't see your quota). Compare the projected "
-    "hours above (from the locality-preserving chunked sample, not the "
-    "isolated cost) against that budget for whichever method(s) are in "
-    "RUN_METHODS (set in Cell 5).\n"
-    "If a projection is comfortably under budget: proceed to Cell 7.\n"
-    "If a projection is borderline or over budget: Cell 7 below now "
-    "checkpoints itself across sessions (per CLAUDE.md's Resource "
-    "Availability clause — a real fix, not a silent downgrade), so a "
-    "single session's cap no longer has to fit the whole projected run; "
-    "read Cell 7's own docstring for the cross-session workflow before "
-    "running it."
+    "Confirmed (2026-08-12) via 'Save & Run All (Commit)': real commit-run "
+    "limit ~25h, comfortably above the ~12.80h real projection this "
+    "benchmark produced — Cell 7 is now set to run start-to-finish in one "
+    "commit (RUN_FULL_JOB=True, MAX_RUNTIME_HOURS=20). Its checkpoint/"
+    "resume logic stays live as a safety net (Kaggle killing the run "
+    "unexpectedly, a shorter-than-expected real limit) but shouldn't "
+    "trigger in the normal case — if it does, read Cell 7's own docstring "
+    "for the cross-session recovery workflow."
 )
 
 
-# %% CELL 7 — THE FULL RUN, with cross-session checkpointing.
+# %% CELL 7 — THE FULL RUN, with cross-session checkpointing as a safety
+# net (not the primary plan anymore — see the 2026-08-12 (later) addendum
+# below).
 #
 # Added 2026-08-12: Cell 6's real (post-methodology-fix) projection landed
 # close to or over a free-tier Kaggle GPU session's commonly-cited ~9-12h
@@ -466,20 +471,34 @@ print(
 # can fix. Rather than let Kaggle kill this mid-run (risking a truncated
 # last line) or hope "Save & Run All (Commit)" happens to have a longer
 # cap, this cell stops ITSELF cleanly on a self-imposed time budget
-# (MAX_RUNTIME_HOURS, deliberately well under the platform's real limit,
-# not up against it) and resumes from wherever a previous attempt left
+# (MAX_RUNTIME_HOURS) and resumes from wherever a previous attempt left
 # off — same session or a fresh one.
 #
-# Cross-session workflow:
-#   1. Set RUN_FULL_JOB = True and run this cell.
-#   2. If it prints DONE, the whole file is written — go to Cell 8.
-#   3. If it prints CHECKPOINT instead, download
+# Addendum (2026-08-12, later): the engineer confirmed the real Kaggle
+# commit-run limit is ~25h — well above the 12.80h real projection, no
+# multi-session split actually needed. Switched to a single "Save & Run
+# All (Commit)" run: RUN_FULL_JOB is now True and MAX_RUNTIME_HOURS raised
+# to 20 (comfortable buffer under ~25h, well above the ~12.80h this run
+# should actually take) so this cell runs start-to-finish in one pass
+# rather than self-checkpointing partway through for no reason. The
+# checkpoint/resume logic itself is UNCHANGED and stays live as a safety
+# net — if Kaggle kills the run unexpectedly, or the real commit-time
+# limit turns out shorter than expected, this cell still stops cleanly
+# and resumes correctly (verified byte-for-byte identical to an
+# uninterrupted run — see PROJECT_STATE.md's Session Notes). The
+# multi-session cross-session workflow below is what to fall back on if
+# that safety net actually triggers, not the primary plan now.
+#
+# Cross-session workflow (only needed if MAX_RUNTIME_HOURS is hit or
+# Kaggle stops the run before it finishes):
+#   1. If it prints DONE, the whole file is written — go to Cell 8.
+#   2. If it prints CHECKPOINT instead, download
 #      /kaggle/working/predictions_<method>.txt via Kaggle's file browser.
-#   4. Upload it as a new version of a private Kaggle Dataset (reuse the
+#   3. Upload it as a new version of a private Kaggle Dataset (reuse the
 #      same dataset each time — Kaggle Datasets -> your checkpoint dataset
 #      -> "New Version" -> upload the file — rather than a fresh dataset
 #      per attempt).
-#   5. Start a new Kaggle session, attach that checkpoint dataset (and the
+#   4. Start a new Kaggle session, attach that checkpoint dataset (and the
 #      src bundle, as before) as Data sources, re-run Cells 1-6 (rebuilds
 #      the corpus index/queries — unavoidable per-session cost, a few
 #      minutes) then this cell again. It will find the checkpoint under
@@ -487,13 +506,13 @@ print(
 #      re-scoring of already-done rows, only the cheap per-row parsing
 #      cost for skipped rows (via `iter_raw_impressions_from`'s
 #      `.iloc[start_row:]`, not a full re-walk).
-#   6. Repeat until DONE, then proceed to Cell 8.
+#   5. Repeat until DONE, then proceed to Cell 8.
 #
 # Uses RUN_METHODS as set in Cell 5 (not redefined here — redefining it in
 # this cell would silently discard a deliberate choice made back in Cell 5,
 # e.g. adding "bm25").
-RUN_FULL_JOB = False  # <-- set True deliberately, after reading Cell 6
-MAX_RUNTIME_HOURS = 8.0  # stop cleanly this far into a session -- tune down if your account's real cap is lower than the commonly-cited 9-12h
+RUN_FULL_JOB = True  # confirmed deliberately set True for the committed single-pass run (2026-08-12) -- do not leave this False, a 12+ hour commit run doing nothing is the exact mistake this flag exists to prevent
+MAX_RUNTIME_HOURS = 20.0  # comfortable buffer under the confirmed real ~25h commit-run limit, well above the ~12.80h this run should actually take -- was 8.0 when multi-session checkpointing was still the plan
 
 if not RUN_FULL_JOB:
     print("RUN_FULL_JOB is False — not running. Set it True after "
@@ -503,7 +522,13 @@ else:
 
     PROGRESS_EVERY = 500_000
     CHECK_DEADLINE_EVERY = 1_000  # frequent, cheap (a time.time() call) -- keeps the actual stop close to MAX_RUNTIME_HOURS rather than overshooting by a full PROGRESS_EVERY batch
-    deadline = time.time() + MAX_RUNTIME_HOURS * 3600
+    # Anchored to NOTEBOOK_START_TIME (captured in Cell 1), not this
+    # cell's own start -- in a "Save & Run All (Commit)" run, Cells 0-6's
+    # setup (encode, query build, the Cell 6 benchmark -- real measured
+    # cost ~10 min) happens before this cell even begins, and the ~25h
+    # limit applies to the whole commit run, not just this cell's portion
+    # of it.
+    deadline = NOTEBOOK_START_TIME + MAX_RUNTIME_HOURS * 3600
 
     for name in RUN_METHODS:
         scorer, q_by_user, empty_query = methods[name]
@@ -541,11 +566,41 @@ else:
                     print(f"  [{name}] last checkpoint line looked truncated — "
                           f"dropping it, resuming from the line before")
             resume_from = n_valid
+
+            # Cross-check the checkpoint actually corresponds to THIS real
+            # zip's row ordering, not a stale/unrelated predictions_<method>.txt
+            # that happens to share the filename -- a real risk now that
+            # this runs unattended (Save & Run All), with nobody watching
+            # live to catch a bad resume before it silently mixes stale
+            # rows into the output. Cell 8's line-count/format check alone
+            # would NOT catch this (a stale prefix is still well-formed,
+            # just wrong). Cheap: two single-row lookups against the real
+            # zip, not a full rescan.
+            if resume_from > 0:
+                real_first = sample_raw_impressions(TESTSET_ZIP, "test", has_labels=False, row_positions=[0])[0]
+                real_last = sample_raw_impressions(TESTSET_ZIP, "test", has_labels=False, row_positions=[resume_from - 1])[0]
+                checkpoint_first_impid = lines[0].split(" ", 1)[0]
+                checkpoint_last_impid = lines[resume_from - 1].split(" ", 1)[0]
+                if (checkpoint_first_impid != real_first["raw_impression_id"]
+                        or checkpoint_last_impid != real_last["raw_impression_id"]):
+                    raise RuntimeError(
+                        f"STOP — checkpoint at {checkpoint_path} does not match "
+                        f"this real ebnerd_testset.zip's row ordering (row 0 "
+                        f"expected impid {real_first['raw_impression_id']!r}, "
+                        f"found {checkpoint_first_impid!r}; row {resume_from - 1} "
+                        f"expected {real_last['raw_impression_id']!r}, found "
+                        f"{checkpoint_last_impid!r}). This looks like a stale or "
+                        f"unrelated file, not a genuine resume point for THIS "
+                        f"run — delete or rename it before re-running rather "
+                        f"than silently trusting it."
+                    )
+
             if checkpoint_path != out_path or n_valid != len(lines):
                 with open(out_path, "w") as f:
                     f.writelines(lines[:n_valid])
-            print(f"[{name}] found checkpoint at {checkpoint_path}: "
-                  f"resuming from row {resume_from}/{EXPECTED_TOTAL} "
+            print(f"[{name}] found checkpoint at {checkpoint_path}: verified "
+                  f"against the real zip, resuming from row "
+                  f"{resume_from}/{EXPECTED_TOTAL} "
                   f"({100 * resume_from / EXPECTED_TOTAL:.1f}%)")
 
         if resume_from >= EXPECTED_TOTAL:
