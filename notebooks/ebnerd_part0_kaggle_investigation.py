@@ -7,23 +7,43 @@ Resource Availability clause (predictions_large_random.zip / ebnerd_testset.zip
 / ebnerd_large.zip / articles_large_only.zip can't be pulled to the local
 8GB machine, so this step has to run here).
 
-Before running:
-1. Add your existing Kaggle Dataset/Competition input containing
-   predictions_large_random.zip, ebnerd_testset.zip, articles_large_only.zip
-   (ebnerd_large.zip optional, only needed if articles_large_only.zip turns
-   out insufficient) to this notebook's Data sources.
+Before running, get the three source files onto the notebook's filesystem —
+either way works, the discovery cell below checks both locations:
+1a. Attach an existing Kaggle Dataset/Competition input containing
+    predictions_large_random.zip, ebnerd_testset.zip, articles_large_only.zip
+    (ebnerd_large.zip optional, only needed if articles_large_only.zip turns
+    out insufficient) via this notebook's Data sources — lands under
+    `/kaggle/input/...`, read-only.
+1b. Or download them straight into the notebook with Cell 0 below — lands
+    under `/kaggle/working/`, writable. Faster to set up, doesn't need a
+    pre-existing Dataset attached.
 2. Upload `ebnerd_small_demo_article_ids.csv` (written alongside this script,
    in the same scratchpad/notebooks location) as a small private Kaggle
-   Dataset and add it too — it's the union of ebnerd_demo + ebnerd_small's
-   article IDs (21,700 raw int article_ids), computed locally from this
-   project's already-built feature store, used to check whether the smaller
-   local bundles already cover the test period's articles.
+   Dataset and add it as a Data source too — it's the union of ebnerd_demo +
+   ebnerd_small's article IDs (21,700 raw int article_ids), computed locally
+   from this project's already-built feature store, used to check whether
+   the smaller local bundles already cover the test period's articles. (This
+   one has to go through Data sources — /kaggle/input is the only way to get
+   a local file into the notebook without hosting it somewhere fetchable.)
 3. Run all cells. Copy the full printed output back — that's what drives
    Part 1's converter design and confirms/refutes the task brief's
    assumptions before any local code gets written against them.
 """
 
-# %% CELL 0 — discover inputs by filename (works regardless of dataset slug)
+# %% CELL 0 (optional) — download the three source files directly into the
+# notebook instead of attaching them as a Data source. Skip this cell if
+# they're already attached under /kaggle/input. ~1.9GB total, well within a
+# Kaggle session's disk quota.
+# !wget -q https://ebnerd-dataset.s3.eu-west-1.amazonaws.com/ebnerd_testset.zip -O /kaggle/working/ebnerd_testset.zip
+# !wget -q https://ebnerd-dataset.s3.eu-west-1.amazonaws.com/articles_large_only.zip -O /kaggle/working/articles_large_only.zip
+# !wget -q https://ebnerd-dataset.s3.eu-west-1.amazonaws.com/predictions_large_random.zip -O /kaggle/working/predictions_large_random.zip
+# !ls -lh /kaggle/working/
+
+
+# %% CELL 1 — discover inputs by filename, checking both /kaggle/input
+# (attached Data sources, read-only) and /kaggle/working (anything Cell 0 or
+# your own wget/curl landed there) — works regardless of dataset slug or
+# which route you used to get the files onto the notebook.
 import os
 import zipfile
 import io
@@ -37,10 +57,11 @@ TARGETS = [
 ]
 
 found = {}
-for root, _dirs, files in os.walk("/kaggle/input"):
-    for f in files:
-        if f in TARGETS:
-            found[f] = os.path.join(root, f)
+for search_root in ["/kaggle/input", "/kaggle/working"]:
+    for root, _dirs, files in os.walk(search_root):
+        for f in files:
+            if f in TARGETS and f not in found:
+                found[f] = os.path.join(root, f)
 
 for t in TARGETS:
     print(f"{t}: {found.get(t, 'NOT FOUND')}")
@@ -48,12 +69,13 @@ for t in TARGETS:
 missing_required = [t for t in TARGETS[:3] if t not in found]
 if missing_required:
     raise FileNotFoundError(
-        f"Missing required inputs: {missing_required}. Add the dataset "
-        "containing them under this notebook's Data sources before continuing."
+        f"Missing required inputs: {missing_required}. Either attach the "
+        "dataset containing them under this notebook's Data sources, or "
+        "run Cell 0 to download them into /kaggle/working."
     )
 
 
-# %% CELL 1 — inspect predictions_large_random.zip's literal structure
+# %% CELL 2 — inspect predictions_large_random.zip's literal structure
 print("=" * 80)
 print("predictions_large_random.zip")
 print("=" * 80)
@@ -78,7 +100,7 @@ for n in candidate_files:
             print(repr(line))
 
 
-# %% CELL 2 — inspect ebnerd_testset.zip against Table 7's documented schema
+# %% CELL 3 — inspect ebnerd_testset.zip against Table 7's documented schema
 import pandas as pd
 
 print("=" * 80)
@@ -137,7 +159,7 @@ if "is_beyond_accuracy" in behaviors.columns:
         print(f"distinct inview pools across all beyond-accuracy rows: {pools.nunique()}")
 
 
-# %% CELL 3 — does articles_large_only.zip cover the test period, or does
+# %% CELL 4 — does articles_large_only.zip cover the test period, or does
 # ebnerd_small/demo already cover it?
 print("=" * 80)
 print("articles_large_only.zip vs. test in-view coverage")
@@ -180,7 +202,7 @@ if still_missing:
     print("sample of uncovered ids:", list(still_missing)[:20])
 
 
-# %% CELL 4 — print a compact summary to paste back
+# %% CELL 5 — print a compact summary to paste back
 print("=" * 80)
 print("SUMMARY (paste this whole block back)")
 print("=" * 80)
