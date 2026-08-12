@@ -104,6 +104,7 @@ from src.retrieval.index import build_index
 from src.retrieval.query import build_user_query
 from src.retrieval.score import BM25Scorer, EmbeddingScorer
 from src.submission.ebnerd_format import iter_raw_impressions, ranks_for_impression
+from src.utils.io import read_zip_parquet
 
 TESTSET_ZIP = found["ebnerd_testset.zip"]
 ARTICLES_ZIP = found["articles_large_only.zip"]
@@ -148,13 +149,17 @@ if not has_history:
         "finding back before writing any workaround."
     )
 
-import pandas as pd
-
-behaviors_meta = pd.read_parquet(
-    zipfile.ZipFile(TESTSET_ZIP).open("test/behaviors.parquet"),
-    columns=["impression_id", "user_id", "is_beyond_accuracy"] if "test/behaviors.parquet" in [
-        n for n in test_names
-    ] else None,
+# NOTE (found running this cell for real): the real ebnerd_testset.zip
+# wraps every member in an extra top-level directory
+# (ebnerd_testset/test/behaviors.parquet, not test/behaviors.parquet) —
+# ebnerd_small.zip/ebnerd_demo.zip don't do this, which is why it wasn't
+# caught until Kaggle. read_zip_parquet (used here instead of a raw
+# zipfile.open) now has a suffix-match fallback for exactly this, so the
+# plain "test/behaviors.parquet" member name below still resolves
+# correctly against either packaging convention.
+behaviors_meta = read_zip_parquet(
+    TESTSET_ZIP, "test/behaviors.parquet",
+    columns=["impression_id", "user_id", "is_beyond_accuracy"],
 )
 n_test_impressions = len(behaviors_meta)
 print(f"\ntest impressions (real count): {n_test_impressions}")

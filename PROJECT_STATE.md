@@ -319,6 +319,47 @@ Experiment results are recorded in the `experiments/` directory as implementatio
 - `tests/unit/test_ebnerd_format.py` (2 new tests)
 - `knowledge/ai-usage-log/2026-08-12_ebnerd-codabench-part2-testset-run.md`
 
+### Addendum (same day, mid-Kaggle-run) — real `ebnerd_testset.zip` packaging quirk found and fixed
+
+The engineer ran Cell 1-3 on Kaggle (GPU on, Tesla T4, 31.3GB RAM) and hit
+a real `KeyError` in Cell 3's own diagnostic read: the real
+`ebnerd_testset.zip` wraps every member in an extra top-level directory
+(`ebnerd_testset/test/behaviors.parquet`, not the flat
+`test/behaviors.parquet` every EB-NeRD caller in this project assumed and
+was tested against, since `ebnerd_small.zip`/`ebnerd_demo.zip` don't do
+this). Cell 1-2's discovery/environment checks all passed cleanly first —
+`test/history.parquet` **is confirmed present** (real file:
+`ebnerd_testset/test/history.parquet`, 1.16GB), GPU detected correctly
+(Tesla T4), 29.6GB RAM available. The crash was purely a path-assumption
+bug, not the memory or history-availability risks this session had
+already prepared for.
+
+Fixed at the shared IO layer, not just in the notebook: `read_zip_member_
+bytes` (`src/utils/io.py`) now tries the exact member name first
+(unchanged, fast path — every existing fixture/test still hits this) and
+falls back to a suffix search across the real namelist (excluding
+`__MACOSX/` junk, raising if the match isn't exactly 1) if that fails.
+This fixes every downstream EB-NeRD caller at once (`parse_ebnerd_
+articles`, `_parse_history`, `iter_raw_impressions`) without touching
+their code — they already went through `read_zip_parquet`. The one place
+that didn't was Cell 3's own diagnostic `behaviors_meta` read, which used
+a raw `zipfile.ZipFile(...).open(...)` call directly instead of the
+project's own utility; switched it to `read_zip_parquet` too. Added 5 new
+tests (`tests/unit/test_io.py`: exact-match fast path, wrapped-directory
+fallback, `__MACOSX` exclusion, ambiguous-match error, missing-member
+error) and verified against a zip built to replicate the real file's
+exact reported listing (including the `.DS_Store`/`__MACOSX` junk
+entries) before calling it fixed — not just against the synthetic test
+fixtures. Full suite: 169 passed (up from 164), 1 pre-existing skip, no
+regressions. Rebuilt `notebooks/ebnerd_part2_src_bundle.zip` with the fix
+and re-verified its imports in isolation.
+
+**Next:** engineer re-uploads the corrected `ebnerd_part2_src_bundle.zip`
+to the same Kaggle Dataset (or a new one) and re-runs from Cell 1. Given
+Cell 3 already confirmed `test/history.parquet` exists and the real
+resource headroom (T4 GPU, ~30GB RAM), Cells 4 onward should now be
+unblocked.
+
 ---
 
 ## August 12, 2026 — EB-NeRD Codabench Submission, Part 0 Resolved + Part 1 Converter Built & Validated

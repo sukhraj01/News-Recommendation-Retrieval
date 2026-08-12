@@ -164,7 +164,7 @@ state honestly: Part 2 is *prepared*, not executed — nothing was run on
 Kaggle this session, and the log is explicit that this shouldn't be read
 as "Part 2 done."
 
-### Human vs. AI split, this session
+### Human vs. AI split, this session (through the prep-complete commit)
 
 AI-generated: all investigation (reading `PROJECT_STATE.md`/prior
 session logs/code), the memory-risk measurement and its interpretation,
@@ -177,3 +177,92 @@ the session-start prompt (above), and the still-outstanding manual steps
 this session's output cannot substitute for — running the notebook on
 Kaggle with the GPU accelerator on, and the Codabench upload/screenshot,
 both requiring the engineer's own accounts.
+
+---
+
+## Prompt 2 (mid-Kaggle-run, real output relayed)
+
+```
+total 1.7G
+-rw-r--r-- 1 root root 143M Apr  4  2024 articles_large_only.zip
+-rw-r--r-- 1 root root 1.6G Mar  8  2024 ebnerd_testset.zip
+ebnerd_testset.zip: /kaggle/working/ebnerd_testset.zip
+articles_large_only.zip: /kaggle/working/articles_large_only.zip
+src/ bundle parent dir: /kaggle/input/datasets/apollo19/ebnerd-part2-src-bundle
+
+cuda available: True
+device: Tesla T4
+
+imports OK
+total RAM: 31.3 GB
+available RAM right now: 29.6 GB
+CPU count: 4
+================================================================================
+ebnerd_testset.zip — full member listing
+================================================================================
+  __MACOSX/._ebnerd_testset  (220 bytes)
+  ebnerd_testset/.DS_Store  (6148 bytes)
+  __MACOSX/ebnerd_testset/._.DS_Store  (120 bytes)
+  ebnerd_testset/articles.parquet  (150841729 bytes)
+  __MACOSX/ebnerd_testset/._articles.parquet  (854 bytes)
+  ebnerd_testset/test/history.parquet  (1157658806 bytes)
+  __MACOSX/ebnerd_testset/test/._history.parquet  (858 bytes)
+  ebnerd_testset/test/behaviors.parquet  (567769967 bytes)
+  __MACOSX/ebnerd_testset/test/._behaviors.parquet  (860 bytes)
+
+test/history.parquet present: True
+[... KeyError traceback: "There is no item named 'test/behaviors.parquet'
+in the archive" from pd.read_parquet(zipfile.ZipFile(TESTSET_ZIP).open
+("test/behaviors.parquet"), ...) inside Cell 3 ...]
+```
+
+AI-generated: diagnosis and fix (see below). Human-written: none — this
+is the raw relayed Kaggle cell output, pasted verbatim as instructed.
+
+### What was done
+
+Diagnosed directly from the relayed listing: the real
+`ebnerd_testset.zip` wraps every member in an extra top-level
+`ebnerd_testset/` directory — `ebnerd_testset/test/behaviors.parquet`,
+not the flat `test/behaviors.parquet` every EB-NeRD reader in this
+project (`src/datasets/ebnerd.py`, `src/submission/ebnerd_format.py`) was
+written and tested against, because `ebnerd_small.zip`/`ebnerd_demo.zip`
+(the only files this project had touched directly, as opposed to relayed
+investigation, before now) don't do this. Confirmed the crash was
+isolated to Cell 3's own diagnostic read (a raw `zipfile.ZipFile(...)
+.open(...)` call, bypassing this project's own `read_zip_parquet`
+utility) — `_parse_history`/`parse_ebnerd_articles`, called just below the
+crash point, already went through `read_zip_parquet` and would have hit
+the identical `KeyError` moments later if Cell 3 hadn't crashed first.
+
+Fixed at the shared layer rather than patching only the notebook: `src/
+utils/io.py::read_zip_member_bytes` now tries the exact member name
+first (unchanged fast path) and falls back to a suffix search across the
+zip's real namelist (excluding `__MACOSX/` junk, raising `KeyError` if
+the match count isn't exactly 1) — fixes every downstream EB-NeRD caller
+at once. Updated Cell 3's own diagnostic read to use `read_zip_parquet`
+instead of raw `zipfile`, so it benefits from the same fix rather than
+staying a special case. Added 5 tests (`tests/unit/test_io.py`) covering
+the exact-match path, the wrapped-directory fallback, `__MACOSX`
+exclusion, and both error cases (ambiguous match, no match). Beyond the
+unit tests, built a zip in-memory replicating the real file's *exact*
+reported listing (including the `.DS_Store`/`__MACOSX` junk entries) and
+confirmed `read_zip_parquet`/`_parse_history` both read it correctly —
+not just the synthetic test fixtures. Full suite: 169 passed (up from
+164), no regressions. Rebuilt `notebooks/ebnerd_part2_src_bundle.zip`
+with the fix, re-verified its imports in isolation. Updated
+`PROJECT_STATE.md` with an addendum to the same Session Notes entry
+(not a new dated entry — this is a direct continuation of the same
+session/topic) documenting the real Kaggle environment facts now
+confirmed (T4 GPU, ~30GB RAM, `test/history.parquet` present) alongside
+the bug/fix.
+
+### Human vs. AI split, this exchange
+
+AI-generated: the diagnosis, the `src/utils/io.py` fix, the new tests
+(including the real-listing replica check), the notebook Cell 3 fix, the
+bundle rebuild, and the documentation updates. Human-written: none.
+Human-in-the-loop: relaying the real Kaggle cell output verbatim (Prompt
+2, above) — the only way this bug was discoverable, since it depends on
+the real file's actual packaging, not anything derivable from code
+review or the fixture files already in this repo.
