@@ -2,7 +2,7 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 12, 2026 (EB-NeRD Codabench submission — Part 2's Kaggle notebook is mid-execution on the engineer's real Kaggle session; three real bugs found and fixed live against the actual `ebnerd_testset.zip`/hardware: a zip-packaging assumption, a `str`-vs-`Path` bug, and — most consequential — an unconditional ~12GB BM25 query-construction cost that's now gated behind explicit opt-in)
+**Last Updated:** August 12, 2026 (EB-NeRD Codabench submission — Part 2's Kaggle notebook is mid-execution on the engineer's real Kaggle session; four real issues found and fixed live: a zip-packaging assumption, a `str`-vs-`Path` bug, an unconditional ~12GB BM25 query-construction cost now gated behind opt-in, and — most recently — a benchmark-sampling methodology bug that measured a near-worst-case "cache always misses" scenario instead of Cell 7's real access pattern, confirmed via direct profiling that the embedding scoring path itself is correctly vectorized and matches MIND's own benchmarked code path)
 
 **Current Phase:** MIND Codabench submission (Q5) Parts 1-4 complete on the local side (see prior session notes below). EB-NeRD Codabench submission (competition 2469): Part 0 and Part 1 complete (see the August 12 "Part 0 Resolved + Part 1 Converter" notes below). **Part 2 is now prepped, not yet executed** — `notebooks/ebnerd_part2_kaggle_test_run.py` (a paste-into-Kaggle-cells script, same pattern as Part 0's investigation script) is written, and `notebooks/ebnerd_part2_src_bundle.zip` (this project's own validated `src/` scoring/converter code, minimal subtree, upload as a private Kaggle Dataset) is built and import-verified. Neither has been run on Kaggle yet — that's the engineer's own next step (GPU accelerator + Kaggle account required, same class of action Claude Code cannot perform directly).
 
@@ -422,6 +422,130 @@ corrected `notebooks/ebnerd_part2_kaggle_test_run.py` — no dataset
 re-upload needed this round, only the notebook script changed. Consider a
 kernel restart first given the RAM-drop-across-reruns observation above,
 for a clean baseline before trusting Cell 5's printed RAM figures.
+
+### Addendum 3 (same day) — investigated a 10.536ms/impression benchmark
+### result (3.5x above ADR-008's corpus-scaled projection); found two real
+### bugs in Cell 6's sampling methodology, not a scoring-path regression
+
+Cell 6 (fixed in Addendum 2) ran and reported **10.536ms/impression** for
+embeddings — 3.5x above the ~2.9ms ADR-008's 0.99ms/query @ 42,416-doc
+benchmark would predict at this corpus's 125,541 docs (2.96x bigger).
+Investigated before accepting the resulting ~39.6hr projection, per this
+session's own "measure, project, then decide" discipline — profiled the
+actual per-impression scoring path directly rather than assuming either
+"it's just slower hardware" or "something's unvectorized."
+
+**Confirmed NOT the scoring path itself.** Built a synthetic
+`EmbeddingIndex` at the real 125,541×384 scale locally and decomposed the
+cost: a single fresh `index.vectors @ query` matvec (the exact operation
+`embed_retrieve_top_k` does, which is where ADR-008's 0.99ms number came
+from) measured **2.90ms** — matching the corpus-scaled projection almost
+exactly. `_lookup_scores` (candidate-subset lookup, ~15 candidates):
+0.001ms. `rank_candidates`: 0.01ms. Both negligible. `EmbeddingScorer.
+score()` under a forced-cache-miss pattern costs exactly the matvec cost,
+no more; under a cache-hit pattern (same query reused, its designed use
+case) cost drops to 0.003ms — a 1,036x speedup. So the scoring code is
+correctly vectorized and matches MIND's own benchmarked code path exactly
+— same `Scorer` interface, same underlying operation, no EB-NeRD-specific
+regression.
+
+**Found two real, distinct bugs in Cell 6's *sampling* methodology
+instead**, both now fixed:
+
+1. `sample_rows()` wrapped `iter_raw_impressions` in an `if i % STRIDE ==
+   0` filter — but that filter runs *after* each row is already fully
+   parsed (`prefix_id` calls + list comprehension per row), so it pays
+   the full per-row cost for every row of the whole split just to yield a
+   subset. Measured directly against real `ebnerd_small` data: walking
+   244,647 rows to yield 12,233 (stride 20) took the same wall time
+   (0.89s) as parsing all 244,647 — the "sample" bought zero speedup on
+   the parsing side. At `ebnerd_testset`'s real 13.5M-row scale this adds
+   real, unnecessary wall time and inflates the reported ms/impression by
+   folding full-file parsing cost into a denominator of only the sampled
+   rows — at this machine's parsing rate, ~0.5ms/impression of the
+   observed gap; real Kaggle contribution unknown but plausibly larger
+   given the earlier-observed CPU/RAM constraints.
+2. More consequential: **real EB-NeRD data has substantial row-to-row
+   user locality** — measured directly on `ebnerd_small`'s real
+   `behaviors.parquet` (both splits): ~52% of consecutive rows share the
+   same `user_id` as the row before, mean consecutive-same-user run
+   length ~2.08 (max 33-38). The file is not randomly shuffled.
+   `EmbeddingScorer`/`BM25Scorer` cache the last query's full-corpus
+   score specifically to exploit this — a user's consecutive impressions
+   should reuse one corpus-wide computation instead of recomputing it.
+   Cell 6's evenly-STRIDED sample (jump 135 rows every time) is close to
+   the worst possible access pattern for that cache: consecutive sampled
+   rows essentially never share a user. So the benchmark was measuring a
+   near-worst-case "cache always misses" floor (≈ the raw matvec cost,
+   2.9ms, consistent with the local finding above), not what Cell 7's
+   real *sequential* access would actually experience.
+
+Neither bug fully explains the observed 10.536ms in isolation on this
+local machine's numbers (2.9ms raw + ~0.5ms parsing-overhead ≈ 3.4ms, not
+10.5ms) — the remaining gap is most plausibly a genuine Kaggle-instance
+BLAS/numpy backend difference from the machine ADR-008's 0.99ms was
+measured on (`index.vectors @ query` is plain CPU numpy, not
+GPU-accelerated, regardless of the encode step's device) — a real
+hardware/environment difference, not a code bug, and not something
+re-running locally can confirm or rule out. **This is exactly why Cell 6
+was redesigned to report a decomposed, isolated per-call cost separately
+from the realistic locality-preserving sample**, rather than one opaque
+aggregate number — the next real Kaggle run will show directly how much
+of the gap is hardware vs. was methodology.
+
+**Fixed:**
+- `sample_raw_impressions` (new, `src/submission/ebnerd_format.py`):
+  selects row positions at the pandas level first (cheap, vectorized —
+  `.iloc[positions]`, no per-row Python work for skipped rows), then
+  applies the same per-row transform `iter_raw_impressions` uses (now
+  factored into a shared `_row_to_impression` helper so the real run and
+  a benchmark sample can never silently diverge in what they compute per
+  row). Preserves caller-requested order (doesn't re-sort to file order)
+  so a locality-preserving sample stays locality-preserving.
+- Cell 6 rewritten: samples 10 contiguous 10,000-row chunks scattered
+  across the file (representative across the whole split — the original
+  stride design's actual goal — while preserving real within-chunk user
+  locality, the actual thing caching needs) instead of one giant
+  evenly-strided sample. Adds an isolated single-call diagnostic (forces
+  a cache miss via a same-content-different-identity query/token-list
+  copy) that measures the raw per-call scorer cost directly, printed
+  alongside ADR-008's corpus-scaled projection for direct comparison, and
+  alongside the realistic chunked-sample cost so the caching benefit
+  itself is visible as a printed multiplier. Decision gate text updated
+  to interpret both numbers rather than treat one aggregate as ground
+  truth.
+- **Separately, as asked**: Cell 9 (and Cell 10) guarded against
+  `FileNotFoundError` when `RUN_FULL_JOB` was `False` and no output file
+  existed — now prints a clear "nothing to package yet, not an error"
+  message and skips, matching Cell 8's existing pattern.
+
+Added 3 new tests (`tests/unit/test_ebnerd_format.py`:
+`sample_raw_impressions` matches `read_raw_impressions` at selected
+positions, preserves requested order rather than file order, supports
+repeated positions). Full suite: 172 passed (up from 169), 1 pre-existing
+skip, no regressions. Verified the new Cell 6 methodology end-to-end
+against real `ebnerd_small` data before reporting this fixed (per this
+session's own "verify before handing back" correction, now also saved as
+a standing memory) — sample selection (10,000 rows) took 0.92s vs. the
+old method's full-244,647-row walk, and the chunked benchmark showed a
+real, visible caching benefit (1.8x for BM25, 3.0x for embeddings at this
+smaller corpus scale) rather than the old method's near-zero benefit.
+Rebuilt `notebooks/ebnerd_part2_src_bundle.zip` with the fix.
+
+**Not yet known:** how much of the remaining ~7ms gap (10.5ms observed
+vs. 2.9ms local-matvec-only) is genuinely BLAS/hardware-driven on Kaggle
+specifically — only a real re-run of the corrected Cell 6 on Kaggle can
+answer that, and per the task brief's explicit instruction, Cell 7 (the
+full run) stays untouched until this is resolved either way.
+
+**Next:** re-paste the corrected `notebooks/ebnerd_part2_kaggle_test_run.py`
+(no dataset re-upload needed — only the notebook and, this round, the src
+bundle changed; re-upload the bundle too since `ebnerd_format.py`
+changed) and re-run Cell 5 through the new Cell 6. Relay back the
+isolated-cost and chunked-sample numbers for both — if the isolated cost
+is still far above ~2.9ms, that's the real hardware-difference signal; if
+the chunked sample now shows a large caching benefit and a much lower
+projected full-run time, the original plan may simply proceed.
 
 ---
 

@@ -338,3 +338,111 @@ relayed Kaggle output (Prompt 3) and the explicit correction (Prompt 4)
 that changed how this session verified its own fixes before reporting
 them — a real process correction, not just a bug report, saved to
 `feedback` memory for future sessions.
+
+---
+
+## Prompt 5
+
+```
+Current Objective: Investigate why EB-NeRD embedding scoring measured
+10.536ms/impression — 3.5x slower than ADR-008's 0.99ms/query benchmark
+would predict at this corpus size (125,541 vs. 42,416 articles, ~2.96x
+bigger, should project to ~2.9ms not 10.5ms) — before accepting the 39.6hr
+projection and building around it.
+
+Also fix, separately and regardless of the above: the packaging cell in
+ebnerd_part2_kaggle_test_run.py crashed with FileNotFoundError instead of
+skipping gracefully when RUN_FULL_JOB was False and no output file
+existed. Guard that step with an existence check.
+
+Investigate: profile the actual per-impression scoring path in this run's
+code — is it batching/vectorizing across impressions the same way MIND's
+embedding scorer did, or has something (e.g. filtering each impression
+down to its own article_ids_inview subset, or a per-row lookup) been done
+in an unvectorized way at this scale? Compare directly against how
+src/retrieval's embedding scorer handles MIND's equivalent step, since
+that path is the one ADR-008's 0.99ms number came from.
+
+If a real fix drops the projection to something that fits a single Kaggle
+session (check actual account session/quota limits, don't assume), great
+— proceed with the original plan. If profiling shows this actually is a
+legitimate scaling difference (e.g. EB-NeRD's impressions have
+meaningfully more candidates per impression than MIND's, which would
+genuinely cost more per-impression time), document that finding and then
+decide between the checkpointing and background-commit options the
+decision gate already laid out — but only after confirming it's not just
+an unvectorized loop.
+
+Don't touch Cell 7 or attempt the full run again until this is resolved
+either way.
+```
+
+AI-generated: the full investigation and fixes below.
+
+### What was done
+
+Profiled the actual scoring path directly rather than assuming either
+"slower hardware" or "unvectorized code": built a synthetic
+`EmbeddingIndex` at the real 125,541×384 scale locally, decomposed
+`EmbeddingScorer.score()`'s cost into its three real components (matvec,
+`_lookup_scores`, `rank_candidates`). Raw matvec — the exact operation
+`embed_retrieve_top_k` does, the source of ADR-008's 0.99ms number —
+measured 2.90ms, matching the user's own corpus-scaled projection almost
+exactly; the other two components are negligible (0.001ms, 0.01ms). Under
+a forced-cache-miss pattern, `EmbeddingScorer.score()` costs exactly the
+matvec cost; under a cache-hit pattern (its designed use case, same query
+reused) cost drops 1,036x. Confirmed: not an unvectorized-code regression,
+matches MIND's own benchmarked code path exactly (same `Scorer`
+interface, same operation).
+
+Found the real cause was in Cell 6's *sampling methodology*, not the
+scoring path, via two distinct bugs:
+1. `sample_rows()`'s `enumerate(iter_raw_impressions(...))` + `if i %
+   STRIDE == 0` filter still runs `iter_raw_impressions`' full per-row
+   parsing (two `prefix_id` calls + list comprehension) for every row of
+   the whole split before the filter ever gets a chance to skip it —
+   confirmed directly against real `ebnerd_small` data (walking 244,647
+   rows to yield 12,233 took the same wall time as parsing all 244,647).
+2. Measured real EB-NeRD row-to-row user locality directly (`ebnerd_small`,
+   both splits): ~52% of consecutive rows share the same `user_id` as the
+   row before, mean consecutive-same-user run length ~2.08. The file is
+   not randomly shuffled. The old benchmark's evenly-strided sample (jump
+   135 rows) is close to the worst possible pattern for
+   `EmbeddingScorer`/`BM25Scorer`'s identity-based per-user cache —
+   consecutive sampled rows essentially never share a user — so it
+   measured a near-worst-case "cache always misses" floor, not what
+   Cell 7's real sequential access would experience.
+
+Fixed both: added `sample_raw_impressions` to `src/submission/
+ebnerd_format.py` (pandas-level row selection first, no per-row Python
+work for skipped rows; factored the per-row transform into a shared
+`_row_to_impression` helper so a benchmark sample and the real run can
+never silently diverge). Rewrote Cell 6 to sample 10 contiguous
+10,000-row chunks scattered across the file (representative, per the
+original stride design's actual goal, while preserving real within-chunk
+locality) plus an isolated single-call diagnostic (forces a cache miss
+deliberately via a same-content-different-identity copy) reported
+alongside the realistic chunked-sample cost, so the next Kaggle run gives
+a decomposed answer (hardware-driven vs. methodology-driven) instead of
+one opaque number. Separately, guarded Cell 9 and Cell 10 against
+`FileNotFoundError`/misleading messages when `RUN_FULL_JOB` was `False`.
+
+Added 3 new tests, ran the full suite (172 passed, up from 169, no
+regressions), then verified the new Cell 6 methodology end-to-end against
+real `ebnerd_small` data before reporting this fixed — sample selection
+took 0.92s vs. the old method's full-file walk, and the chunked benchmark
+showed a real, visible caching benefit (1.8x BM25, 3.0x embeddings at
+this smaller scale) the old method couldn't show. Rebuilt the Kaggle src
+bundle. Updated `PROJECT_STATE.md` with the full decomposed finding, and
+was explicit that Cell 7 was not touched and the full run was not
+attempted, per the prompt's explicit instruction.
+
+### Human vs. AI split, this exchange
+
+AI-generated: all profiling/investigation, the diagnosis (methodology bug
+in Cell 6, not a scoring-path regression), the `sample_raw_impressions`
+fix, the Cell 6 redesign, the Cell 9/10 guard, the new tests, the local
+verification pass, and the documentation updates. Human-written: none —
+the session brief (Prompt 5) contained the full investigation scope and
+constraints (don't touch Cell 7, confirm before deciding between
+checkpointing/background-commit) but no code or prose reused verbatim.

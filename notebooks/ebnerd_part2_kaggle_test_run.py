@@ -98,12 +98,14 @@ else:
         "this session's whole point (per the task brief) was to use it."
     )
 
+import numpy as np
+
 from src.datasets.ebnerd import _parse_history, parse_ebnerd_articles
 from src.retrieval.embed import DEFAULT_MODEL, build_embedding_index, build_user_embedding_query, model_slug
 from src.retrieval.index import build_index
 from src.retrieval.query import build_user_query
 from src.retrieval.score import BM25Scorer, EmbeddingScorer
-from src.submission.ebnerd_format import iter_raw_impressions, ranks_for_impression
+from src.submission.ebnerd_format import iter_raw_impressions, ranks_for_impression, sample_raw_impressions
 from src.utils.io import read_zip_parquet
 
 TESTSET_ZIP = found["ebnerd_testset.zip"]
@@ -302,33 +304,99 @@ methods = {name: (scorers[name], query_by_user[name], empty_queries[name]) for n
 # %% CELL 6 — BENCHMARK on a real sample of THIS file, on THIS Kaggle
 # instance, before committing to the full 13.5M-impression job. Per
 # CLAUDE.md's Benchmarking Philosophy: measure with context, project, then
-# decide — not a formality, this notebook doesn't know Kaggle's actual
-# per-impression throughput until it's measured here (the project's own
-# prior benchmark, 2.93ms/impression, was measured on a different machine
-# entirely — a real but non-transferable number).
+# decide.
 #
-# Deterministic systematic sample (every STRIDE-th impression) rather than
-# "first N" — a prefix could all land in one narrow user/pool cluster
-# (e.g. entirely inside the 200,000-row is_beyond_accuracy block) and bias
-# the throughput estimate. This also exercises iter_raw_impressions'
-# streaming path end-to-end on the real file before the full run does.
-SAMPLE_SIZE = 100_000
-STRIDE = max(1, EXPECTED_TOTAL // SAMPLE_SIZE)
+# Addendum (2026-08-12, found investigating a 10.536ms/impression result
+# from this cell's earlier version — 3.5x above the ~2.9ms projected from
+# ADR-008's 0.99ms/query @ 42,416-doc benchmark scaled to this corpus'
+# 125,541 docs): two real, distinct problems in the earlier version, not
+# one:
+#
+# 1. The earlier `sample_rows()` wrapped `iter_raw_impressions` in an
+#    `if i % STRIDE == 0` filter — but that filter runs *after* each row
+#    is already fully parsed (two `prefix_id` calls + a list comprehension
+#    per row), so it still pays the full per-row cost for every row of the
+#    ENTIRE split just to yield a subset. Measured directly against real
+#    `ebnerd_small` data: walking 244,647 rows to yield 12,233 (stride 20)
+#    took the same wall time as parsing all 244,647 — the "sample" bought
+#    no speedup on the parsing side, only skipped scoring for discarded
+#    rows. At this split's real 13,536,710-row scale this silently adds
+#    real wall time to what's supposed to be a cheap pre-flight check, and
+#    inflates the reported ms/impression by folding full-file parsing cost
+#    into a denominator of only the sampled rows.
+# 2. More consequential: real EB-NeRD data has substantial row-to-row user
+#    locality (measured on `ebnerd_small`: ~52% of consecutive rows share
+#    the same user as the row before, mean consecutive-same-user run
+#    length ~2.08) — the file is not randomly shuffled. `EmbeddingScorer`/
+#    `BM25Scorer` cache the last query's full-corpus score by identity
+#    specifically to exploit this (a user's consecutive impressions reuse
+#    one corpus-wide score computation instead of recomputing it every
+#    time — see `score.py`'s docstrings). An evenly-STRIDED sample (jump
+#    135 rows every time) is close to the worst possible access pattern
+#    for that cache — consecutive sampled rows essentially never share a
+#    user — so the old benchmark measured something close to a "cache
+#    always misses" floor, not what Cell 7's real *sequential* access
+#    would actually experience.
+#
+# Fixed: `sample_raw_impressions` (src/submission/ebnerd_format.py) selects
+# row positions at the pandas level first (cheap, vectorized — no per-row
+# Python work for skipped rows), and this cell samples several CONTIGUOUS
+# chunks scattered across the file (representative across the whole split,
+# per the original stride design's actual goal) while preserving real
+# within-chunk user locality (the actual goal caching needs). Also added:
+# an isolated single-call diagnostic (forces a cache miss deliberately,
+# via a same-content-different-identity query copy) that measures the raw
+# per-call scorer cost directly and in isolation — this is the number
+# directly comparable to ADR-008's 0.99ms/query, decomposed from whatever
+# caching does or doesn't buy on top of it.
+N_CHUNKS = 10
+CHUNK_LEN = 10_000  # 10 x 10,000 = 100,000 total, matching the original SAMPLE_SIZE intent
+rng = np.random.default_rng(0)
+chunk_starts = sorted(rng.integers(0, max(1, EXPECTED_TOTAL - CHUNK_LEN), size=N_CHUNKS).tolist())
+chunk_row_positions = [p for start in chunk_starts for p in range(start, start + CHUNK_LEN)]
+print(f"benchmark sample: {N_CHUNKS} contiguous chunks of {CHUNK_LEN} rows each "
+      f"(starts: {chunk_starts}), {len(chunk_row_positions)} rows total")
 
-def sample_rows(has_labels=False):
-    for i, row in enumerate(iter_raw_impressions(TESTSET_ZIP, "test", has_labels=False)):
-        if i % STRIDE == 0:
-            yield row
+t0 = time.time()
+chunk_sample = sample_raw_impressions(TESTSET_ZIP, "test", has_labels=False, row_positions=chunk_row_positions)
+print(f"sample selection + parsing: {time.time() - t0:.1f}s for {len(chunk_sample)} rows "
+      f"(compare against walking all {EXPECTED_TOTAL} rows the old way)")
+
+def _force_cache_miss_copy(query):
+    """A new object with identical content — BM25Scorer/EmbeddingScorer
+    cache by identity (`is`), not equality, so this deliberately forces a
+    cache miss on every call, isolating the true per-call cost."""
+    if query is None:
+        return None
+    if isinstance(query, list):
+        return list(query)
+    return np.array(query, copy=True)
 
 # methods (name -> (scorer, query_by_user_dict, empty_query)) is built in
 # Cell 5, gated by RUN_METHODS — not redefined here, so this cell only
 # ever benchmarks whatever was actually built (avoids referencing a query
 # dict that was deliberately skipped for memory reasons).
+print()
+isolated_ms = {}
+for name, (scorer, q_by_user, empty_query) in methods.items():
+    real_query = next((q for q in q_by_user.values() if q is not None and len(q) > 0), empty_query)
+    real_candidates = chunk_sample[0]["article_ids"]
+    N_ISOLATED = 50
+    t0 = time.time()
+    for _ in range(N_ISOLATED):
+        scorer.score(_force_cache_miss_copy(real_query), real_candidates)
+    isolated_ms[name] = 1000 * (time.time() - t0) / N_ISOLATED
+    print(f"{name}: isolated cache-miss cost = {isolated_ms[name]:.4f} ms/call "
+          f"({len(real_candidates)} candidates) — compare against ADR-008's "
+          f"0.99ms/query @ 42,416 docs (this corpus: {len(articles)} docs, "
+          f"{len(articles) / 42_416:.2f}x -> ~{0.99 * len(articles) / 42_416:.2f}ms projected)")
+
+print()
 projections = {}
 for name, (scorer, q_by_user, empty_query) in methods.items():
     t0 = time.time()
     n = 0
-    for row in sample_rows():
+    for row in chunk_sample:
         query = q_by_user.get(row["user_id"], empty_query)
         scores = scorer.score(query, row["article_ids"])
         ranks_for_impression(scores, row["raw_impression_id"], seed=0)
@@ -337,8 +405,10 @@ for name, (scorer, q_by_user, empty_query) in methods.items():
     ms_per_impression = 1000 * elapsed / n
     projected_s = ms_per_impression / 1000 * EXPECTED_TOTAL
     projections[name] = projected_s
-    print(f"{name}: {n} sampled impressions in {elapsed:.1f}s "
-          f"({ms_per_impression:.3f} ms/impression) -> "
+    cache_benefit = isolated_ms[name] / max(ms_per_impression, 1e-9)
+    print(f"{name}: {n} sampled impressions (locality-preserving chunks) in {elapsed:.1f}s "
+          f"({ms_per_impression:.3f} ms/impression, {cache_benefit:.1f}x faster than the "
+          f"isolated cache-miss cost above -> real caching benefit) -> "
           f"projected full run: {projected_s / 3600:.2f} hours "
           f"({projected_s / 60:.0f} min)")
 
@@ -349,10 +419,24 @@ print("\n" + "=" * 80)
 print("DECISION GATE — read before touching Cell 7")
 print("=" * 80)
 print(
+    "If the isolated cache-miss cost above is itself far above the "
+    "~2.9ms/call ADR-008 projection would predict at this corpus size, "
+    "that's a real hardware/BLAS-backend difference between this Kaggle "
+    "instance and the machine ADR-008's 0.99ms number came from (numpy's "
+    "matvec here is plain CPU, not GPU-accelerated, regardless of the "
+    "encode step's device) — not a code bug, and not fixable by changing "
+    "this notebook. If the chunked-sample cost is close to the isolated "
+    "cost (little/no caching benefit visible), that's real evidence this "
+    "particular sample's chunks happened not to have much user locality —  "
+    "rerun this cell (different random chunk_starts) before concluding "
+    "caching doesn't help; the ebnerd_small measurement (~52% locality) "
+    "makes little-to-no benefit unlikely but not impossible for a "
+    "different, larger file.\n\n"
     "Kaggle GPU sessions are commonly capped around 9-12h per run and "
     "~30h/week of GPU quota total (check your own account's actual "
     "limit — this notebook can't see your quota). Compare the projected "
-    "hours above against that budget for whichever method(s) are in "
+    "hours above (from the locality-preserving chunked sample, not the "
+    "isolated cost) against that budget for whichever method(s) are in "
     "RUN_METHODS (set in Cell 5).\n"
     "If a projection is comfortably under budget: proceed to Cell 7.\n"
     "If a projection is borderline or over budget, real alternatives "
@@ -443,32 +527,47 @@ for name in RUN_METHODS:
 # structure (Part 0): a single `predictions.txt` at the zip root, no
 # nested folder. Pick the method to submit (if both were run, choose the
 # one that's actually going to Codabench — only one file per submission).
+#
+# Guarded (2026-08-12): this used to crash with FileNotFoundError if
+# RUN_FULL_JOB was False (Cell 7 never ran, so predictions_<method>.txt
+# never existed) — rather than skipping gracefully like Cell 8 already
+# does. Same check here now.
 SUBMIT_METHOD = RUN_METHODS[0]  # change if you ran both and want the other
 
 src_txt = f"/kaggle/working/predictions_{SUBMIT_METHOD}.txt"
-out_zip = "/kaggle/working/prediction.zip"
-with zipfile.ZipFile(out_zip, "w", zipfile.ZIP_DEFLATED) as zf:
-    zf.write(src_txt, arcname="predictions.txt")
+if not os.path.exists(src_txt):
+    print(f"{src_txt} not found — nothing to package. This is expected if "
+          f"RUN_FULL_JOB was False in Cell 7 (still deciding) or Cell 7 "
+          f"hasn't been run yet for '{SUBMIT_METHOD}'. Not an error.")
+else:
+    out_zip = "/kaggle/working/prediction.zip"
+    with zipfile.ZipFile(out_zip, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(src_txt, arcname="predictions.txt")
 
-with zipfile.ZipFile(out_zip) as zf:
-    names = zf.namelist()
-    print(f"{out_zip} contents: {names}")
-    assert names == ["predictions.txt"], (
-        f"expected exactly one root-level predictions.txt, got {names}"
-    )
-print("Packaged OK.")
+    with zipfile.ZipFile(out_zip) as zf:
+        names = zf.namelist()
+        print(f"{out_zip} contents: {names}")
+        assert names == ["predictions.txt"], (
+            f"expected exactly one root-level predictions.txt, got {names}"
+        )
+    print("Packaged OK.")
 
 
 # %% CELL 10 — final instructions (nothing left to run).
-print(
-    "Download ONLY /kaggle/working/prediction.zip back to the local repo "
-    "(submissions/ebnerd_testset_" + SUBMIT_METHOD + "/prediction.zip) — "
-    "not ebnerd_testset.zip or articles_large_only.zip, per the task "
-    "brief's step 7.\n\n"
-    "Then, manually (your own Codabench account):\n"
-    "  1. Go to https://www.codabench.org/competitions/2469/\n"
-    "  2. Submit prediction.zip to the leaderboard.\n"
-    "  3. Screenshot the result for Q6.\n\n"
-    "Relay back: this notebook's full printed output (Cells 3, 6, 8 "
-    "especially), and the final leaderboard screenshot/score."
-)
+if not os.path.exists("/kaggle/working/prediction.zip"):
+    print("No prediction.zip yet — Cell 9 had nothing to package "
+          "(RUN_FULL_JOB was False, or Cell 7 hasn't been run for "
+          f"'{SUBMIT_METHOD}' yet). Nothing to download or submit yet.")
+else:
+    print(
+        "Download ONLY /kaggle/working/prediction.zip back to the local repo "
+        "(submissions/ebnerd_testset_" + SUBMIT_METHOD + "/prediction.zip) — "
+        "not ebnerd_testset.zip or articles_large_only.zip, per the task "
+        "brief's step 7.\n\n"
+        "Then, manually (your own Codabench account):\n"
+        "  1. Go to https://www.codabench.org/competitions/2469/\n"
+        "  2. Submit prediction.zip to the leaderboard.\n"
+        "  3. Screenshot the result for Q6.\n\n"
+        "Relay back: this notebook's full printed output (Cells 3, 6, 8 "
+        "especially), and the final leaderboard screenshot/score."
+    )

@@ -45,7 +45,7 @@ DataFrame at all.
 """
 import json
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Sequence
 
 import numpy as np
 
@@ -55,6 +55,31 @@ from src.utils.ids import prefix_id
 from src.utils.io import read_zip_parquet
 
 DATASET = "ebnerd"
+
+_BASE_COLUMNS = ["impression_id", "user_id", "article_ids_inview"]
+
+
+def _columns_needed(has_labels: bool) -> list[str]:
+    return _BASE_COLUMNS + ["article_ids_clicked"] if has_labels else list(_BASE_COLUMNS)
+
+
+def _row_to_impression(raw_impression_id, raw_user_id, inview, clicked_ids, has_labels: bool) -> dict:
+    """The one per-row transform both `iter_raw_impressions` (every row)
+    and `sample_raw_impressions` (a selected subset) apply — kept in one
+    place so a benchmark sample and the real full run always cost/behave
+    identically per row, never a separate reimplementation that could
+    silently drift."""
+    article_ids = [prefix_id(DATASET, a) for a in inview]
+    clicked = None
+    if has_labels:
+        clicked_set = set(clicked_ids)
+        clicked = [a in clicked_set for a in inview]
+    return {
+        "raw_impression_id": str(raw_impression_id),
+        "user_id": prefix_id(DATASET, raw_user_id),
+        "article_ids": article_ids,
+        "clicked": clicked,
+    }
 
 
 def iter_raw_impressions(zip_path: Path, split: str, has_labels: bool) -> Iterator[dict]:
@@ -69,27 +94,58 @@ def iter_raw_impressions(zip_path: Path, split: str, has_labels: bool) -> Iterat
     (`list[bool]`, same order — only present when `has_labels=True`, `None`
     for the blind test set, which drops `article_ids_clicked` entirely).
     """
-    needed = ["impression_id", "user_id", "article_ids_inview"]
-    if has_labels:
-        needed.append("article_ids_clicked")
-    behaviors = read_zip_parquet(zip_path, f"{split}/behaviors.parquet", columns=needed)
+    behaviors = read_zip_parquet(zip_path, f"{split}/behaviors.parquet", columns=_columns_needed(has_labels))
     clicked_col = behaviors["article_ids_clicked"] if has_labels else [None] * len(behaviors)
 
     for raw_impression_id, raw_user_id, inview, clicked_ids in zip(
         behaviors["impression_id"], behaviors["user_id"],
         behaviors["article_ids_inview"], clicked_col,
     ):
-        article_ids = [prefix_id(DATASET, a) for a in inview]
-        clicked = None
-        if has_labels:
-            clicked_set = set(clicked_ids)
-            clicked = [a in clicked_set for a in inview]
-        yield {
-            "raw_impression_id": str(raw_impression_id),
-            "user_id": prefix_id(DATASET, raw_user_id),
-            "article_ids": article_ids,
-            "clicked": clicked,
-        }
+        yield _row_to_impression(raw_impression_id, raw_user_id, inview, clicked_ids, has_labels)
+
+
+def sample_raw_impressions(
+    zip_path: Path, split: str, has_labels: bool, row_positions: Sequence[int]
+) -> list[dict]:
+    """The same per-row shape `iter_raw_impressions` yields, but only for
+    the given 0-based row positions into `{split}/behaviors.parquet` —
+    without applying `_row_to_impression`'s per-row work (two `prefix_id`
+    calls plus a list comprehension per row) to every row in between.
+
+    Added 2026-08-12 (EB-NeRD Part 2, mid-Kaggle-run): the earlier pattern
+    for "benchmark a sample" was `enumerate(iter_raw_impressions(...))`
+    filtered by `if i % STRIDE == 0` — that still runs the full per-row
+    transform on every row of the whole split to yield a subset, since the
+    filter only runs after each row is already parsed. Measured directly
+    against real `ebnerd_small` data: walking all 244,647 rows to yield
+    12,233 (stride 20) took the same wall time as fully parsing all
+    244,647 rows (0.89s either way) — the "sample" bought no real
+    speedup, it only skipped the *scoring* step for discarded rows, not
+    the parsing. At `ebnerd_testset`'s real 13,536,710-row scale this adds
+    real, avoidable wall time to what's supposed to be a *cheap* pre-flight
+    check. Selecting `row_positions` from the DataFrame first (pandas-level
+    `.iloc[...]`, no per-row Python work) and transforming only those rows
+    fixes it — same real per-row transform, applied to far fewer rows.
+
+    `row_positions` order is preserved in the output — callers that want a
+    benchmark sample to reflect real access-pattern locality (e.g. several
+    contiguous chunks scattered across the file, not one giant evenly-strided
+    sample) should pass positions in the order they want them processed,
+    since `EmbeddingScorer`/`BM25Scorer`'s per-user caching depends on
+    consecutive same-user calls, and EB-NeRD's real row order has
+    substantial natural user locality (~52% of consecutive rows in
+    `ebnerd_small` share the same user as the row before) that an
+    evenly-strided sample destroys almost entirely.
+    """
+    behaviors = read_zip_parquet(zip_path, f"{split}/behaviors.parquet", columns=_columns_needed(has_labels))
+    sub = behaviors.iloc[list(row_positions)]
+    clicked_col = sub["article_ids_clicked"] if has_labels else [None] * len(sub)
+    return [
+        _row_to_impression(raw_impression_id, raw_user_id, inview, clicked_ids, has_labels)
+        for raw_impression_id, raw_user_id, inview, clicked_ids in zip(
+            sub["impression_id"], sub["user_id"], sub["article_ids_inview"], clicked_col,
+        )
+    ]
 
 
 def read_raw_impressions(zip_path: Path, split: str, has_labels: bool) -> list[dict]:
