@@ -108,7 +108,7 @@ If you're contributing to the project for the first time:
 2. Run `poetry install`.
 3. Run `make data`.
 4. Run `make test`.
-5. Run `make experiment-all`.
+5. Run the recall@K and Q4 ranking-metrics scripts for BM25 and embeddings on both datasets (see "Running Experiments" below).
 6. Read **PROJECT_STATE.md** to understand the current implementation status.
 7. Read **ARCHITECTURE.md** to understand the system design.
 
@@ -161,37 +161,41 @@ Each experiment records:
 
 # Running Experiments
 
-Run BM25 (implemented — Phase 3, ADR-005/ADR-006):
+All experiment scripts are run directly (there is no `make experiment-*`
+wrapper — the `Makefile` only covers `install`, `data`, `test`,
+`test-unit`, `test-integration`, `test-reproducibility`, `format`, `lint`,
+`clean-data`, and `clean`).
+
+## Recall@K (candidate generation quality)
+
+BM25 (ADR-005/ADR-006):
 
 ```bash
 poetry run python scripts/run_bm25_experiment.py --dataset mind
-poetry run python scripts/run_bm25_experiment.py --dataset ebnerd
+poetry run python scripts/run_bm25_experiment.py --dataset ebnerd [--bundle demo|small]
 ```
 
-Run semantic retrieval (not yet implemented):
+Semantic / embedding retrieval (ADR-008):
 
 ```bash
-make experiment-semantic
+poetry run python scripts/run_embed_experiment.py --dataset mind
+poetry run python scripts/run_embed_experiment.py --dataset ebnerd [--bundle demo|small]
 ```
 
-Run the complete benchmark suite (not yet implemented):
+`--bundle` defaults to `small` for `mind`, `demo` for `ebnerd`. Both
+scripts write to `experiments/{bm25,embed}_<dataset>_<YYYY-MM-DD>/{config,results}.json`.
+
+## Q4 ranking metrics (AUC/MRR/nDCG@5/nDCG@10/diversity/novelty/coverage, warm/cold, bootstrap CI)
 
 ```bash
-make experiment-all
+poetry run python scripts/run_ranking_eval.py --dataset mind --method bm25
+poetry run python scripts/run_ranking_eval.py --dataset mind --method embed
+poetry run python scripts/run_ranking_eval.py --dataset ebnerd --method bm25 [--bundle demo|small]
+poetry run python scripts/run_ranking_eval.py --dataset ebnerd --method embed [--bundle demo|small]
 ```
 
-Experiment outputs are stored under:
-
-```text
-experiments/bm25_<dataset>_<YYYY-MM-DD>/
-```
-
-Each BM25 experiment currently contains:
-
-```text
-config.json
-results.json
-```
+`--method` defaults to `bm25`. Writes to
+`experiments/ranking_<method>_<dataset>_<YYYY-MM-DD>/{config,results}.json`.
 
 ---
 
@@ -221,6 +225,8 @@ make install
 # Testing
 make test
 make test-unit
+make test-integration
+make test-reproducibility
 
 # Formatting
 make format
@@ -229,17 +235,12 @@ make lint
 # Data
 make data
 make clean-data
-
-# Experiments
-make experiment-bm25
-make experiment-semantic
-make experiment-all
-make view-results
-
-# Submission
-make predictions
 make clean
 ```
+
+Experiments and predictions are run as direct script invocations (see
+"Running Experiments" and "Leaderboard Submission" below) — there is no
+`make experiment-*`, `make predictions`, or `make view-results` target.
 
 ---
 
@@ -257,32 +258,40 @@ View the latest experiment:
 cat experiments/$(ls -t experiments/ | head -1)/results.json | python -m json.tool
 ```
 
-Compare two experiments:
-
-```bash
-python scripts/compare_experiments.py \
-    experiments/<bm25>/ \
-    experiments/<semantic>/
-```
+There is no `compare_experiments.py` script — compare two runs directly
+with `diff` or by reading both `results.json` files (`python -m json.tool`
+on each, or a one-off `python` snippet, as done for the BM25-vs-semantic
+comparison writeups in ADR-008 and `PROJECT_STATE.md`'s Benchmarking
+Status section).
 
 ---
 
 # Leaderboard Submission
 
-Generate predictions:
+Predictions are generated with `scripts/generate_mind_predictions.py` /
+`scripts/generate_ebnerd_predictions.py` (`src/submission/{mind,ebnerd}_format.py`,
+ADR/Q5), not a `make predictions` target:
 
 ```bash
-make predictions
+poetry run python scripts/generate_mind_predictions.py --split test --method embed
+poetry run python scripts/generate_ebnerd_predictions.py --bundle large --split test --method embed
 ```
 
-Generated files:
+`--method` is `bm25` or `embed`; `--out-dir` overrides the default
+(`submissions/mind_large_<split>_<method>/` or
+`submissions/ebnerd_<bundle>_<split>_<method>/`). Each run writes
+`prediction.txt` (official `impression_id [rank_1,...,rank_N]` format, one
+line per impression) plus `truth.txt` when the split has ground truth
+(never for `test`, which is blind).
 
-```text
-submissions/mind_predictions.csv
-submissions/ebnerd_predictions.csv
+Codabench expects a **zip with `prediction.txt` at the zip root**, not the
+raw `.txt` file — create it yourself, e.g.:
+
+```bash
+cd submissions/<output_dir> && zip -j prediction.zip prediction.txt
 ```
 
-Submit to:
+Submit `prediction.zip` to:
 
 ### MIND Competition
 
@@ -292,11 +301,13 @@ https://www.codabench.org/competitions/13967/
 
 https://www.codabench.org/competitions/2469/
 
-Expected CSV format:
-
-```text
-user_id,article_id,score
-```
+The upload itself requires the engineer's own Codabench account/login —
+outside what this codebase or Claude Code can do. Both competitions have
+real submitted results as of 2026-08-13 (MIND: score 0.6195, EB-NeRD:
+score 0.5404) — see `PROJECT_STATE.md`'s Leaderboard Submission row and
+`submissions/{mind_large_test_embed,ebnerd_testset_embed}/leaderboard_screenshot_*.png`
+for the screenshots (gitignored, kept local as source material for the
+design note).
 
 ---
 
@@ -331,14 +342,17 @@ poetry install
 
 ## Experiment results are missing
 
-Verify that the experiment directory contains:
+Recall@K and Q4 ranking-metrics experiments (`experiments/{bm25,embed,ranking_bm25,ranking_embed}_*/`)
+each write exactly two files:
 
 ```text
 config.json
 results.json
-predictions.csv
-log.txt
 ```
+
+Codabench submission runs (`submissions/*/`) write `prediction.txt` (and
+`truth.txt` for non-blind splits) instead — see "Leaderboard Submission"
+above.
 
 ---
 
