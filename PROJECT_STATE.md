@@ -2,11 +2,11 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 12, 2026 (EB-NeRD Codabench submission — Part 2's Kaggle notebook is ready for a single unattended "Save & Run All (Commit)" pass. Confirmed real Kaggle commit-run limit (~25h) comfortably covers the confirmed 12.80h full-run projection, so `RUN_FULL_JOB=True`/`MAX_RUNTIME_HOURS=20` are now set for a start-to-finish run; the multi-session checkpoint/resume logic built the prior round stays live as a verified safety net, plus a new stale-checkpoint cross-check for the now-unattended run. The full run itself has not been executed yet)
+**Last Updated:** August 14, 2026 (both Codabench leaderboard submissions confirmed complete — MIND and EB-NeRD prediction.zip files were uploaded to their respective competitions by the engineer since the August 12 session; this session verified the real repo state file-by-file, corrected two claims a stale task briefing had gotten wrong — semantic retrieval and the Q4 diversity/coverage/novelty metrics were already complete, not at 0% — and closed the one genuinely open item, the leaderboard submissions, against the engineer's own screenshots)
 
-**Current Phase:** MIND Codabench submission (Q5) Parts 1-4 complete on the local side (see prior session notes below). EB-NeRD Codabench submission (competition 2469): Part 0 and Part 1 complete (see the August 12 "Part 0 Resolved + Part 1 Converter" notes below). **Part 2 is now prepped, not yet executed** — `notebooks/ebnerd_part2_kaggle_test_run.py` (a paste-into-Kaggle-cells script, same pattern as Part 0's investigation script) is written, and `notebooks/ebnerd_part2_src_bundle.zip` (this project's own validated `src/` scoring/converter code, minimal subtree, upload as a private Kaggle Dataset) is built and import-verified. Neither has been run on Kaggle yet — that's the engineer's own next step (GPU accelerator + Kaggle account required, same class of action Claude Code cannot perform directly).
+**Current Phase:** MIND Codabench submission (Q5): **all four parts complete**, including the manual upload — leaderboard score 0.6195 (submission ID 886468, 2026-08-12 13:01). EB-NeRD Codabench submission (competition 2469): **all parts complete**, including Part 2's Kaggle run and Part 3's manual upload — leaderboard score 0.5404 (submission ID 888045, 2026-08-13 23:08). Both scores are close to this project's own locally-measured validation AUC for embeddings (ebnerd_small: 0.5430 local vs. 0.5404 leaderboard; the leaderboard's MRR/nDCG@5/nDCG@10 columns also line up closely with `ranking_metrics.py`'s own numbers), a real informal cross-check that the submission pipeline is coherent end-to-end, not just format-valid.
 
-**Current Objective:** Hand off `notebooks/ebnerd_part2_kaggle_test_run.py` + `notebooks/ebnerd_part2_src_bundle.zip` to the engineer to run on Kaggle (GPU on). The script covers the full brief: download+unzip, a discovery cell that re-confirms the real format/schema facts directly against the live files (including `test/history.parquet`'s presence, never explicitly checked in Part 0), corpus index build over `articles_large_only`, a real benchmark-then-decide gate (samples the actual file on the actual Kaggle instance, projects full-run time, does not auto-run), the full run itself (embeddings by default, per ebnerd_small's validation result — AUC 0.5430 vs. BM25's 0.5288), line-count validation, and packaging to the confirmed `predictions.txt`-at-zip-root format. Once the engineer relays the printed benchmark output and runs it, the remaining steps are: download only `prediction.zip` back, upload to https://www.codabench.org/competitions/2469/, screenshot the leaderboard result for Q6. Separately, MIND's Q6 design note and the manual Codabench upload/screenshot (`submissions/mind_large_test_embed/prediction.zip`) remain outstanding from a prior session.
+**Current Objective:** With both leaderboard submissions closed out, the two deliverables genuinely still open are: (1) the Q6 design note (≤4 pages, Moodle) — ADR-008's Interpretation section, the MINDlarge-scale findings, and now both real leaderboard results are the source material; (2) `README.md`'s reproduce instructions still don't mention `scripts/run_embed_experiment.py`/`scripts/generate_mind_predictions.py`/`scripts/generate_ebnerd_predictions.py` (flagged repeatedly, still not done). Everything else in the Component Status table below is complete.
 
 ---
 
@@ -20,7 +20,7 @@
 | Evaluation Harness | ✅ Complete | 100% | `src/evaluation/metrics.py` (recall@K), `src/evaluation/ranking_metrics.py` (Q4: AUC/MRR/nDCG@5/nDCG@10/diversity/novelty/coverage), `src/evaluation/bootstrap.py` (shared CI substrate), `src/retrieval/score.py` (generic `Scorer` interface — BM25 and `EmbeddingScorer` both implemented, exercised through the identical unchanged harness). All bootstrap CI, warm/cold slicing (Q4.3/Q4.4). See ADR-007/ADR-008. |
 | Benchmarking Framework | ✅ Complete (BM25 + semantic) | 100% | `experiments/{bm25,embed,ranking_bm25,ranking_embed}_{dataset}_{date}/{config,results}.json` pattern applied to both retrieval methods on all three fast-tier corpora plus MINDlarge-dev |
 | Codabench Submission Format | ✅ Complete (MIND: converter + dev-set validation. EB-NeRD: converter + ebnerd_small validation + a real scale fix) | 100% | `src/submission/mind_format.py` — official `impression_id [rank_1,...,rank_N]` format, re-reads the raw zip directly to preserve original candidate order (the processed feature store's deterministic sort destroys it). Validated end-to-end against the real `evaluation/official/evaluate.py` on MINDlarge_dev for both BM25 and embeddings: AUC/nDCG match the project's own `ranking_metrics.py` almost exactly; the one real MRR disagreement is a verified, fully-explained metric-definition difference (official sums 1/rank over all clicked items vs. this project's first-hit-only MRR), not a converter bug. `src/submission/ebnerd_format.py` — direct port of the same design, validated against `ebnerd_small`'s validation split via the same `evaluate.py`. **This session: `read_raw_impressions` (which materialized the whole split as a `list[dict]` before writing anything) was found, by direct measurement, to project to ~16GB at ebnerd_testset's real 13,536,710-impression scale, on top of ~8.5GB for the `behaviors` DataFrame itself (pandas' own `memory_usage(deep=True)` undercounts this >3x for object-dtype list columns) — a real risk MINDlarge_test's 2.37M-impression Part 4 run never surfaced. Fixed at the root: `iter_raw_impressions` is now a generator `write_predictions`/`write_truth_file` consume one row at a time (never materializing the full list), and `read_zip_parquet`/`iter_raw_impressions` now request only the columns actually needed. `read_raw_impressions` kept as `list(iter_raw_impressions(...))` — unchanged contract, all 7 existing unit tests plus 2 new ones (equivalence + laziness) pass, full suite 164/165 (1 pre-existing skip). |
-| Leaderboard Submission | 🟡 In progress | ~90% (MIND) / Part 2 prepped, not yet run (EB-NeRD) | MIND: Part 3 (dev-set validation) passing; Part 4's local half done: `submissions/mind_large_test_embed/prediction.zip` generated (embeddings, 2,370,727 lines, row-count- and format-validated against the raw zip). Actual Codabench upload + screenshot still needs the engineer's own account. EB-NeRD: `notebooks/ebnerd_part2_kaggle_test_run.py` + `notebooks/ebnerd_part2_src_bundle.zip` written and import-verified this session, ready for the engineer to run on Kaggle (GPU on) — not yet executed, so no real leaderboard result exists yet (see Deliverables Checklist) |
+| Leaderboard Submission | ✅ Complete (MIND + EB-NeRD) | 100% | MIND: `submissions/mind_large_test_embed/prediction.zip` uploaded to Codabench — leaderboard **Score column 0.6195**, next three columns 0.3006 / 0.3225 / 0.3785 (submission ID 886468, 2026-08-12 13:01). EB-NeRD (competition 2469): `submissions/ebnerd_testset_embed/prediction.zip` uploaded — leaderboard **Score column 0.5404**, next three columns 0.3447 / 0.3823 / 0.4613 (submission ID 888045, 2026-08-13 23:08). Column headers were cropped out of both screenshots, so the exact metric labels aren't directly confirmed — but the four values line up closely with this project's own locally-measured AUC/MRR/nDCG@5/nDCG@10 for embeddings on `ebnerd_small` (0.5430 / 0.3437 / 0.3804 / 0.4591), in that order, strongly suggesting Score = AUC. Treat as inference, not confirmed fact, until the detail view (the eye icon in the Score/Detailed Results column) is actually opened and the labels read directly. Leaderboard runs on the real held-out test set, so exact match to local validation isn't expected regardless — the agreement is a coherence check, not a reproduction. Screenshots of both the submission-upload confirmation and the leaderboard rank saved to `submissions/{mind_large_test_embed,ebnerd_testset_embed}/leaderboard_screenshot_{upload,rank}.png` (gitignored along with the rest of `submissions/`, per Q8 — source material for the Q6 design note). |
 
 ---
 
@@ -32,7 +32,7 @@ Honest status against the assignment's four required deliverables, updated at th
 |---|-------------|--------|-------|
 | 1 | Code (GitHub Classroom) | 🟡 In progress | Data pipeline (now including MINDlarge), BM25 retrieval, semantic (embedding) retrieval, Q4 evaluation harness, and both Q5 official-format converters (`src/submission/mind_format.py`, `src/submission/ebnerd_format.py`) all implemented and tested (ADR-005/006/007/008 + this session's addenda). `README.md` documents one-command reproduce (`make data`, `make test`) — still not updated with `scripts/run_embed_experiment.py`/`scripts/generate_mind_predictions.py`/`scripts/generate_ebnerd_predictions.py` usage, flagged again for next session. `.gitignore` verified against Q8's explicit list — MINDlarge's new `data/processed/mind/large/` tree and raw zips confirmed covered by the existing `data/` rule, nothing new needed. **This session: `src/submission/ebnerd_format.py` + `scripts/generate_ebnerd_predictions.py` added and validated** (7 new unit tests, `tests/unit/test_ebnerd_format.py`) — see Session Notes. |
 | 2 | Design note (≤4 pages, Moodle) | ⬜ Not started | Was deferred until semantic retrieval produced real numbers to compare against (met, ADR-008) and now also has MINDlarge-scale numbers to draw on — ready to start next session |
-| 3 | Leaderboard screenshots (both Codabench competitions) | 🟡 In progress (MIND) / 🟡 In progress (EB-NeRD, Part 2 script ready, not yet run) | MIND: Parts 1-4's local half complete — `submissions/mind_large_test_embed/prediction.zip` ready to upload. **The upload itself needs the engineer's own Codabench account/login, which Claude Code cannot do regardless of local readiness.** EB-NeRD (competition 2469): Part 0/1 complete. **Part 2 this session: `notebooks/ebnerd_part2_kaggle_test_run.py` written (download, discovery/schema re-confirmation, corpus index build, a real benchmark-then-decide gate, the gated full run, line-count validation, packaging) + `notebooks/ebnerd_part2_src_bundle.zip` (this project's validated `src/` code, minimal subtree, import-verified) — both need the engineer to actually run them on Kaggle with the GPU accelerator on, which Claude Code cannot do.** Part 3 (submit + screenshot) follows once Part 2 produces a real `prediction.zip`. |
+| 3 | Leaderboard screenshots (both Codabench competitions) | ✅ Complete | MIND: uploaded and confirmed — score 0.6195, submission ID 886468, 2026-08-12 13:01. EB-NeRD (competition 2469): uploaded and confirmed — score 0.5404, submission ID 888045, 2026-08-13 23:08. Both the engineer's own upload-confirmation and leaderboard-rank screenshots saved to `submissions/{mind_large_test_embed,ebnerd_testset_embed}/leaderboard_screenshot_{upload,rank}.png` this session, ready to drop into the Q6 design note. |
 | 4 | AI usage log (prompts + AI-vs-human marking) | 🟢 Ongoing | `knowledge/ai-usage-log/` exists; one file per session (`YYYY-MM-DD_<topic>.md`), written live per CLAUDE.md's "Prompt & Session Logging" section, not reconstructed after the fact (this session's log: `2026-08-12_ebnerd-codabench-part2-testset-run.md`) |
 
 ---
@@ -266,18 +266,17 @@ Experiment results are recorded in the `experiments/` directory as implementatio
 - [x] Register on Codabench MIND competition (implicit — engineer confirmed session could proceed; EB-NeRD competition registration still separately unconfirmed)
 - [x] MINDlarge built, benchmarked, and Q5's format converter validated against real ground truth (Parts 1-3, 2026-08-11 — see Session Notes)
 - [x] Part 4 (local half): generate MINDlarge_test (blind) predictions with embeddings, validate row count/format — `submissions/mind_large_test_embed/prediction.zip` ready (2026-08-12 — see Session Notes)
-- [ ] Part 4 (manual half): upload `prediction.zip` to the MIND Codabench leaderboard, capture screenshot — needs the engineer's own account/login
-- [ ] Q6: write the design note (≤4 pages) — ADR-008's Interpretation section plus MINDlarge-scale findings are now the primary source material
+- [x] Part 4 (manual half): upload `prediction.zip` to the MIND Codabench leaderboard, capture screenshot — done by the engineer (score 0.6195, ID 886468, 2026-08-12 13:01; screenshots saved this session)
+- [ ] Q6: write the design note (≤4 pages) — ADR-008's Interpretation section, MINDlarge-scale findings, and now both real leaderboard results are the primary source material
 - [x] EB-NeRD's own Codabench submission format: Part 0 resolved — engineer ran `notebooks/ebnerd_part0_kaggle_investigation.py` on Kaggle against the real `predictions_large_random.zip`/`ebnerd_testset.zip`/`articles_large_only.zip` and relayed results (see Session Notes)
 - [x] Part 1 (`src/submission/ebnerd_format.py`, validated against ebnerd_small): complete this session — 7 unit tests, end-to-end validation against `evaluation/official/evaluate.py` for both BM25 and embeddings (see Session Notes)
 - [x] Part 2 prep: `notebooks/ebnerd_part2_kaggle_test_run.py` + `notebooks/ebnerd_part2_src_bundle.zip` written this session, import-verified, logic-checked locally against `ebnerd_small` (see Session Notes) — a real memory-scaling bug found and fixed in `src/submission/ebnerd_format.py` along the way
-- [ ] Part 2 execution (engineer runs the notebook on Kaggle, GPU on, relays the benchmark/discovery output) and Part 3 (submit `prediction.zip` + screenshot): next, blocked on the engineer's own Kaggle/Codabench access
+- [x] Part 2 execution (engineer ran the notebook on Kaggle) and Part 3 (submit `prediction.zip` + screenshot): done — `submissions/ebnerd_testset_embed/prediction.zip` uploaded to competition 2469, score 0.5404, ID 888045, 2026-08-13 23:08; screenshots saved this session
 - [ ] Q9 design-note note: confirm in writing that `total_inviews`/`total_pageviews`/`total_read-time` are never read anywhere in this pipeline (grep `src/` before writing that claim, don't assert from memory)
 
 ## Upcoming
 
-- Once the engineer relays the Kaggle investigation output: validate it against Table 6-8's documented schema, then implement `src/submission/ebnerd_format.py` against the *confirmed* real format (mirroring `src/submission/mind_format.py`'s pattern — re-read the raw zip for original candidate order, score through the existing `Scorer` interface, no new scoring logic).
-- Manual Codabench upload of `submissions/mind_large_test_embed/prediction.zip` + Q6 (design note) remain outstanding from the MIND side, independent of EB-NeRD's progress.
+- Both Codabench leaderboard submissions are now done (see Component Status and Deliverables Checklist above) — Q6 (design note) is the only deliverable left blocking on them, and now has both real scores to draw on.
 - `README.md` needs a `scripts/run_embed_experiment.py` / `--method embed` usage note, plus `scripts/generate_mind_predictions.py` — not updated yet, flagged again for next.
 - `ebnerd_large` remains undownloaded/unverified — lower priority unless the assignment specifically requires the `large` tier for leaderboard submission.
 - ADR-008 flags a possible future investigation (not required this session): a curated near-duplicate/paraphrase evaluation set to validate the encoder's discrimination quality more directly than the category-proxy check used here.
@@ -288,7 +287,107 @@ Experiment results are recorded in the `experiments/` directory as implementatio
 
 # Session Notes
 
-## August 12, 2026 (latest) — EB-NeRD Codabench Submission, Part 2: Kaggle Notebook Prepared (Not Yet Run)
+## August 14, 2026 (latest) — PROJECT_STATE Verification + Both Leaderboard Submissions Confirmed Complete
+
+### Context
+
+Session opened with a task briefing claiming PROJECT_STATE.md was stale at
+August 10 with Semantic Retrieval at 0% and Leaderboard Submission "Not
+Started." Per CLAUDE.md's evidence-hierarchy and this project's own
+"verify before handing back" discipline, every claim was checked against
+the real repo state before any edit was made, rather than trusted at face
+value.
+
+### What the briefing got wrong
+
+- The doc was already dated **August 12**, not August 10.
+- Semantic Retrieval had been ✅ 100% complete since August 10 (ADR-008) —
+  confirmed by re-reading the Component Status table and the
+  `experiments/embed_*` result files directly.
+- Q4's diversity/novelty/coverage metrics were **already implemented and
+  computed**, not "the only mandatory eval component still at 0%" —
+  `grep` of `src/evaluation/ranking_metrics.py` confirmed
+  `intra_list_diversity`, `novelty`, and `coverage` all exist, and
+  `experiments/ranking_embed_*/results.json` already carry `coverage`
+  keys for every dataset.
+- A local scoring harness reproducing `evaluation/official/evaluate.py`
+  already exists and was already validated end-to-end against it on
+  MINDlarge_dev, for both BM25 and embeddings (documented in the
+  Codabench Submission Format row and the August 11 session notes) — the
+  one MRR disagreement found was root-caused as a metric-definition
+  difference, not a harness bug.
+- The full BM25-vs-semantic comparison with warm/cold slicing was already
+  written up (see the Benchmarking Status section and ADR-008) with a
+  real finding against the Day-1 working hypothesis (embeddings win
+  outright on MIND, not just on cold-start).
+
+None of the above was re-implemented this session — doing so would have
+overwritten working, already-validated code for no reason. Confirmed with
+the engineer before proceeding (rather than assuming) which of the
+briefing's five steps were actually still open.
+
+### What was actually open, and what closed it
+
+The one real gap: as of August 12, both Codabench leaderboard submissions
+were explicitly *not yet uploaded* (EB-NeRD's Kaggle run hadn't been
+executed; MIND's manual upload was pending). The engineer provided four
+screenshots of completed submissions from their own Codabench account,
+dated after the August 12 session:
+
+- **MIND**: `submissions/mind_large_test_embed/prediction.zip` (already
+  generated August 12, per Part 4's local half) uploaded — leaderboard
+  Score column 0.6195, submission ID 886468, 2026-08-12 13:01.
+- **EB-NeRD** (competition 2469): a fresh `prediction.zip` from the Part 2
+  Kaggle run uploaded to `submissions/ebnerd_testset_embed/` — leaderboard
+  Score column 0.5404, submission ID 888045, 2026-08-13 23:08.
+
+Verified the screenshots were real files on disk (not just chat-pasted
+images) by matching filesystem timestamps on the engineer's Desktop
+against the submission times in the images, then copied all four into
+`submissions/{mind_large_test_embed,ebnerd_testset_embed}/
+leaderboard_screenshot_{upload,rank}.png` as the source material for the
+Q6 design note (gitignored along with the rest of `submissions/`, per
+Q8's existing policy — no `.gitignore` change needed).
+
+Noted, as inference rather than confirmed fact (column headers were
+cropped out of both screenshots): the Score column and the three
+following columns line up closely, in order, with this project's own
+locally-measured AUC/MRR/nDCG@5/nDCG@10 for embeddings on `ebnerd_small`
+(0.5430/0.3437/0.3804/0.4591 local vs. 0.5404/0.3447/0.3823/0.4613
+leaderboard) — a real informal coherence check on the submission
+pipeline, not a claim that the numbers are defined identically or should
+match exactly (leaderboard runs on the true held-out test set).
+
+### Updated
+
+- Component Status Summary: Leaderboard Submission → ✅ Complete (100%).
+- Deliverables Checklist #3 (leaderboard screenshots): → ✅ Complete.
+- Next Actions: MIND Part 4 manual upload and EB-NeRD Part 2
+  execution/Part 3 submission both checked off.
+- `Last Updated` / `Current Phase` / `Current Objective` at the top of
+  this document.
+
+### Genuinely still open
+
+- Q6: the design note (≤4 pages, Moodle) — now has both real leaderboard
+  numbers plus ADR-008's interpretation to draw on, previously deferred
+  pending exactly this.
+- `README.md`'s reproduce instructions still don't mention
+  `scripts/run_embed_experiment.py` / `generate_{mind,ebnerd}_predictions.py`
+  — flagged again, still not done.
+
+### AI-generated vs. human
+
+All verification commands (file reads, greps, git log, image comparisons)
+and all PROJECT_STATE.md edits this session were AI-generated. The
+screenshots themselves and the underlying Codabench uploads are the
+engineer's own actions, outside Claude Code's reach by design (per
+CLAUDE.md's Resource Availability clause — Codabench login is the
+engineer's own account). See
+`knowledge/ai-usage-log/2026-08-14_project-state-verification-leaderboard-sync.md`
+for the verbatim prompt record.
+
+## August 12, 2026 — EB-NeRD Codabench Submission, Part 2: Kaggle Notebook Prepared (Not Yet Run)
 
 ### Completed
 
