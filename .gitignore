@@ -45,8 +45,14 @@ data/
 # Experiments (results)
 experiments/
 
-# Submissions (generated prediction/truth files, large + regenerable)
-submissions/
+# Submissions (generated prediction/truth files, large + regenerable) —
+# but leaderboard screenshots are a Q7 deliverable and must stay trackable
+# (they're small, ~260-700KB each, not the large regenerable files this
+# rule exists for).
+submissions/*
+!submissions/*/
+submissions/*/*
+!submissions/*/*.png
 
 # Model checkpoints
 *.pt
