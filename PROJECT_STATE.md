@@ -2,11 +2,11 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 14, 2026 (both Codabench leaderboard submissions confirmed complete — MIND and EB-NeRD prediction.zip files were uploaded to their respective competitions by the engineer since the August 12 session; this session verified the real repo state file-by-file, corrected two claims a stale task briefing had gotten wrong — semantic retrieval and the Q4 diversity/coverage/novelty metrics were already complete, not at 0% — and closed the one genuinely open item, the leaderboard submissions, against the engineer's own screenshots)
+**Last Updated:** August 22, 2026 (latest session — closed out the MIND candidate-search line for good this session: re-ran Candidate I with 30 epochs (I-long) and with an added popularity feature (I-pop), per the engineer's own bounded follow-up request. I-long is a clean, real negative — holdout AUC climbed every epoch through 30, real MINDsmall-dev result still didn't beat baseline (in fact slightly worse than the 5-epoch run, -0.0126 vs -0.0107 paired). I-pop collapsed to near-random (AUC 0.5133) with a wrong-signed fitted popularity weight — flagged honestly as a confounded result (raw, unnormalized popularity feature, unlike every other candidate's standardized features), not a clean second negative. Per the engineer's explicit hard-stop instruction, the session ends here — no further candidates, no MINDlarge). This landed shortly after a separate thread uploaded Candidate G's real second MIND Codabench submission: 0.6192, essentially flat vs. the first submission's 0.6195, despite a CI-clear local win at every validation stage. A third, earlier Aug 21 thread verified the EB-NeRD second submission (contrastive vector, ID 896072) is genuinely distinct from the first and pulled its real per-day AUC breakdown — see the Aug 21 Session Notes entry below and ADR-008's 2026-08-21 Addendum. Note: the Aug 14 entry below was never reconciled against work done in intervening sessions (Aug 16 design-note verification, Aug 18 Q6 draft) — those sessions' own notes/logs are the record for that gap; this session did not audit or re-verify them and this line should not be read as confirming they're current.
 
-**Current Phase:** MIND Codabench submission (Q5): **all four parts complete**, including the manual upload — leaderboard score 0.6195 (submission ID 886468, 2026-08-12 13:01). EB-NeRD Codabench submission (competition 2469): **all parts complete**, including Part 2's Kaggle run and Part 3's manual upload — leaderboard score 0.5404 (submission ID 888045, 2026-08-13 23:08). Both scores are close to this project's own locally-measured validation AUC for embeddings (ebnerd_small: 0.5430 local vs. 0.5404 leaderboard; the leaderboard's MRR/nDCG@5/nDCG@10 columns also line up closely with `ranking_metrics.py`'s own numbers), a real informal cross-check that the submission pipeline is coherent end-to-end, not just format-valid.
+**Current Phase:** MIND + EB-NeRD Codabench submissions (Q5) and the design note (Q7 deliverable #2) remain complete as of Aug 14 (see below, not re-verified this session). Both real MIND submissions are on record (886468 @ 0.6195, 896696 @ 0.6192), the design note (§3.5, §6) documents the honest gap between local prediction and real outcome, and **this session** ADR-010 gained a further addendum (Candidate H) and ADR-011 (Candidate I, the project's first neural training) gained its own addendum (30-epoch + popularity re-tests) — all documenting real losses against the deployed baseline. **The MIND candidate-search line is now explicitly closed for this project** — remaining time goes to the design note and Q7 checklist, per the engineer's own instruction. See ADR-010's 2026-08-22 addenda and ADR-011 (plus its addendum) for full detail.
 
-**Current Objective:** With both leaderboard submissions closed out, the two deliverables genuinely still open are: (1) the Q6 design note (≤4 pages, Moodle) — ADR-008's Interpretation section, the MINDlarge-scale findings, and now both real leaderboard results are the source material; (2) `README.md`'s reproduce instructions still don't mention `scripts/run_embed_experiment.py`/`scripts/generate_mind_predictions.py`/`scripts/generate_ebnerd_predictions.py` (flagged repeatedly, still not done). Everything else in the Component Status table below is complete.
+**Current Objective:** **Closed, per the engineer's explicit hard-stop instruction: the MIND candidate-search line is done. Nothing tried — four model classes across two sessions (linear, tree, attention-over-embeddings, and attention-over-embeddings-plus-popularity) — has produced a real, held-up improvement over the deployed embedding baseline (0.6340).** Summary of every real, CI-clear result: Candidate G showed a local win at every validation stage but the real MINDlarge_test leaderboard came back essentially flat (0.6192 vs. 0.6195, -0.0003) — the same "local win compresses at real test" pattern also seen on EB-NeRD. H1 (LogisticRegression, balanced): 0.6319, paired -0.0021 — CI-clear loss. H2 (HistGradientBoostingClassifier): 0.5985, paired -0.0355 — larger CI-clear loss. Candidate I (attention re-ranker, 5 epochs): 0.6233, paired -0.0107 — CI-clear loss. **This session's two bounded follow-ups, per the engineer's own request:** **I-long** (same architecture, 30 epochs): holdout AUC climbed every single epoch through 30 (never plateaued, reached 0.6372 — above baseline), but the real MINDsmall-dev result (0.6214, paired -0.0126) was *worse* than the 5-epoch run — a clean, real answer that more training is not the fix, and a second instance (one level earlier in the pipeline) of the same "validation metric improving doesn't guarantee the real target metric follows" pattern G/EB-NeRD already demonstrated. **I-pop** (30 epochs + a learnable popularity term, testing whether its absence explained I's flat cold cohort): collapsed to near-random, AUC 0.5133 (paired -0.1207), with a wrong-signed fitted weight (-0.105, vs. F/H1's strongly positive ~+0.66-0.74) — investigated and attributed to a specific, identifiable implementation gap (raw/unnormalized `log_popularity` fed directly into the model, unlike every other candidate's `StandardScaler`-normalized version), documented honestly as a **confounded, inconclusive result**, not a clean second negative finding about popularity itself. Per the engineer's explicit instruction, this closes the round — no fix-and-rerun, no new candidate, no MINDlarge. All of this is documented in ADR-010's 2026-08-22 addenda, ADR-011 and its addendum, ADR-008's 2026-08-21 Addendum, and the design note's §3.5/§6. Round-1/round-2 candidate-search history in ADR-010, ADR-008's earlier Addendum (A/B), and ADR-005's Addendum (C).
 
 ---
 
@@ -16,11 +16,11 @@
 |-----------|--------|----------|-------|
 | Data Pipeline | ✅ Complete (fast tier + ebnerd_small + MINDlarge) | 100% | `make data` builds MINDsmall + ebnerd_demo end-to-end per ADR-001/ADR-002. `ebnerd_small` built and verified (ADR-002 addendum) via opt-in `include_ebnerd_small=True`. **MINDlarge built and row-count-verified this session** (`include_mind_large=True`) — required three real algorithmic fixes to `src/datasets/mind.py`/`src/pipeline/validators.py` to survive MINDlarge's row counts on this 8GB machine (naive-loop hang, 27GB memory projection, two separate `map_infer_mask` scaling bugs); see Session Notes below. |
 | Lexical Retrieval (BM25) | ✅ Complete (fast tier + ebnerd_small + MINDlarge) | 100% | `scripts/run_bm25_experiment.py --dataset {mind,ebnerd} [--bundle {small,demo}]` per ADR-005/ADR-006. Benchmarked against MINDsmall-dev, ebnerd_demo-validation, ebnerd_small-validation, **and MINDlarge-dev this session** (ADR-006 addendum) — stays local, ~10 min projected for the full 255,990-user run. |
-| Semantic Retrieval | ✅ Complete (fast tier + MINDlarge) | 100% | `scripts/run_embed_experiment.py --dataset {mind,ebnerd} [--bundle {small,demo}]` per ADR-008. `paraphrase-multilingual-MiniLM-L12-v2` encoder, brute-force cosine ANN, disk-cached embeddings. Benchmarked against the same three corpora BM25 covers **plus MINDlarge-dev this session** (ADR-008 addendum) — stays local, brute-force still sufficient, FAISS still unjustified. |
+| Semantic Retrieval | ✅ Complete (fast tier + MINDlarge) | 100% | `scripts/run_embed_experiment.py --dataset {mind,ebnerd} [--bundle {small,demo}]` per ADR-008. `paraphrase-multilingual-MiniLM-L12-v2` encoder, brute-force cosine ANN, disk-cached embeddings. Benchmarked against the same three corpora BM25 covers plus MINDlarge-dev (ADR-008 addendum) — stays local, brute-force still sufficient, FAISS still unjustified. **2026-08-19: isolated comparison against EB-NeRD's provided `contrastive_vector` artifact** (`scripts/run_contrastive_vector_experiment.py`, reusing `EmbeddingIndex`/`EmbeddingScorer`/`build_user_embedding_query`/the Q4 harness completely unchanged — one new function, `load_contrastive_index`) — on `ebnerd_small` validation, the provided artifact wins recall@K (0.58%/1.20%/2.47% vs. MiniLM's 0.14%/0.43%/1.21%) and every Q4 accuracy metric (AUC 0.5453 vs. 0.5430, MRR/nDCG@5/nDCG@10 all higher, all CI-clear) but loses Diversity@10 (0.780 vs. 0.789, CI-clear) and ties Novelty@10 — does not reverse ADR-008's decision (artifact doesn't cover MIND). See ADR-008's Addendum and `experiments/contrastive_vector_ebnerd_small_2026-08-18/`. |
 | Evaluation Harness | ✅ Complete | 100% | `src/evaluation/metrics.py` (recall@K), `src/evaluation/ranking_metrics.py` (Q4: AUC/MRR/nDCG@5/nDCG@10/diversity/novelty/coverage), `src/evaluation/bootstrap.py` (shared CI substrate), `src/retrieval/score.py` (generic `Scorer` interface — BM25 and `EmbeddingScorer` both implemented, exercised through the identical unchanged harness). All bootstrap CI, warm/cold slicing (Q4.3/Q4.4). See ADR-007/ADR-008. |
 | Benchmarking Framework | ✅ Complete (BM25 + semantic) | 100% | `experiments/{bm25,embed,ranking_bm25,ranking_embed}_{dataset}_{date}/{config,results}.json` pattern applied to both retrieval methods on all three fast-tier corpora plus MINDlarge-dev |
 | Codabench Submission Format | ✅ Complete (MIND: converter + dev-set validation. EB-NeRD: converter + ebnerd_small validation + a real scale fix) | 100% | `src/submission/mind_format.py` — official `impression_id [rank_1,...,rank_N]` format, re-reads the raw zip directly to preserve original candidate order (the processed feature store's deterministic sort destroys it). Validated end-to-end against the real `evaluation/official/evaluate.py` on MINDlarge_dev for both BM25 and embeddings: AUC/nDCG match the project's own `ranking_metrics.py` almost exactly; the one real MRR disagreement is a verified, fully-explained metric-definition difference (official sums 1/rank over all clicked items vs. this project's first-hit-only MRR), not a converter bug. `src/submission/ebnerd_format.py` — direct port of the same design, validated against `ebnerd_small`'s validation split via the same `evaluate.py`. **This session: `read_raw_impressions` (which materialized the whole split as a `list[dict]` before writing anything) was found, by direct measurement, to project to ~16GB at ebnerd_testset's real 13,536,710-impression scale, on top of ~8.5GB for the `behaviors` DataFrame itself (pandas' own `memory_usage(deep=True)` undercounts this >3x for object-dtype list columns) — a real risk MINDlarge_test's 2.37M-impression Part 4 run never surfaced. Fixed at the root: `iter_raw_impressions` is now a generator `write_predictions`/`write_truth_file` consume one row at a time (never materializing the full list), and `read_zip_parquet`/`iter_raw_impressions` now request only the columns actually needed. `read_raw_impressions` kept as `list(iter_raw_impressions(...))` — unchanged contract, all 7 existing unit tests plus 2 new ones (equivalence + laziness) pass, full suite 164/165 (1 pre-existing skip). |
-| Leaderboard Submission | ✅ Complete (MIND + EB-NeRD) | 100% | MIND: `submissions/mind_large_test_embed/prediction.zip` uploaded to Codabench — leaderboard **Score column 0.6195**, next three columns 0.3006 / 0.3225 / 0.3785 (submission ID 886468, 2026-08-12 13:01). EB-NeRD (competition 2469): `submissions/ebnerd_testset_embed/prediction.zip` uploaded — leaderboard **Score column 0.5404**, next three columns 0.3447 / 0.3823 / 0.4613 (submission ID 888045, 2026-08-13 23:08). Column headers were cropped out of both screenshots, so the exact metric labels aren't directly confirmed — but the four values line up closely with this project's own locally-measured AUC/MRR/nDCG@5/nDCG@10 for embeddings on `ebnerd_small` (0.5430 / 0.3437 / 0.3804 / 0.4591), in that order, strongly suggesting Score = AUC. Treat as inference, not confirmed fact, until the detail view (the eye icon in the Score/Detailed Results column) is actually opened and the labels read directly. Leaderboard runs on the real held-out test set, so exact match to local validation isn't expected regardless — the agreement is a coherence check, not a reproduction. Screenshots of both the submission-upload confirmation and the leaderboard rank saved to `submissions/{mind_large_test_embed,ebnerd_testset_embed}/leaderboard_screenshot_{upload,rank}.png` (gitignored along with the rest of `submissions/`, per Q8 — source material for the Q6 design note). |
+| Leaderboard Submission | ✅ Complete (MIND now has 2 submissions, EB-NeRD now has 2 submissions) | 100% | MIND, embed (MiniLM): `submissions/mind_large_test_embed/prediction.zip` uploaded to Codabench — leaderboard **Score column 0.6195**, next three columns 0.3006 / 0.3225 / 0.3785 (submission ID 886468, 2026-08-12 13:01). EB-NeRD (competition 2469), MiniLM: `submissions/ebnerd_testset_embed/prediction.zip` uploaded — leaderboard **Score column 0.5404**, next three columns 0.3447 / 0.3823 / 0.4613 (submission ID 888045, 2026-08-13 23:08). Column headers were cropped out of both screenshots, so the exact metric labels aren't directly confirmed — but the four values line up closely with this project's own locally-measured AUC/MRR/nDCG@5/nDCG@10 for embeddings on `ebnerd_small` (0.5430 / 0.3437 / 0.3804 / 0.4591), in that order, strongly suggesting Score = AUC. **EB-NeRD, contrastive vector (2026-08-21): submission ID 896072, `prediction_contrastive.zip`, also Score 0.5404** — an identical rounded Score to 888045 was verified NOT to mean a duplicate upload (different checksums, 99.48% of 13,536,710 impressions rank differently for the same ID). The per-submission detail view (opened individually per submission ID, since Codabench's detail page itself shows no ID — an initial pass nearly mis-attributed a third-party competitor's stray detail table to one of these two) resolves the tie: mean AUC over the 8-date/50%-of-testset breakdown is 0.5402 (contrastive) vs. 0.5397 (MiniLM), a real but thin +0.0005 edge, far smaller than the ~0.0023 CI-clear gap the same comparison showed on local `ebnerd_small` validation (ADR-008's 2026-08-21 Addendum). **MIND, cohort-gated combiner (2026-08-22): submission ID 896696, `submissions/mind_large_test_gated_cohort/prediction.zip`, Score 0.6192** — essentially flat vs. 886468's 0.6195 (-0.0003), despite CI-clear local wins at both the MINDsmall-dev screen (+0.0027) and a MINDlarge-dev re-verification (+0.0019, ADR-010's Addendum). No pipeline defect found (format re-verified with the same discipline as every other submission). Same category of finding as the EB-NeRD contrastive-vector result immediately above — a CI-clear local win compressing substantially at real blind-test scale — now observed twice, on two different datasets; documented as a real, honest pattern in ADR-010's 2026-08-22 Addendum and the design note's §3.5/§6, not smoothed into a false "it worked." Leaderboard runs on the real held-out test set, so exact match to local validation isn't expected regardless — the agreement (or lack of it) is a coherence check, not a reproduction. Screenshots of both the submission-upload confirmation and the leaderboard rank saved to `submissions/{mind_large_test_embed,ebnerd_testset_embed}/leaderboard_screenshot_{upload,rank}.png` (gitignored along with the rest of `submissions/`, per Q8 — source material for the Q6 design note); the second EB-NeRD and second MIND submissions' own screenshots remain on the Desktop, not yet copied into `submissions/`. |
 
 ---
 
@@ -30,10 +30,10 @@ Honest status against the assignment's four required deliverables, updated at th
 
 | # | Deliverable | Status | Notes |
 |---|-------------|--------|-------|
-| 1 | Code (GitHub Classroom) | 🟡 In progress | Data pipeline (now including MINDlarge), BM25 retrieval, semantic (embedding) retrieval, Q4 evaluation harness, and both Q5 official-format converters (`src/submission/mind_format.py`, `src/submission/ebnerd_format.py`) all implemented and tested (ADR-005/006/007/008 + this session's addenda). `README.md` documents one-command reproduce (`make data`, `make test`) — still not updated with `scripts/run_embed_experiment.py`/`scripts/generate_mind_predictions.py`/`scripts/generate_ebnerd_predictions.py` usage, flagged again for next session. `.gitignore` verified against Q8's explicit list — MINDlarge's new `data/processed/mind/large/` tree and raw zips confirmed covered by the existing `data/` rule, nothing new needed. **This session: `src/submission/ebnerd_format.py` + `scripts/generate_ebnerd_predictions.py` added and validated** (7 new unit tests, `tests/unit/test_ebnerd_format.py`) — see Session Notes. |
-| 2 | Design note (≤4 pages, Moodle) | ⬜ Not started | Was deferred until semantic retrieval produced real numbers to compare against (met, ADR-008) and now also has MINDlarge-scale numbers to draw on — ready to start next session |
-| 3 | Leaderboard screenshots (both Codabench competitions) | ✅ Complete | MIND: uploaded and confirmed — score 0.6195, submission ID 886468, 2026-08-12 13:01. EB-NeRD (competition 2469): uploaded and confirmed — score 0.5404, submission ID 888045, 2026-08-13 23:08. Both the engineer's own upload-confirmation and leaderboard-rank screenshots saved to `submissions/{mind_large_test_embed,ebnerd_testset_embed}/leaderboard_screenshot_{upload,rank}.png` this session, ready to drop into the Q6 design note. |
-| 4 | AI usage log (prompts + AI-vs-human marking) | 🟢 Ongoing | `knowledge/ai-usage-log/` exists; one file per session (`YYYY-MM-DD_<topic>.md`), written live per CLAUDE.md's "Prompt & Session Logging" section, not reconstructed after the fact (this session's log: `2026-08-12_ebnerd-codabench-part2-testset-run.md`) |
+| 1 | Code (GitHub Classroom) | ✅ Complete | Data pipeline (now including MINDlarge), BM25 retrieval, semantic (embedding) retrieval, Q4 evaluation harness, both Q5 official-format converters, and the Q9 leaky-feature ablation (`scripts/run_leakage_ablation.py`, ADR-009) all implemented and tested. `README.md`'s one-command reproduce (`make data`) actually re-run to verify — found and fixed a stale "expected output" block that no longer matched real output, plus a stray leading typo. `.gitignore` re-verified against Q8's explicit list (`*.zip`/`*.pt`/`*.ckpt`/`__pycache__/`/`data/`, all present) and `git rev-list --objects --all`-checked for large blobs across **all of history**, not just the working tree (none found; largest blob ever committed is `poetry.lock` at 340,338 bytes, zero blobs exceed 1MB). **A prior pass this session marked this row Complete prematurely** — a follow-up verification found `tests/fixtures/{MINDsmall_train_sample,MINDlarge_test_sample,ebnerd_demo_sample}.zip` were gitignored and untracked (caught by the blanket `*.zip` rule, no exception for `tests/fixtures/`), so `test_ebnerd_loader.py`/`test_mind_loader.py`/`test_mind_format.py`/`test_ebnerd_format.py` (46 tests) would fail `FileNotFoundError` on a fresh clone. **Fixed, not by a gitignore exception (would violate Q8):** `scripts/generate_test_fixtures.py` (already existed, already produced exactly the right three files at the right paths — confirmed by running it fresh and diffing filenames against what the four test files actually read) is now wired in via a new `fixtures` Make target that `test`/`test-unit` depend on (Makefile, `test-integration`/`test-reproducibility` don't need it — neither reads `tests/fixtures/`). Verified for real, not assumed: deleted all three fixture zips, ran `make test` end to end with them absent beforehand (the actual fresh-clone condition) — **180 passed, 1 expected skip, 6 deselected, zero failures**, fixtures regenerated automatically as a side effect of the `fixtures` prerequisite. README's "Verify Installation" and "Run individual suites" sections, which previously called `pytest` directly (bypassing this dependency), updated to call the `make` targets instead. |
+| 2 | Design note (≤4 pages, Moodle) | ✅ Complete | Restructured this session around the real Q7 spec (What We Built / Choices / Observations / Anti-Gaming & Leakage / Where It Breaks at 10× / Limitations), replacing the old ADR-numbering-inferred Q1-Q9 framing. `docs/design_note.tex` (article, 11pt, 1in margins, single column) compiles via `tectonic` to `docs/design_note.pdf` — **real, verified 4-page PDF** (`pypdf` and macOS Spotlight metadata both report 4 pages; page 4 has visible whitespace to spare, not a razor-thin fit). Every number carried over from the prior version unchanged; new content added: the Q9 with/without leaky-features ablation table (ADR-009), an explicit statement that the leakage-boundary test passes for EB-NeRD and is skip-marked for MIND, and a "Where It Breaks at 10×" section grounded in this project's own real scaling incidents (MINDlarge's ~27GB memory projection, ebnerd_testset's ~16GB materialization bug) plus a labeled-as-inference forward projection. |
+| 3 | Leaderboard screenshots (both Codabench competitions) | ✅ Complete | MIND: uploaded and confirmed — score 0.6195, submission ID 886468, 2026-08-12 13:01. EB-NeRD (competition 2469): uploaded and confirmed — score 0.5404, submission ID 888045, 2026-08-13 23:08. Screenshots saved to `submissions/{mind_large_test_embed,ebnerd_testset_embed}/leaderboard_screenshot_{upload,rank}.png`. **This session: found these were untrackable in git** (blanket `submissions/` gitignore rule) — fixed `.gitignore` (`submissions/*` / `!submissions/*/` / `submissions/*/*` / `!submissions/*/*.png`) so the six screenshot PNGs are trackable while `submissions/`'s large prediction/truth files (up to 278MB) stay ignored; verified with `git check-ignore`/`git add -n`. |
+| 4 | AI usage log (prompts + AI-vs-human marking) | 🟢 Ongoing | `knowledge/ai-usage-log/` exists; one file per session (`YYYY-MM-DD_<topic>.md`), written live per CLAUDE.md's "Prompt & Session Logging" section. This session's log: `2026-08-14_q7-q9-reconciliation-latex-conversion.md`. |
 
 ---
 
@@ -105,6 +105,11 @@ Honest status against the assignment's four required deliverables, updated at th
 | ADR-007 | Q4 Ranking Evaluation Harness Design | Decided | Deterministic per-impression-seeded pseudo-random tie-break (cold users produce total ties); diversity/novelty K=10 (anchored to nDCG@10); novelty popularity from train split only (Q9 anti-gaming), Laplace-smoothed; coverage reported as a point estimate, no bootstrap CI (set-union statistics are mechanically biased under with-replacement resampling). |
 | ADR-008 | Semantic Retrieval Design | Decided | Compute one embedding model ourselves over both datasets (rejects using EB-NeRD's provided embeddings + a separate MIND model — same single-code-path argument as ADR-002). Encoder: `paraphrase-multilingual-MiniLM-L12-v2`, chosen over `multilingual-e5-small` after a real discrimination-gap benchmark (e5's asymmetric query/passage convention doesn't fit this project's symmetric use case — confirmed empirically, not just argued). ANN: brute-force cosine similarity (0.99ms/query measured at 42,416-doc scale — FAISS unjustified). Cold-start: mirrors ADR-005's reporting posture exactly (`None`/all-zero-tie), no new fallback built. **Addendum (2026-08-11): re-verified at real MINDlarge-dev scale (72,023 articles, 255,990 users) — brute-force stays sufficient, full run projects to ~10.4 min, stays local.** |
 | ADR-006 (addendum) | MINDlarge-Scale BM25 Benchmark | Decided | Resolves ADR-006's own flagged revisit trigger. Real MINDlarge-dev numbers (not projected): sparse weight matrix 23.5MB, full 255,990-user retrieval projects to ~9.8 min. Stays local, no Kaggle migration needed. |
+| ADR-008 (addendum 2, 2026-08-19) | Contrastive-Vector-vs-MiniLM Isolated Comparison | Decided (does not reverse ADR-008) | Measures, for the first time, the accuracy cost of ADR-008's original rejection of EB-NeRD's provided embedding artifacts. On `ebnerd_small` validation, EB-NeRD's provided `contrastive_vector` artifact CI-clear-wins recall@K and every Q4 accuracy metric (AUC 0.5453 vs. 0.5430; MRR/nDCG@5/nDCG@10 all higher) but CI-clear-loses Diversity@10 (0.780 vs. 0.789) and ties Novelty@10 — a real trade-off, not a blanket win. Doesn't reverse ADR-008: the artifact only covers EB-NeRD, so adopting it would still break the single-embedding-space property Q3.5/Q4.5 depends on. Whether to submit a second, EB-NeRD-only leaderboard entry is left open for the engineer. |
+| ADR-008 (addendum 3, 2026-08-21) | MIND Entity-Embedding + BM25/Embedding Hybrid Screens | Decided (does not reverse ADR-008) | Pre-submission screens against MIND's deployed baseline (AUC 0.6340, CI 0.6319-0.6361). Entity embeddings (86.1% article coverage, confidence-weighted pooling of MIND's own `entity_embedding.vec`): 0.5525 (CI 0.5503-0.5546) — CI-clear loss. Untuned 50/50 BM25+embedding hybrid: 0.6263 (CI 0.6242-0.6284) — CI-clear loss (blending in BM25's weaker signal dilutes rather than complements). Neither adopted. |
+| ADR-005 (addendum, 2026-08-21) | Recency-Weighted MIND Embedding Query (Candidate C) | Decided (does not reverse ADR-005) | Re-tests ADR-005's originally un-benchmarked rejection of recency weighting, this time for MIND's *embedding*-based user representation (decay=0.9, untuned), not BM25. Result: 0.6265 (CI 0.6243-0.6286) vs. baseline 0.6340 (CI 0.6319-0.6361) — CI-clear loss, including for warm users specifically, where the "recent clicks are more predictive" intuition was expected to help most. A real negative result, not just an untested risk anymore — the underlying MIND history-order assumption remains unverified. |
+| ADR-010 (2026-08-21) | MIND Second-Submission Candidate Search, Round 2 (Symbolic Overlap, Popularity, Learned Combiner, Cohort Gating) | Decided (adopt Candidate G, conditional) | Symbolic category/entity overlap (D: 0.6134) and train-popularity-only (E: 0.5318) both lose CI-clear. A 7-feature logistic-regression combiner trained on MINDsmall-train (F) loses overall (0.6255) but wins CI-clear on the cold cohort (0.5926 vs. baseline's 0.5737) — the first win either round produced. Cohort-gated routing built directly from that split (G: deployed embed scorer for warm, F's combiner for cold) gets overall AUC 0.6366; marginal CIs overlap the baseline's narrowly, but the statistically correct **paired** bootstrap (G and baseline share almost all impressions) shows +0.0027 (95% CI +0.0018 to +0.0034), excluding zero — a real win. Adoption is conditional on deciding whether to re-verify at MINDlarge scale before an actual Codabench submission (open, for the engineer). |
+| ADR-010 (addendum, 2026-08-21/22) | MINDlarge Verification + Second-Submission Build | Decided (condition resolved) | Candidate G re-verified at MINDlarge-dev scale on Kaggle: real, CI-clear paired win, +0.0019 AUC (95% CI +0.0015 to +0.0023) — same direction as the MINDsmall-dev screen, smaller effect size. Getting there fixed three real, previously-latent bugs (flat-packed HF-mirror zip, hardcoded Mac-only `mps` device, a full-column read that drove the local machine into heavy swapping), all root-caused and unit-tested, none Kaggle-specific. `scripts/generate_mind_gated_predictions.py` then generated real MINDlarge_test predictions locally (~4.2hr; feasible since this scale had run locally before and the processed bundle/embedding cache already existed) — a pre-run smoke test caught a fourth bug (multi-feature combiner producing NaN, not -inf, on MIND's documented `N89741`-style missing-candidate quirk), fixed before the real run. Output verified (exact line count, zero malformed permutations, all 32 affected impressions spot-checked) and packaged identically to the first submission at `submissions/mind_large_test_gated_cohort/prediction.zip`. Not yet uploaded — engineer's explicit action. |
 
 ---
 
@@ -276,6 +281,7 @@ Experiment results are recorded in the `experiments/` directory as implementatio
 
 ## Upcoming
 
+- **Done (2026-08-21):** the second-submission decision from 2026-08-19 is complete — `notebooks/ebnerd_contrastive_vector_testset_kaggle_run.py` ran on Kaggle, `prediction_contrastive.zip` was submitted to competition 2469 (ID 896072, Score 0.5404, tying the rounded MiniLM score) and verified genuinely distinct from the original submission (checksums, 99.48% of impressions re-ranked, Cell 8's own line-count/malformed check re-run locally and clean). The real-test-set detail-view comparison (mean AUC 0.5402 contrastive vs. 0.5397 MiniLM, +0.0005) is a real but much thinner edge than local `ebnerd_small` validation's CI-clear +0.0023 gap — see ADR-008's 2026-08-21 Addendum ("Second EB-NeRD Submission") and `docs/design_note.md`/`.tex` §3.5 for the full write-up. `prediction_contrastive.zip` currently lives at `~/Downloads/`, not yet moved into `submissions/ebnerd_testset_contrastive/` — a housekeeping step still open.
 - Both Codabench leaderboard submissions are now done (see Component Status and Deliverables Checklist above) — Q6 (design note) is the only deliverable left blocking on them, and now has both real scores to draw on.
 - `README.md` needs a `scripts/run_embed_experiment.py` / `--method embed` usage note, plus `scripts/generate_mind_predictions.py` — not updated yet, flagged again for next.
 - `ebnerd_large` remains undownloaded/unverified — lower priority unless the assignment specifically requires the `large` tier for leaderboard submission.
@@ -287,7 +293,878 @@ Experiment results are recorded in the `experiments/` directory as implementatio
 
 # Session Notes
 
-## August 14, 2026 (latest) — PROJECT_STATE Verification + Both Leaderboard Submissions Confirmed Complete
+## August 21, 2026 — EB-NeRD Second Submission Verified: Contrastive Vector on the Real Test Set (ADR-008 Addendum)
+
+### Context
+
+Objective: the contrastive-vector EB-NeRD submission (896072, prepared
+2026-08-19, run on Kaggle and submitted 2026-08-21) scored an identical
+rounded Score (0.5404) to the original MiniLM submission (888045) —
+surprising, given the contrastive vector clearly beat MiniLM on local
+`ebnerd_small` validation (ADR-008's 2026-08-19 Addendum). Before
+concluding anything, confirm the two submitted files are actually
+different, then pull the real per-day breakdown to see what the rounded
+Score column is hiding.
+
+### What was done
+
+- Located both files: `submissions/ebnerd_testset_embed/prediction.zip`
+  (888045) and `~/Downloads/prediction_contrastive.zip` (896072, the
+  downloaded Kaggle output, not yet moved into `submissions/`).
+- **Checksummed and diffed both `predictions.txt` files directly**, rather
+  than trusting the identical Score: different SHA-256/CRC-32/MD5;
+  line-by-line comparison of all 13,536,710 lines found 0 impression-ID
+  misalignments (both walk the real zip in identical order) and 99.48% of
+  lines carry a genuinely different ranking for the same impression ID —
+  the fingerprint of two independent scoring runs, not a duplicate upload
+  or a partial fallback to MiniLM. Confirmed directly in the notebook
+  (`notebooks/ebnerd_contrastive_vector_testset_kaggle_run.py`) that
+  `load_contrastive_index` was the function actually called, not
+  `build_embedding_index`.
+- **Re-ran Cell 8's own line-count/malformed-permutation check locally**
+  against the downloaded file (13,536,710/13,536,710 lines, 0 malformed) —
+  the actual Kaggle-side Cell 8 output was never relayed/logged for this
+  run (a real process gap, flagged for next time), so this local re-check
+  was the only way to confirm the run completed cleanly rather than
+  resuming from a truncated checkpoint.
+- **Pulled the real per-day AUC/MRR/nDCG breakdown from Codabench's
+  per-submission detail view** — but the attribution (which detail table
+  belongs to which submission ID) was genuinely ambiguous at first: the
+  detail page shows no submission ID, and three different per-day tables
+  turned up across the engineer's screenshots, not two. One (MEAN AUC
+  0.5123) matched neither submission and was set aside as a likely stray
+  click on an unrelated competitor's row while browsing the public
+  leaderboard (which lists every participant, not just this account).
+  Rather than guess between the remaining two candidates using screenshot
+  timing as a proxy — which pointed the *opposite* direction from the
+  engineer's initial recollection — asked the engineer to re-open each
+  submission's eye icon individually and confirm. Correct mapping:
+  MiniLM (888045) mean AUC 0.5397, contrastive (896072) mean AUC 0.5402.
+
+### Result (see ADR-008's 2026-08-21 Addendum for full detail)
+
+Contrastive leads the mean AUC by **+0.0005** (0.5402 vs. 0.5397, 8-date/
+50%-of-testset breakdown) and every non-AUC metric shown (MRR, nDCG@5,
+nDCG@10) by a larger relative margin — but the AUC sign flips day-to-day
+three times, and the margin is far thinner than the **~0.0023 CI-clear
+gap** the same comparison showed on local `ebnerd_small` validation. Real,
+same-direction evidence, not confirmation of a large effect — the local
+edge was itself small relative to its own CI, so a thinner or noisier
+margin on a much larger, differently-distributed real test population is
+ordinary sampling behavior, not evidence of a pipeline defect. No bug was
+found anywhere in the submission pipeline.
+
+### Updated
+
+- `decisions/ADR-008-semantic-retrieval-design.md` — new Addendum section
+  ("Second EB-NeRD Submission"), inserted directly after the 2026-08-19
+  Addendum whose own "Conditions for Revisiting" this one resolves;
+  history preserved, not overwritten.
+- `docs/design_note.md` §3.5 (new submission row, per-day AUC table,
+  honest margin comparison) and §6 (the "remains an open decision" bullet
+  was stale — updated to point at the now-real result). `docs/design_note.tex`
+  mirrored and recompiled — the addition initially pushed the PDF to 5
+  real pages (checked via `pypdf`, not assumed); brought back to the
+  original 4-page budget by trimming both the new addition and several
+  existing Limitations bullets for concision (not by shrinking margins —
+  a margin reduction was tried first, produced an 85pt real overfull
+  \hbox, and was reverted rather than shipped).
+- This file (Leaderboard Submission row, the stale 2026-08-19 "In
+  progress" bullet, this entry).
+
+### Genuinely still open
+
+- `prediction_contrastive.zip` is still at `~/Downloads/`, not moved into
+  `submissions/ebnerd_testset_contrastive/` alongside the project's other
+  submission artifacts — housekeeping, not urgent.
+- Only "50% of the testset" is reflected in Codabench's detail view per
+  its own footnote; the other half's numbers were never obtained.
+- The Kaggle-side Cell 8 output for this specific run was never
+  relayed/logged (unlike every prior Kaggle run in this project) — the
+  local re-check substituted for it this session, but the gap itself is
+  worth closing for future runs.
+
+### Related
+
+- `notebooks/ebnerd_contrastive_vector_testset_kaggle_run.py`,
+  `ebnerd_contrastive_vector_testset_src_bundle.zip`
+- `submissions/ebnerd_testset_embed/prediction.zip` (888045),
+  `~/Downloads/prediction_contrastive.zip` (896072)
+- `knowledge/ai-usage-log/2026-08-19_contrastive-vector-testset-submission.md`,
+  `knowledge/ai-usage-log/2026-08-21_contrastive-vector-submission-verification.md`
+
+---
+
+## August 22, 2026 (latest) — Candidate I Closeout: More Epochs + Popularity Feature (ADR-011 Addendum)
+
+### Context
+
+Direct continuation of the same session, immediately after the Candidate I
+checkpoint report (below). New objective (verbatim in
+`knowledge/ai-usage-log/2026-08-22_gbdt-combiner-candidate-h.md`, prompt
+4): one more bounded check before accepting the result — re-run with
+20-30 epochs to see if the still-climbing holdout curve meant 5 epochs
+wasn't enough, and if time allows, add a popularity feature to test
+whether its absence explained the flat cold cohort. Explicit hard stop
+after this round regardless of outcome — no further candidates, time
+redirected to the design note/Q7 checklist.
+
+Scoped tightly enough (explicit epoch range, one named feature, "same
+code, no redesign") that a fresh Plan Mode cycle was judged unnecessary —
+implemented directly as a bounded extension.
+
+### What was done
+
+- Extended `AttentionScorer` with an always-present `pop_weight`
+  parameter and an optional `log_popularity` argument to `forward()` —
+  backward-compatible (defaults to `None`, identical behavior to before
+  when omitted). Zero-history users get a real popularity-only score
+  instead of a flat 0 tie when popularity is enabled — the actual point of
+  the feature, since popularity needs no history at all.
+- Extended `run_attention_reranker_experiment.py`: `--use-popularity`
+  flag, `build_train_popularity` reused unchanged (train-split-only,
+  Laplace-smoothed, same construction as every other candidate), zero-
+  history impressions no longer skipped during training when popularity
+  is enabled (they now have a real gradient path via `pop_weight`). 3 new
+  unit tests (196 total, all passing). A smoke test on a small subset
+  caught no new bugs before committing to the real runs.
+- Ran **I-long** (`--epochs 30`) and **I-pop** (`--epochs 30
+  --use-popularity`) sequentially in the background (~53 min total: I-long
+  ~24 min, I-pop ~46 min — slower per-epoch since popularity-enabled
+  training no longer skips cold impressions, so more impressions are
+  processed per epoch).
+
+### Key Findings
+
+- **I-long: a clean, real negative result.** Holdout AUC climbed every
+  single epoch through 30 (0.6067 → 0.6372, never plateaued — by epoch 29
+  it exceeds the deployed baseline's own 0.6340). Despite that, the real
+  MINDsmall-dev result for the epoch-29 checkpoint (0.6214, paired -0.0126)
+  was *worse* than the epoch-4 checkpoint's dev result from the original
+  5-epoch run (0.6233, paired -0.0107) — confirmed as a real divergence,
+  not run-to-run noise (both runs share an identical seeded trajectory
+  through epoch 4, verified by matching holdout AUC to 6 decimal places).
+  This directly answers "was 5 epochs enough": yes, and training longer
+  made the real result marginally worse, not better — the internal
+  train-holdout metric improving does not mean the real dev generalization
+  gap is closing. This is the same qualitative pattern this project
+  already found twice between local validation and real blind-test
+  results (EB-NeRD's contrastive-vector submission, MIND's Candidate G
+  leaderboard result) — now observed one level earlier, between an
+  internal train-holdout and the officially held-out dev split.
+- **I-pop: a dramatic but confounded result — not a clean test of the
+  popularity hypothesis.** AUC collapsed to 0.5133 (paired -0.1207, 95% CI
+  -0.1237 to -0.1178), worse than nearly every candidate in either search
+  round. Investigated rather than taken at face value: holdout AUC was
+  already below chance (0.4733) at epoch 0 (not a slow overfit), and the
+  fitted `pop_weight` (-0.1047) has the **wrong sign** versus every other
+  candidate's fitted popularity coefficient (F: +0.744; H1: +0.660, both
+  standardized). Root cause identified: unlike F/H1/H2, which all
+  `StandardScaler`-normalize every feature (including popularity) before
+  fitting, this implementation fed *raw* `log_popularity` (spanning
+  roughly -12.5 to -3 for MINDsmall's Laplace-smoothed values) directly
+  into the model, unnormalized, alongside an attention term naturally
+  bounded near [-1, 1] — a real, identifiable implementation gap, not
+  evidence that popularity itself doesn't help. Documented explicitly as
+  **inconclusive**, not as a second clean negative, so a future session
+  doesn't mistake a confounded collapse for a settled scientific result.
+- Per the engineer's explicit hard-stop instruction, **no fix-and-rerun
+  was attempted** even though the root cause (and its fix — z-score
+  `log_popularity` before combining) is well-identified and cheap.
+
+### What's Next
+
+**The MIND candidate-search line is closed for this project.** Nine
++ two candidates (A-H, G's real submission, I, I-long, I-pop) have now
+been tried across two sessions; the only real win found anywhere (G)
+didn't hold at real blind-test scale. Remaining engineering time goes to
+the design note and Q7 deliverables checklist, per the engineer's explicit
+instruction — not queued as further candidate-search work.
+New/modified this session: `src/retrieval/rerank.py` (popularity
+extension), `scripts/run_attention_reranker_experiment.py` (popularity
+extension), `tests/unit/test_rerank.py` (+3 tests),
+`experiments/candidate_i_attention_reranker_mind_small_2026-08-22_{e30,e30_pop}/{config,results}.json`,
+`decisions/ADR-011-neural-attention-reranker.md` (addendum),
+`knowledge/ai-usage-log/2026-08-22_gbdt-combiner-candidate-h.md` (prompt 4
+appended), this file.
+
+---
+
+## August 22, 2026 — Neural Attention Re-ranker Checkpoint: Candidate I (ADR-011)
+
+### Context
+
+Direct continuation of the same session, immediately after Candidate H
+(below). New objective (verbatim in `knowledge/ai-usage-log/2026-08-22_gbdt-combiner-candidate-h.md`,
+appended as prompt 3): build a lightweight neural re-ranker with
+candidate-aware attention pooling over history embeddings (the core
+NRMS/NAML mechanism, minus fine-tuning the text encoder — frozen MiniLM
+embeddings as input, only the attention + scoring head trained), on
+MINDsmall-train's real labels, with a hard instruction to checkpoint at
+MINDsmall-dev and report back — "if it doesn't show a real, meaningfully-
+larger win than what H1/H2 got... stop and report back" — rather than
+proceeding to MINDlarge automatically.
+
+Planned via a fresh Plan Mode cycle
+(`/Users/test01/.claude/plans/rosy-twirling-ripple.md`, overwritten from
+the Candidate H plan). Research confirmed this is the first neural-network
+*training* this project has done — `torch` was previously used only for
+frozen `sentence-transformers` inference.
+
+### What was done
+
+- New `src/retrieval/rerank.py`: `build_user_history_vectors` (the raw,
+  unpooled per-article history embedding sequence — no equivalent existed
+  before), `AttentionScorer` (single-head scaled dot-product attention,
+  candidate-conditioned, per-impression with no padding/masking — a
+  deliberate correctness-over-throughput choice for a first neural
+  training), `AttentionRerankScorer` (the `Scorer`-protocol eval wrapper).
+- New `scripts/run_attention_reranker_experiment.py`: a lean data-side
+  builder (embeddings only, deliberately skips BM25/symbolic features
+  Candidate H used, per the objective's "frozen embeddings as input"
+  scope), BCE training with a data-derived `pos_weight` (23.72, from the
+  real 4.04% click rate), Adam (`lr=1e-3`), 64-impression gradient
+  accumulation (no padded batching), a 95/5 user-level train-internal
+  holdout for epoch-level early stopping (MINDsmall-dev touched exactly
+  once, at the end).
+- 10 new unit tests (`tests/unit/test_rerank.py`); full suite (193 tests)
+  reconfirmed passing.
+- **Required benchmark step** (per CLAUDE.md's benchmarking philosophy)
+  run before the real job: a 3,000-impression/1-epoch subset run crashed
+  with `RuntimeError: element 0 of tensors does not require grad and does
+  not have a grad_fn`. Root cause: a zero-history user's score is a
+  constant `torch.zeros(...)` under this architecture (the project's
+  standard cold-start convention) — no gradient path to the learned
+  weights at all, so `backward()` had nothing to differentiate whenever a
+  minibatch included one. Fixed by skipping zero-history impressions
+  during *training* only (not evaluation, where they're still scored
+  normally as a 0/tie) — a correctness fix following directly from the
+  architecture, not a workaround, since those rows carry zero gradient
+  information for this model either way. Re-benchmarked clean: 1,505
+  training impressions/sec, projecting the full 5-epoch job at under 11
+  minutes — confirmed before committing to the real run, not assumed.
+- Ran the real job (149,107 fit impressions, 5 epochs, ~305s train + 176s
+  final dev eval). Holdout AUC climbed every single epoch (0.6067 →
+  0.6096 → 0.6137 → 0.6181 → 0.6205) — **not plateaued at the 5-epoch cap**,
+  flagged explicitly as an open question in ADR-011 rather than smoothed
+  over.
+
+### Key Findings
+
+- **Real, CI-clear loss at the checkpoint — does not clear the "substantial
+  win" bar.** Overall AUC 0.6233 (95% CI 0.6212-0.6254), paired vs.
+  baseline **-0.0107** (95% CI -0.0126 to -0.0088) — worse than H1's
+  -0.0021, smaller than H2's -0.0355. Warm cohort also lost (0.6316 vs.
+  baseline's 0.6439); cold cohort came back essentially flat (0.5727 vs.
+  baseline's 0.5737) — unlike F/H1's real cold wins, plausibly because
+  Candidate I has no `log_popularity` input at all (the single dominant
+  fitted feature behind those wins) — inference, documented as such in
+  ADR-011, not independently re-verified this session.
+- **The still-climbing holdout curve is the single most important
+  qualifier on this result.** Because the model had not converged within
+  the 5-epoch/report-within-a-day budget, this number is best read as "not
+  a substantial win *at this training budget*," not proof the mechanism
+  itself is a dead end — an explicit, real distinction, not equivocation
+  for its own sake.
+- Per the engineer's own explicit instruction, the session stopped here:
+  no MINDlarge run, no further epoch tuning, no MLP-head/multi-head
+  variant — those are documented as concrete next levers in ADR-011's
+  Conditions for Revisiting, not undertaken.
+
+### What's Next
+
+**Reporting back to the engineer at this checkpoint, as instructed.**
+Three model classes (linear, tree ensemble, attention-over-raw-embeddings)
+have now all been tried on MINDsmall-train/dev and all lost against the
+deployed baseline — the honest, currently-complete picture of this
+project's MIND candidate search. New/modified this session:
+`src/retrieval/rerank.py`, `tests/unit/test_rerank.py`,
+`scripts/run_attention_reranker_experiment.py`,
+`experiments/candidate_i_attention_reranker_mind_small_2026-08-22/{config,results}.json`,
+`decisions/ADR-011-neural-attention-reranker.md` (new),
+`decisions/ADR-010-mind-second-submission-candidate-search.md` (forward
+pointer), `knowledge/ai-usage-log/2026-08-22_gbdt-combiner-candidate-h.md`
+(prompt 3 appended), this file.
+
+---
+
+## August 22, 2026 — GBDT Supervised-Ranker Screen: Candidate H (ADR-010 Addendum)
+
+### Context
+
+This session opened with an objective claiming the project had "never
+trained an actual supervised model on MIND's real click labels" and asking
+for one to be built, framed as the likely explanation for classmates
+reportedly scoring 0.65-0.70 on the same assignment. Before writing any
+code, that premise was checked against the project's own record and found
+false: Candidate F (`scripts/run_learned_combiner_experiment.py`,
+ADR-010, 2026-08-21) already trained a `LogisticRegression` combiner on
+MINDsmall-train's real click labels using the same feature families named
+in the new objective (BM25, embedding cosine, category/entity match,
+recency, plus popularity) — and it lost overall (AUC 0.6255 vs. baseline
+0.6340, CI-clear). This was surfaced to the engineer via a written plan
+(`/Users/test01/.claude/plans/rosy-twirling-ripple.md`) before implementation,
+per CLAUDE.md's Decision Reversal/Evidence Hierarchy sections, rather than
+silently re-running a known negative result under a new name. The
+approved plan scoped a genuinely different test: a nonlinear model plus
+one new feature, isolated from a class-imbalance-correction variant of the
+same linear model, so any result would be attributable to a specific
+cause. Full verbatim prompts:
+`knowledge/ai-usage-log/2026-08-22_gbdt-combiner-candidate-h.md`.
+
+### What was done
+
+- New `scripts/run_gbdt_combiner_experiment.py` (Candidate H), reusing
+  Candidate F's index/query building and per-candidate feature computation
+  unchanged (`_build_side`, `_impression_feature_matrix`, `FEATURE_NAMES`)
+  and the paired-bootstrap comparison Candidate G established
+  (`paired_metric_diff_ci`) — no shared code duplicated.
+- One new feature: `log_history_length = log1p(n_articles)`, from
+  `HistoryProfile.n_articles` (`src/retrieval/features.py`) — previously
+  only used externally as ADR-005's hard cohort-routing threshold, now
+  given to the model directly.
+- Two models, both trained on MINDsmall-train (identical data to F:
+  5,843,444 rows / 156,965 impressions, 4.04% click rate), evaluated on
+  MINDsmall-dev: **H1** — `LogisticRegression(class_weight="balanced")`,
+  isolating the imbalance-correction hypothesis from F's untuned defaults.
+  **H2** — `sklearn.ensemble.HistGradientBoostingClassifier(early_stopping=True)`,
+  isolating the nonlinear-interaction hypothesis. Chosen over LightGBM
+  (the engineer's literal suggestion) per an explicit engineer decision —
+  same histogram-boosting family, zero new dependency, no macOS OpenMP
+  install risk.
+- 4 new unit tests (`tests/unit/test_gbdt_combiner.py`); full existing
+  suite (183 tests) reconfirmed passing after the addition.
+
+### Key Findings
+
+- **Both models are real, CI-clear losses — no MINDlarge scale-up was
+  warranted** (the session's own objective made scaling conditional on a
+  real win). H1: overall AUC 0.6319 (95% CI 0.6297-0.6340), paired vs.
+  baseline -0.0021 (95% CI -0.0042 to -0.0002) — closer to baseline than F
+  but still a statistically significant loss. H2: overall AUC 0.5985 (95%
+  CI 0.5961-0.6006), paired vs. baseline -0.0355 (95% CI -0.0381 to
+  -0.0331) — a much larger loss, worse than every candidate tried in this
+  search except entity embeddings (A) and popularity-only (E).
+- **H2's loss is concentrated in the warm cohort** (0.6004 vs. baseline
+  warm's 0.6439) while its cold-cohort number (0.5871) stays roughly
+  comparable to H1/F's cold wins — i.e. the nonlinear model is actively
+  worse than the baseline specifically where BM25/embedding signal is
+  already strong, not just "no better than baseline everywhere." Most
+  plausible explanation (inference, flagged as unverified in ADR-010's
+  addendum): `n_iter_` = 100 exactly equals the library default
+  `max_iter`, meaning early stopping's own internal validation slice
+  (drawn from MINDsmall-**train**) never detected a plateau — but that
+  slice shares train's own self-information structure between
+  `log_popularity` and the labels being predicted, so a flexible tree
+  ensemble may be overfitting exactly the pattern its own validation check
+  can't see, in a way F's 7-coefficient linear model structurally
+  couldn't.
+- **Combined with the same-day real-leaderboard result below: two model
+  classes (linear and nonlinear) have now both been tried over this
+  project's current feature set and neither beats the deployed baseline.**
+  Real evidence the ceiling is the feature set (precomputed similarity
+  scores), not the combiner's model class — closing the gap toward
+  classmates' reported 0.65-0.70 would most plausibly need new information
+  (raw text) or an end-to-end trained model, materially larger in scope
+  than this session's "lightweight ranker, move fast" framing.
+- H1's cold-cohort AUC (0.5936) is marginally better than F's (0.5926,
+  currently used by Candidate G's cold-user routing) — a cheap, flagged-
+  but-not-undertaken follow-up if this is revisited.
+
+### What's Next
+
+No further action recommended on the MIND supervised-combiner line unless
+the feature-set-is-the-ceiling hypothesis above is specifically
+challenged (e.g. by adding raw-text features or moving to an end-to-end
+model) — documented as an open lever in ADR-010's addendum, not queued as
+active work. New/modified this session: `scripts/run_gbdt_combiner_experiment.py`,
+`tests/unit/test_gbdt_combiner.py`,
+`experiments/candidate_h_gbdt_combiner_mind_small_2026-08-22/{config,results}.json`,
+`decisions/ADR-010-mind-second-submission-candidate-search.md` (addendum),
+`knowledge/ai-usage-log/2026-08-22_gbdt-combiner-candidate-h.md`, this file.
+
+---
+
+## August 22, 2026 — Real MIND Result: Essentially Flat, Not the Local Win (ADR-010 Addendum)
+
+### Context
+
+Objective (verbatim in `knowledge/ai-usage-log/2026-08-21_mind-candidate-improvements-local-validation.md`):
+Candidate G's real Codabench result is in — 0.6192, essentially flat vs.
+886468's 0.6195, despite a CI-clear +0.0019 local win — document this
+honestly as a validation-to-test transfer finding, not a win, and update
+every place the earlier "ready, not yet uploaded" status was recorded.
+
+### What was done
+
+- Wrote a new ADR-010 addendum recording the real result plainly: three
+  stages of local validation (MINDsmall-dev +0.0027, MINDlarge-dev
+  +0.0019, both CI-clear) followed by a real leaderboard score of 0.6192
+  vs. 886468's 0.6195 (-0.0003) — not the win either local stage
+  predicted.
+- Before writing the "why," checked this project's own records for the
+  parallel the engineer referenced (EB-NeRD's contrastive-vector result)
+  rather than assuming or inventing numbers — initially found only a
+  "prepared, not yet run" status on record and asked the engineer to
+  clarify rather than guess; the engineer answered by directly recording
+  the real result in ADR-008 (submission 896072: local +0.0023 CI-clear
+  win compressed to +0.0005 real mean AUC, day-to-day sign flipping three
+  times across 8 dates) — read in full before drawing the parallel.
+- Grounded the "population difference" explanation in a real, cited fact
+  rather than speculation: MIND's official dev/test splits are
+  temporally disjoint, non-overlapping calendar weeks by design (ADR-001;
+  MINDlarge's test week is Nov 16-22), not a resampling of the same
+  population — checked directly in ADR-001 rather than assumed.
+- Updated `docs/design_note.md` **and** `docs/design_note.tex` (both kept
+  in sync, not just the Markdown source) — §3.5's leaderboard table gains
+  the second MIND row and an honest discussion paragraph mirroring the
+  EB-NeRD one already there; §6 gains a new bullet naming the cross-
+  dataset pattern (local CI-clear wins compressing at real blind-test
+  scale, now N=2). Rebuilt `docs/design_note.pdf` via `tectonic` so the
+  PDF deliverable isn't left stale relative to the source.
+- Updated PROJECT_STATE.md's Leaderboard Submission row and top summary
+  to record both real MIND submissions and retire the earlier "ready, not
+  yet uploaded" framing now that the real outcome is known.
+- Noticed, but did not touch, unrelated untracked files
+  (`scripts/run_gbdt_combiner_experiment.py`,
+  `knowledge/ai-usage-log/2026-08-22_gbdt-combiner-candidate-h.md`) that
+  appear to be from separate, concurrent work outside this session's scope
+  — flagged rather than silently assumed to be this session's own or
+  interfered with.
+
+### Key Findings
+
+- **The real result is an honest negative finding, not a bug.** Every
+  format/correctness check this project's own discipline requires passed
+  cleanly; the gap is real, not a symptom of a mistake.
+- **This is now a two-for-two pattern, not an isolated surprise.** Both
+  real-test-set checks this project has ever run (EB-NeRD contrastive
+  vector, MIND cohort-gated combiner) showed a local CI-clear win compress
+  substantially at real blind-test scale — worth treating as a genuine
+  property of this project's validation methodology (small local edges
+  built on population-specific structure) rather than two unrelated
+  coincidences, though `N=2` is too small to fit any quantitative
+  relationship between local and real effect sizes.
+
+### What's Next
+
+Both real MIND submissions and the cross-dataset compression pattern are
+now fully documented (ADR-010, design note §3.5/§6, PROJECT_STATE). No
+further MIND submission work is planned from this thread. If a third
+real-test-set comparison is ever made (either dataset), it would
+meaningfully strengthen or weaken the two-for-two pattern as a general
+finding, per ADR-010's own Conditions for Revisiting.
+
+## August 21-22, 2026 — MINDlarge Verification + Second-Submission Build (ADR-010 Addendum)
+
+### Context
+
+Objective (verbatim in `knowledge/ai-usage-log/`): Candidate G verified at
+MINDlarge scale on Kaggle with a real win — build the actual second MIND
+Codabench submission using it, verify format like every prior real
+submission, and stop short of uploading (engineer does that manually).
+
+### What was done
+
+- Got the Kaggle notebook working end-to-end through a long troubleshooting
+  cycle: Kaggle auto-extracting the uploaded zip into a Dataset folder
+  instead of keeping it as a `.zip` (Cell 1 fixed to detect either), a
+  stale/corrupt partial download silently reused because
+  `download_mind_bundle` skips if the file already exists (fixed by
+  re-downloading fresh), and two real cross-platform bugs surfaced by
+  actually running on Kaggle's infrastructure (not guessed in advance):
+  `read_zip_member_bytes` had no fallback for a flat-packed zip (the HF
+  MIND mirror packs `MINDlarge_train.zip` flat, opposite of every other
+  MIND zip this project had seen), and `load_encoder`/
+  `build_embedding_index` hardcoded Mac-only `device="mps"` (Kaggle's
+  Linux runners don't have it). Both fixed at the root in `src/`, not
+  worked around in the notebook, with new unit tests (6 total).
+- Engineer confirmed the real Kaggle result: Candidate G's exact
+  MINDsmall-fitted model, evaluated at MINDlarge-dev scale, shows a real
+  paired-bootstrap win — AUC +0.0019 (95% CI +0.0015 to +0.0023),
+  excludes zero. Same direction as the MINDsmall-dev screen, smaller
+  effect size. Full per-metric Kaggle output not yet filed locally
+  (pending the engineer's downloaded results package) — the headline
+  number is confirmed and sufficient to proceed with the submission build,
+  per ADR-010's addendum.
+- Built `scripts/generate_mind_gated_predictions.py`: a `GatedScorer`
+  implementing the existing `Scorer` protocol so
+  `src/submission/mind_format.py::write_predictions` (the same module
+  every prior real submission used) needed zero changes. Confirmed local
+  execution was feasible before running anything real: this exact scale
+  (2,370,727 MINDlarge_test impressions) had already completed locally
+  once before for the embed-only baseline (~1.9hr, `submissions/
+  mind_large_test_embed/run.log`), and the processed bundle + embedding
+  cache already existed on disk — no Kaggle needed for this part.
+- A deliberate small-scale smoke test against MINDsmall-dev (run *before*
+  committing to the real ~4hr job, not skipped under time pressure)
+  caught a real bug: `RuntimeWarning: invalid value encountered in
+  matmul`. Root cause: MIND's raw `behaviors.tsv` can reference a
+  candidate absent from that split's own corpus (the documented `N89741`
+  quirk), which every index-backed feature scores `-inf`; combining three
+  already-`-inf` features through Candidate F's *mixed-sign* fitted
+  coefficients produces `-inf + +inf = NaN`, not just `-inf` — a failure
+  mode no single-feature scorer in this project could ever hit. Fixed by
+  explicitly detecting `np.isneginf` on the raw inputs and forcing the
+  combined score to `-inf` directly. 4 new unit tests.
+- Ran the real job locally as a detached background process with active
+  memory monitoring (a preemptive kill-switch, never triggered — peak RSS
+  stayed under 500MB throughout). Took 15,084s (~4.19hr), longer than the
+  ~1.9hr baseline it was projected from — attributed to this session's
+  chronic background memory pressure throttling CPU-bound work generally
+  (the process itself never showed memory problems), not confirmed in
+  isolation. Survived an accidental laptop-lid-close/sleep mid-run with no
+  data loss (macOS suspends and resumes background processes cleanly).
+- Verified with the same discipline as every prior real submission: exact
+  line count (2,370,727), zero malformed rank permutations checked across
+  every line, all 32 `N89741`-affected impressions individually
+  spot-checked (not just trusted from the earlier unit test), byte-
+  identical file size to the original embed-only submission's
+  `prediction.txt` (expected — same structure, only rank values differ).
+  Packaged identically (`prediction.txt` zipped at archive root via
+  `zip -j`, confirmed via `unzip -l` against the original).
+
+### Key Findings
+
+- **The real win holds up at real scale** — smaller effect size at
+  MINDlarge (+0.0019) than the MINDsmall-dev screen (+0.0027), but the
+  same direction and both paired-bootstrap CIs exclude zero. This is
+  exactly the kind of scale-transfer check ADR-010 flagged as unverified
+  and worth doing before trusting a smaller-scale result for a real
+  submission — and it transferred, not just assumed to.
+- **Every real bug this session hit was invisible from local-only,
+  single-method-scorer testing** — a zip-packaging convention only the
+  real HF mirror exhibited, a device default only Linux exposed, a memory
+  cost only real MINDlarge row counts made material, and a NaN failure
+  mode only a multi-feature linear combiner with mixed-sign coefficients
+  could produce. None were hypothetical edge cases invented for
+  thoroughness — all four were caught by actually running the real thing
+  (Kaggle infrastructure, or a deliberate smoke test before the real job),
+  consistent with CLAUDE.md's benchmarking philosophy of trusting
+  measurement over assumption.
+
+### What's Next
+
+**Ready for the engineer's manual Codabench upload** —
+`submissions/mind_large_test_gated_cohort/prediction.zip`, format-verified.
+Not uploaded by this session; that action, and reporting the resulting
+leaderboard score, is explicitly left to the engineer. Follow-up
+documentation task (not blocking): file the full Kaggle
+config.json/results.json at
+`experiments/candidate_g_gated_cohort_mind_large_2026-08-21/` once
+downloaded, and update ADR-010's addendum's citation from the confirmed
+headline number to that file. New/modified this session:
+`scripts/generate_mind_gated_predictions.py`,
+`tests/unit/test_gated_predictions.py`, `src/utils/io.py` (+tests),
+`src/retrieval/embed.py` (+tests),
+`notebooks/mind_gated_cohort_mindlarge_{kaggle_run.py,src_bundle.zip}`,
+`submissions/mind_large_test_gated_cohort/`,
+`decisions/ADR-010-mind-second-submission-candidate-search.md` (addendum),
+this file.
+
+## August 21, 2026 (round 2) — MIND Candidate Search Round 2: Symbolic Signals, Learned Combiner, Cohort Gating (ADR-010)
+
+### Context
+
+Round 1 (below) found no win among three variations on the deployed
+method's own mechanisms. This round's objective (verbatim in
+`knowledge/ai-usage-log/2026-08-21_mind-candidate-improvements-local-validation.md`):
+explore genuinely different approaches, not just re-tuning A/B/C — latitude
+given explicitly, with a few starting directions (symbolic overlap, a
+learned combiner) but "use your judgment" for anything else.
+
+### What was done
+
+- **Candidate D — symbolic overlap:** new `src/retrieval/features.py`
+  (`HistoryProfile`, `build_history_profile`, `category_match_score`/
+  `subcategory_match_score`/`entity_overlap_count`), 10 new unit tests.
+  Untuned score = category match + subcategory match + log1p(entity
+  overlap). Result: AUC 0.6134 (CI 0.6112-0.6154) — CI-clear loss, but the
+  second-best standalone signal of either round after the deployed
+  baseline itself (better than BM25 alone, A, B, or E).
+- **Candidate E — train-popularity only:** reused
+  `ranking_metrics.py::build_train_popularity` (already built for Q9's
+  novelty metric) directly as a scorer — zero personalization, a pure item
+  prior. Result: AUC 0.5318 (CI 0.5299-0.5335) — CI-clear loss, weakest
+  standalone signal of either round except entity embeddings.
+- **Candidate F — learned combiner:** new
+  `scripts/run_learned_combiner_experiment.py`. Seven features per
+  (impression, candidate): `bm25`, `embed_cos`, `recency_embed_cos`
+  (Candidate C's mechanism, now as an additional feature, not a
+  replacement), `category_match`, `subcategory_match`,
+  `entity_overlap_log1p`, `log_popularity`. `StandardScaler` +
+  untuned-default `LogisticRegression`, fit on MINDsmall-train's real click
+  labels (5,843,444 candidate rows across 156,965 impressions, 4.04% click
+  rate), evaluated on MINDsmall-dev. Fitted coefficients recorded in full
+  in `config.json` for reproducibility (largest: `log_popularity` +0.744,
+  `embed_cos` +0.278; smallest/negative: `recency_embed_cos` -0.014,
+  consistent with Candidate C's own standalone loss). Result: overall AUC
+  0.6255 (CI 0.6234-0.6276) — CI-clear loss — **but cold-cohort AUC 0.5926
+  (CI 0.5869-0.5985) vs. baseline cold's 0.5737 (CI 0.5682-0.5792) is a
+  CI-clear win, the first either round produced anywhere.**
+- **Candidate G — cohort-gated scorer:** new
+  `scripts/run_gated_cohort_experiment.py`, built directly from F's own
+  cohort split — the deployed `EmbeddingScorer` unchanged for warm users,
+  F's already-fitted combiner (reused, not retrained) for cold users.
+  Overall AUC 0.6366. Its marginal 95% CI (0.6346-0.6388) overlaps the
+  baseline's (0.6319-0.6361) by a sliver — by the same test used for every
+  other candidate this would read "not CI-clear." **Caught this before
+  reporting it as ambiguous:** G shares almost all its impressions with
+  the baseline by construction (identical scores for every warm
+  impression), so comparing independent marginal CIs discards that shared
+  structure and is the wrong test. Added `paired_metric_diff_ci`
+  (`run_gated_cohort_experiment.py`, reusing `bootstrap.py::bootstrap_ci`
+  unchanged with a custom paired stat function) — resamples users once per
+  replicate, computes gated-minus-baseline AUC on the *same* resampled
+  users. Result: **+0.0027 (95% CI +0.0018 to +0.0034), entirely excluding
+  zero** — a real, correctly-tested win. 3 new unit tests
+  (`test_gated_cohort.py`) confirm the paired-diff function is zero for
+  identical columns and correctly detects a known constant shift.
+- Full unit suite (169 tests) and integration suite (44 passed, 1
+  pre-existing skip) both reconfirmed green after every addition.
+- Wrote ADR-010 (new, not an addendum — this round's decision space didn't
+  fit naturally under ADR-005 or ADR-008) covering all four round-2
+  candidates plus the design space/rationale/evidence/conditions-for-
+  revisiting, per this project's ADR template.
+
+### Key Findings
+
+- **A real, statistically rigorous win was found this round: Candidate G,
+  overall AUC 0.6366 vs. baseline 0.6340 (+0.0027, paired 95% CI
+  +0.0018 to +0.0034).** This is the only win, of seven candidates tried
+  across both rounds, that clears the objective's own bar ("commit only
+  whichever shows a real, CI-clear win").
+- **The marginal-CI-overlap heuristic used throughout both rounds nearly
+  produced a false negative for the one candidate that actually worked** —
+  worth flagging as a general methodology note, not just a Candidate-G
+  footnote: that heuristic assumes independence between what's being
+  compared, which holds for A-F (each an independently-scored alternative
+  method) but not for G (a routing decision sharing most of its scores
+  with the baseline by construction). Checking whether that independence
+  assumption actually holds, rather than applying one test uniformly, is
+  what surfaced the real result here.
+- A learned combiner's *cold-cohort* win (F) being real even though its
+  *overall* number loses is itself a genuine, explainable finding — cold
+  users structurally lack the history BM25/embeddings need, and
+  `log_popularity` (which needs no history at all) is the model's
+  by-far-dominant learned feature, discovered from data, not asserted in
+  advance.
+
+### What's Next
+
+**Not yet submitted to Codabench.** ADR-010's Final Decision names one open
+question the engineer needs to decide before an actual submission: this
+result is validated on MINDsmall-dev only, and this project's own past
+practice (every real MIND leaderboard submission, and ADR-008's own
+re-verification) has not trusted MINDsmall-only evidence for a real
+submission before — whether to re-verify Candidate G at MINDlarge scale
+first, or accept MINDsmall-dev evidence as sufficient given time
+constraints, is presented as a decision point, not resolved automatically.
+New/modified this session (round 2): `src/retrieval/features.py`,
+`scripts/run_{symbolic_overlap,popularity,learned_combiner,gated_cohort}_experiment.py`,
+`tests/unit/{test_features.py,test_gated_cohort.py}`,
+`experiments/candidate_{d,e,f,g}_*_2026-08-21/`,
+`decisions/ADR-010-mind-second-submission-candidate-search.md`, this file,
+`knowledge/ai-usage-log/2026-08-21_mind-candidate-improvements-local-validation.md`.
+
+## August 21, 2026 (round 1) — Three MIND Candidate-Improvement Screens (ADR-005 + ADR-008 Addenda)
+
+### Context
+
+Objective (given verbatim in `knowledge/ai-usage-log/2026-08-21_mind-candidate-improvements-local-validation.md`):
+before attempting a real second MIND Codabench submission, cheaply test
+three candidate improvements on MINDsmall-dev (no Kaggle) against the
+deployed embedding baseline (AUC 0.634), and commit only whichever shows a
+real, CI-clear win.
+
+### What was done
+
+- Checked Codabench competition 13967's real submission limit via its own
+  API (`https://www.codabench.org/api/competitions/13967/`) rather than
+  assuming: `max_submissions_per_day: 10`, `max_submissions_per_person: 999`,
+  identical for both the Development and Official Test phases — generous,
+  confirming submission quota was never the binding constraint here.
+- Reconfirmed the baseline before testing anything against it: reran
+  `run_ranking_eval.py --dataset mind --method embed` and got a
+  bit-identical AUC (0.63399337223849) to the 2026-08-10 recorded run —
+  the deployed pipeline is deterministic, as CLAUDE.md requires.
+- **Candidate A — entity embeddings:** new `src/retrieval/entities.py`
+  (`parse_entity_mentions`, `load_entity_vectors`,
+  `build_article_entity_vector` — confidence-weighted pooling,
+  `build_entity_index`), reusing `EmbeddingIndex`/`EmbeddingScorer`/
+  `build_user_embedding_query` from `embed.py`/`score.py` unchanged. Real
+  article coverage measured first (86.1% of MINDsmall-dev's 42,416
+  articles), per the objective's own ordering, before evaluating. 13 new
+  unit tests (`tests/unit/test_entities.py`). Result: AUC 0.5525 (CI
+  0.5503-0.5546) — CI-clear loss vs. baseline.
+- **Candidate B — BM25+embedding hybrid:** new
+  `scripts/run_hybrid_experiment.py`, untuned 50/50 blend of min-max-
+  normalized BM25 and embedding scores per impression, same design as
+  ADR-009's leaky-feature ablation (`_minmax` reused directly). Result:
+  hybrid AUC 0.6263 (CI 0.6242-0.6284) — CI-clear loss vs. embed-only
+  baseline; BM25 alone 0.5692, confirming the hybrid dilutes rather than
+  complements.
+- **Candidate C — recency-weighted history:** new
+  `build_user_embedding_query_recency` in `embed.py` (exponential decay by
+  position, decay=0.9 untuned, computed over the *resolvable* sequence so
+  gaps don't shift surrounding weights), applied to MIND's embedding-based
+  user representation specifically (the deployed method), not BM25 (ADR-005
+  never tested this for BM25 and still doesn't). 6 new unit tests. Result:
+  AUC 0.6265 (CI 0.6243-0.6286) — CI-clear loss, including for warm users.
+- Full unit suite (169 tests, up from 156) passes; integration suite
+  reconfirmed unaffected (unmodified production code paths — all new logic
+  lives in new modules/scripts).
+- Documented both real (not merely absence-of-evidence) negative results as
+  addenda to the two ADRs they actually bear on: ADR-008 (semantic
+  retrieval design — Candidates A/B) and ADR-005 (query/user-representation
+  construction — Candidate C's recency-weighting re-test), rather than as
+  new standalone ADRs, since neither result changes either ADR's original
+  decision.
+
+### Key Findings
+
+- **All three candidates are real, CI-clear losses, not noise or ties** —
+  every candidate's 95% CI sits entirely below the baseline's, at overall
+  AUC. This is a genuine, informative negative result, not an absence of
+  result: it directly answers whether the deployed MiniLM-embedding
+  baseline can be cheaply beaten, and the answer (for these three specific,
+  untuned implementations) is no.
+- Entity embeddings' coverage (86.1%) was high enough that low coverage
+  doesn't explain the loss — the more likely explanation is that a
+  knowledge-graph (TransE) embedding, trained for entity-relation
+  structure, targets a different notion of similarity than MiniLM's
+  text-topical one, and discards all non-entity text content besides.
+- The hybrid's loss shows an untuned equal-weight blend isn't automatically
+  safe even when one input (BM25) is strictly weaker — it can still drag
+  the stronger input down rather than leaving it untouched.
+- Recency weighting hurt warm users specifically, the cohort where the
+  "recent clicks predict better" intuition predicted the *most* benefit —
+  a real finding against that intuition for MIND, not just a non-result.
+
+### What's Next
+
+No second MIND Codabench submission from this session's candidates, per
+the objective's own decision rule. If any candidate is revisited, each
+addendum names a concrete next variant (asymmetric tuned hybrid weight,
+entity vectors as an addition to MiniLM rather than a replacement, a decay
+sweep for recency) — none of which were in scope for this cheap first
+screen. New/modified this session: `src/retrieval/entities.py`,
+`src/retrieval/embed.py` (`build_user_embedding_query_recency`),
+`scripts/run_{entity_embedding,hybrid,recency_history}_experiment.py`,
+`tests/unit/{test_entities.py,test_embed.py}`,
+`experiments/candidate_{a,b,c}_*_2026-08-21/`,
+`decisions/ADR-{005,008}-*.md`, this file,
+`knowledge/ai-usage-log/2026-08-21_mind-candidate-improvements-local-validation.md`.
+
+## August 19, 2026 — EB-NeRD Contrastive-Vector vs. MiniLM (ADR-008 Addendum)
+
+### Context
+
+Objective: measure the accuracy cost of ADR-008's original rejection of
+EB-NeRD's provided embedding artifacts — argued at the time, never
+measured. Isolated experiment only: `src/retrieval/embed.py`/`score.py`/
+`retrieve.py`, `scripts/run_embed_experiment.py`/`run_ranking_eval.py`, and
+ADR-008's own decision were explicitly out of scope and were not touched.
+
+### What was done
+
+- Read ADR-008 and the exact existing user-representation/scoring/harness
+  code before writing anything, per this project's own workflow.
+- Attempted to download `Ekstra_Bladet_contrastive_vector.zip` (341MB)
+  directly in-session: real, measured outcome was ~4-170KB/s throughput
+  across three attempts, one ending in a mid-transfer connection reset
+  after several hours, never completing (confirmed via `unzip -l` failing
+  on the truncated file, not just "slow"). Per CLAUDE.md's Resource
+  Availability clause, this was surfaced explicitly (not silently retried
+  indefinitely or substituted); the engineer chose to move the download to
+  Kaggle.
+- Confirmed the artifact's real format via `ebnerd-benchmark`'s own
+  reproducibility scripts (official documentation) before writing any
+  loading code, rather than guessing from the filename: a single
+  `Ekstra_Bladet_contrastive_vector/contrastive_vector.parquet`, article-id
+  column + vector as the last column. No public documentation of the
+  training methodology was found anywhere, including inside the real
+  archive once inspected — reported as a real gap, not filled with
+  inference.
+- Wrote `scripts/run_contrastive_vector_experiment.py` — one new function
+  (`load_contrastive_index`), everything else (`build_user_embedding_query`,
+  `EmbeddingScorer`, `embed_retrieve_top_k`, `recall_at_k`, every Q4 ranking
+  metric + bootstrap CI) imported and reused unchanged.
+- **Local smoke test before shipping to Kaggle caught a real bug**: a
+  synthetic 90%-coverage artifact run through the actual `run()` end-to-end
+  surfaced that `score.py`'s unmodified `_lookup_scores` scores an
+  uncovered candidate as `-inf` by design, which crashes
+  `sklearn.roc_auc_score` — a path MiniLM's 100%-by-construction coverage
+  never exercised. Fixed locally (`_finite_scores_for_auc`, new script
+  only, not a change to `score.py`'s contract); re-ran the same smoke test
+  and confirmed random vectors correctly produce AUC ≈ 0.50 (no signal),
+  validating the harness plumbing itself before trusting real numbers.
+- Prepared `notebooks/ebnerd_contrastive_vector_kaggle_run.py` +
+  `ebnerd_contrastive_vector_src_bundle.zip` (the project's own unmodified
+  `src/pipeline`/`retrieval`/`evaluation` code, bundled) — Kaggle rebuilds
+  `ebnerd_small` via this project's own `build_ebnerd_bundle`, guaranteeing
+  byte-identical schema to what produced the MiniLM baseline, before
+  running the comparison. Mirrors the project's existing Part 0/Part 2
+  EB-NeRD Codabench Kaggle-relay pattern.
+- Engineer ran the notebook and relayed back
+  `experiments/contrastive_vector_ebnerd_small_2026-08-18/{config,results}.json`.
+  **Verified directly** (both files parsed, every number checked
+  digit-for-digit against the engineer's summary) before writing anything
+  downstream — real coverage came back 100% (20,738/20,738 local articles,
+  768-dim vectors, artifact's full catalog 125,541 articles), confirming
+  the `-inf` fallback path never actually fired on the real data (it would
+  have crashed without the earlier fix, so the fix mattered even though it
+  wasn't exercised this run).
+
+### Result (see ADR-008's Addendum for full detail)
+
+On `ebnerd_small` validation: contrastive vector wins recall@50/100/200
+(0.58%/1.20%/2.47% vs. MiniLM 0.14%/0.43%/1.21%, all CI-clear) and every Q4
+accuracy metric (AUC 0.5453 vs. 0.5430 — CI-clear but narrow; MRR/nDCG@5/
+nDCG@10 all clearly higher). Diversity@10 is a CI-clear **loss** for the
+contrastive vector (0.780 vs. 0.789). Novelty@10 is a **tie**
+(`ci_clear_win: null` — MiniLM's point estimate falls inside the
+contrastive vector's own CI). Reported as a real trade-off, not a blanket
+"the provided artifact is better" — ADR-008's own decision (compute one
+model over both datasets) is not reversed, since the artifact doesn't
+cover MIND.
+
+### Updated
+
+- `decisions/ADR-008-semantic-retrieval-design.md` — new Addendum section
+  (full results table, interpretation, revisit conditions), history
+  preserved per CLAUDE.md's decision-reversal guidance, not overwritten.
+- `docs/design_note.md` §2 and §6, and `docs/design_note.tex` (recompiled
+  to `docs/design_note.pdf`, page-count re-verified at exactly 4 pages via
+  `pypdf` — the addition initially pushed it to 5 real pages, caught by
+  checking rather than assuming, then brought back under budget by
+  trimming both additions and fixing three pre-existing/newly-exposed
+  LaTeX overfull-hbox warnings with `sloppypar`, not by silently shrinking
+  margins alone without checking for clean output).
+- This file (Component Status, Recent Decisions, Next Actions, this entry).
+
+### Genuinely still open
+
+- Whether to submit a second, EB-NeRD-only Codabench leaderboard entry
+  using the provided artifact — a real decision for the engineer, not
+  resolved by this session.
+- The Diversity@10 loss's cause (hypothesis: sharper same/different
+  discrimination trading off intra-list variety) was not isolated by a
+  controlled follow-up.
+- This result is `ebnerd_small`-validation-only; generalization to
+  `ebnerd_large` or the real held-out test set is unverified.
+- The Aug 14 PROJECT_STATE entry below was not reconciled against Aug
+  16/18 work this session (out of scope for this session's brief) — still
+  flagged as stale in the summary block at the top of this file.
+
+### Related
+
+- `scripts/run_contrastive_vector_experiment.py`,
+  `notebooks/ebnerd_contrastive_vector_{kaggle_run.py,src_bundle.zip}`
+- `experiments/contrastive_vector_ebnerd_small_2026-08-18/`
+- `knowledge/ai-usage-log/2026-08-18_contrastive-vector-adr008-addendum.md`
+
+## August 14, 2026 — PROJECT_STATE Verification + Both Leaderboard Submissions Confirmed Complete
 
 ### Context
 
