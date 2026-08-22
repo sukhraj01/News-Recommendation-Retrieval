@@ -470,3 +470,92 @@ Deduplicating the query (Option considered, not formally a top-level Option A/B/
 # Notes
 
 This ADR was written after implementation and benchmarking, not strictly before, because the tokenization defect was only discoverable by running the real pipeline against real data — the failure mode (query mass dominated by function words) doesn't show up in small hand-built unit-test fixtures or in a purely theoretical review of the approach. Per CLAUDE.md's decision-reversal guidance, the original plan's tokenizer design ("lowercase + `\\w+`, no stemming, simplicity as the baseline") is preserved above as Option A's initial form, with the stopword-removal correction documented as a benchmark-driven amendment rather than silently folded in as if it were the plan all along.
+
+---
+
+# Addendum — Recency-Weighting Measured for MIND's Embedding Query (Candidate C, 2026-08-21)
+
+**Status:** Does not reverse this ADR's Option A decision for *BM25 query
+construction*, which this addendum doesn't touch. What it adds: Option B
+(recency-weighted history) was originally rejected here "before
+benchmarking" (Decision History, 2026-08-10) purely on the unverified-
+history-order risk, for BM25 specifically. Per PROJECT_STATE.md's "before
+committing to a real MIND second-submission attempt" objective and
+CLAUDE.md's decision-reversal guidance, that untested rejection was
+revisited — not for BM25, but for MIND's *embedding-based* user
+representation (Q3's mean-pooled history query, the method actually
+deployed per ADR-008), which is the version of "does recency weighting
+help" that bears on a real submission decision today.
+
+## What was checked
+
+New `build_user_embedding_query_recency` (`src/retrieval/embed.py`):
+same contract as `build_user_embedding_query`, but weights each
+*resolvable* history vector by `decay ** i` (i = position counted back
+from the most recent resolvable click), `decay=0.9`, untuned — one
+reasonable starting point, not searched, same "test whether it helps at
+all" framing as the leaky-feature-ablation/hybrid screens' untuned blends.
+Explicitly inherits, and does not resolve, this ADR's own flagged risk:
+MIND's `article_ids` history order is assumed oldest-to-most-recent per
+MIND's documentation, still never independently verified against real
+timestamps. (`scripts/run_recency_history_experiment.py`)
+
+## Results
+
+Baseline: MINDsmall-dev, unweighted mean-pool embedding query, AUC 0.6340
+(95% CI 0.6319-0.6361, reconfirmed bit-identical this session).
+
+| | Overall AUC | 95% CI | vs. baseline |
+|---|---|---|---|
+| Recency-weighted (decay=0.9) | 0.6265 | 0.6243-0.6286 | **CI-clear loss** (upper bound 0.6286 < baseline lower bound 0.6319) |
+
+Cohort breakdown: warm also loses CI-clear (0.6351, CI 0.6328-0.6374 vs.
+baseline warm 0.6439, CI 0.6416-0.6461); cold is a statistical tie (0.5740,
+CI 0.5684-0.5794 vs. baseline cold 0.5737, CI 0.5682-0.5792 — heavily
+overlapping), consistent with cold users' short (`<5`) histories leaving
+little room for position-based weighting to change anything. Full table in
+`experiments/candidate_c_recency_history_mind_small_2026-08-21/`.
+
+## Interpretation
+
+**A real, CI-clear loss, not a wash — recency weighting measurably hurts
+here, including for warm users, where it was expected to help most if the
+"recent clicks are more predictive" intuition held.** This is evidence
+against that intuition for MIND specifically, not just an absence of
+evidence for it. Plausible (not isolated by a controlled follow-up):
+downweighting older history discards real topical signal that mean-pooling
+was already using productively, and MIND's within-user topical variety
+(vs. drift toward one recent topic) may be genuinely present enough that
+"more history mass" is better than "more recent history mass" for this
+dataset — but this is inference from the result's shape, not a separately
+tested claim. Separately, and regardless of which direction the metric
+moved: the original risk this ADR flagged (unverified history-order
+assumption) is now something a real, measured effect depends on for its
+validity, not just a theoretical concern — if MIND's list order isn't
+actually chronological, this result doesn't mean "recency weighting
+doesn't help," it means "weighting by this particular unverified ordering
+doesn't help," a narrower and less transferable claim.
+
+## Conditions for Revisiting
+
+- The underlying MIND history-order-is-chronological assumption remains
+  unverified — this addendum measures a consequence of trusting it, it
+  does not itself verify it. Confirming MIND's real click-order (if such
+  data ever becomes available) would meaningfully change how much weight
+  to put on this result.
+- A decay-parameter sweep was deliberately not done (untuned, single
+  starting point, per this ADR's own risk-first stance) — not repeating a
+  parameter search here that Option B was already rejected for on
+  assumption-risk grounds, now that assumption-risk grounds have also
+  produced a real negative result at the one point tested.
+
+## Related
+
+- `src/retrieval/embed.py::build_user_embedding_query_recency`,
+  `tests/unit/test_embed.py`
+- `scripts/run_recency_history_experiment.py`
+- `experiments/candidate_c_recency_history_mind_small_2026-08-21/`
+- `knowledge/ai-usage-log/2026-08-21_mind-candidate-improvements-local-validation.md`
+- See ADR-008's own 2026-08-21 addendum for Candidates A/B (MIND entity
+  embeddings, BM25+embedding hybrid), tested in the same session against
+  the same baseline.

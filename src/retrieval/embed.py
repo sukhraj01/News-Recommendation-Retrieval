@@ -45,12 +45,32 @@ class EmbeddingIndex:
     vectors: np.ndarray  # (n_docs, dim), L2-normalized rows
 
 
-def load_encoder(model_name: str = DEFAULT_MODEL, device: str = "mps"):
+def _default_device() -> str:
+    """Best available backend, auto-detected rather than hardcoded (2026-08-21
+    addendum, MINDlarge Kaggle verification): `device` used to default to
+    `"mps"` unconditionally — correct for this project's own Mac development
+    machine, but `"mps"` (Apple's GPU backend) doesn't exist at all on
+    Kaggle's Linux runners, where it raised `RuntimeError: PyTorch is not
+    linked with support for mps devices` on first real use. Preference
+    order: CUDA (Kaggle GPU runtime) > MPS (this project's Mac) > CPU
+    (always available, the safe universal fallback)."""
+    import torch
+
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
+def load_encoder(model_name: str = DEFAULT_MODEL, device: str | None = None):
     """Isolates the only `sentence_transformers` import in this project,
-    mirroring how `index.py` isolates `rank_bm25`."""
+    mirroring how `index.py` isolates `rank_bm25`. `device=None` (default)
+    auto-detects the best available backend — see `_default_device`; pass
+    an explicit value to override."""
     from sentence_transformers import SentenceTransformer
 
-    return SentenceTransformer(model_name, device=device)
+    return SentenceTransformer(model_name, device=device or _default_device())
 
 
 def _encode(encoder, texts: list[str], batch_size: int) -> np.ndarray:
@@ -70,7 +90,7 @@ def build_embedding_index(
     model_name: str = DEFAULT_MODEL,
     cache_path: Path | None = None,
     batch_size: int = DEFAULT_BATCH_SIZE,
-    device: str = "mps",
+    device: str | None = None,
     encoder=None,
 ) -> EmbeddingIndex:
     """Build (or load-from-cache) an `EmbeddingIndex` over `title + " " +
@@ -146,6 +166,44 @@ def build_user_embedding_query(
     if not vecs:
         return None
     mean = np.mean(vecs, axis=0)
+    norm = np.linalg.norm(mean)
+    if norm == 0:
+        return None
+    return (mean / norm).astype(np.float32)
+
+
+def build_user_embedding_query_recency(
+    article_ids: list[str], vector_lookup: dict[str, np.ndarray], decay: float = 0.9
+) -> np.ndarray | None:
+    """Candidate C (2026-08-21 local-validation session): same contract as
+    `build_user_embedding_query`, but weights each resolvable history
+    vector by exponential decay based on its position in `article_ids`,
+    assuming (per MIND's documented convention, but — per ADR-005 — never
+    independently verified against real timestamps) that the list is
+    ordered oldest-to-most-recent, i.e. `article_ids[-1]` is the most
+    recent click. Weight for the i-th *resolvable* entry (0-indexed from
+    the end) is `decay ** i`, so the most recent resolvable click gets
+    weight 1.0 and older ones decay geometrically — deliberately computed
+    over the filtered (resolvable) sequence, not the raw history, so a
+    handful of unresolvable ids interspersed in the middle of a history
+    don't shift surrounding weights. `decay=0.9` is a single untuned
+    starting point (not searched), same "test whether it helps at all"
+    framing `run_hybrid_experiment.py`'s untuned 50/50 blend uses for
+    Candidate B — a real signal here would justify tuning it later.
+
+    ADR-005 rejected recency weighting for BM25 query construction
+    specifically because MIND's history order is unverified — this
+    function doesn't resolve that risk, it deliberately re-tests it (this
+    is Candidate C's whole point), so any real result from this function
+    inherits that same unverified-ordering caveat and must be reported
+    with it, not silently.
+    """
+    resolvable = [vector_lookup[a] for a in article_ids if a in vector_lookup]
+    if not resolvable:
+        return None
+    n = len(resolvable)
+    weights = np.array([decay ** (n - 1 - i) for i in range(n)], dtype=np.float64)
+    mean = np.average(np.stack(resolvable), axis=0, weights=weights)
     norm = np.linalg.norm(mean)
     if norm == 0:
         return None

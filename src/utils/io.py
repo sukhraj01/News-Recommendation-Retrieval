@@ -20,6 +20,24 @@ still what every existing fixture/test exercises) and only falls back to
 a suffix search across the real namelist (excluding `__MACOSX/` junk) if
 that fails — so every caller's already-correct flat member names keep
 working unmodified against either packaging convention.
+
+Second fallback addendum (2026-08-21, MINDlarge Kaggle verification, ADR-010):
+the opposite mismatch. `src/datasets/mind.py` always requests
+`f"{zip_path.stem}/news.tsv"` (e.g. `MINDlarge_train/news.tsv`) because
+every MIND zip downloaded from the official source packs members inside a
+folder named after the zip itself — confirmed directly at this project's
+very first session and true of every local MIND zip since. The Hugging
+Face mirror this project's own `download.py` uses as its download source
+does NOT follow that convention for `MINDlarge_train.zip`: real download,
+inspected directly, packs `news.tsv`/`behaviors.tsv`/etc. flat at the zip
+root with no folder prefix at all — the suffix fallback above can't match
+this (it requires a `/` before `member_name`, which a genuinely flat entry
+never has), so it raised `KeyError` with zero suffix candidates on a real
+Kaggle run. Same fix philosophy as the first addendum: try the caller's
+existing exact/suffix-based lookups first (unchanged), and only fall back
+further, to an exact basename match among flat (no `/`) entries, if both
+fail — never guessing which convention a *new* bundle will use, just
+handling the ones actually observed in the wild so far.
 """
 import zipfile
 from pathlib import Path
@@ -34,16 +52,18 @@ def read_zip_member_bytes(zip_path: Path, member_name: str) -> bytes:
                 return f.read()
         except KeyError:
             pass
-        candidates = [
-            n for n in z.namelist()
-            if n.endswith("/" + member_name) and not n.startswith("__MACOSX/")
-        ]
+
+        namelist = [n for n in z.namelist() if not n.startswith("__MACOSX/")]
+        suffix_candidates = [n for n in namelist if n.endswith("/" + member_name)]
+        basename = member_name.rsplit("/", 1)[-1]
+        flat_candidates = [n for n in namelist if n == basename]
+        candidates = suffix_candidates or flat_candidates
+
         if len(candidates) != 1:
             raise KeyError(
                 f"{member_name!r} not found in {zip_path} as an exact "
-                f"member name, and the suffix fallback found "
-                f"{len(candidates)} candidate(s) (need exactly 1): "
-                f"{candidates}"
+                f"member name, and neither fallback found exactly 1 "
+                f"candidate (suffix: {suffix_candidates}, flat: {flat_candidates})"
             ) from None
         with z.open(candidates[0]) as f:
             return f.read()

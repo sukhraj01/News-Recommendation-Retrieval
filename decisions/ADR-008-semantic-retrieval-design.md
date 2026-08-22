@@ -734,3 +734,367 @@ The encoder-throughput jump (172→374/s) is plausibly a warm-model-cache effect
 
 - ADR-006's parallel addendum (BM25 side of the same MINDlarge-scale check)
 - `tests/integration/test_schema_conformance.py::test_mind_large_total_article_and_user_counts_sanity` — why 72,023 (dev's own catalog), not the paper's 161,013 total, is the correct benchmarking target
+
+---
+
+# Addendum — Contrastive-Vector-vs-MiniLM Isolated Comparison (2026-08-19)
+
+**Status:** Does not reverse this ADR's decision (Sub-decision 1: compute one
+model ourselves, over both datasets). Sub-decision 1's original objection —
+using EB-NeRD's provided artifact for EB-NeRD and a separate model for MIND
+breaks the single-embedding-space comparison Q3.5/Q4.5 depends on — still
+holds and was never in question here. What this addendum resolves is
+narrower: that rejection's *accuracy cost*, specifically, was argued but
+never measured. It now has been, on `ebnerd_small` validation only (this
+artifact doesn't cover MIND at all, so the single-code-path problem Option A
+was rejected for isn't even avoidable outside EB-NeRD). Appended per
+CLAUDE.md's decision-reversal guidance — history preserved, not overwritten.
+
+## What was checked
+
+Same eval harness, same `ebnerd_small` validation split, same warm/cold
+slicing, same bootstrap CI machinery as this ADR's original MiniLM numbers —
+the only variable changed is the embedding source. New code
+(`scripts/run_contrastive_vector_experiment.py`) adds exactly one new
+function, `load_contrastive_index`, which builds an `EmbeddingIndex` (the
+same dataclass this ADR's `embed.py` defines) from EB-NeRD's provided
+`Ekstra_Bladet_contrastive_vector.zip` instead of encoding text with MiniLM.
+`build_user_embedding_query`, `EmbeddingScorer`, `embed_retrieve_top_k`,
+`recall_at_k`, and every Q4 ranking metric are imported and reused with zero
+modification — `embed.py`, `score.py`, `retrieve.py`,
+`run_embed_experiment.py`, `run_ranking_eval.py`, and this ADR's own decision
+are all untouched.
+
+**Artifact, inspected directly rather than assumed:** a single
+`Ekstra_Bladet_contrastive_vector/contrastive_vector.parquet`, 125,541 rows
+(EB-NeRD's full article catalog — this project's `ebnerd_small` corpus,
+20,738 articles, is a subset), 768-dim vectors, 100% coverage of
+`ebnerd_small`'s local corpus (0 missing). Format confirmed against
+`ebnerd-benchmark`'s own reproducibility scripts before writing any loading
+code (`examples/reproducibility_scripts/ebnerd_nrms_docvec.py`:
+`create_article_id_to_value_mapping(df=df_articles,
+value_col=df_articles.columns[-1])` — an article-id column plus the vector
+as the last column), not guessed from the filename. **No public
+documentation of the training methodology (base model, contrastive
+objective, which text fields) was found anywhere** — not in the paper, not
+in `ebnerd-benchmark`'s README, not in the archive itself (no accompanying
+README/txt/md/json shipped alongside `contrastive_vector.parquet`). This is
+a real evidence gap, reported as one rather than papered over with an
+inferred guess: this project can confirm *what* the artifact is (per-article
+768-dim vectors, full-catalog coverage) and *how well it performs*
+(below), but not authoritatively *how it was produced*.
+
+**Execution:** local sandbox network to EB-NeRD's S3 bucket proved
+unreliable for the 341MB artifact (throughput 4-170KB/s across three
+attempts, one ending in a mid-transfer connection reset after several
+hours, never completing) — a real, named resource constraint per CLAUDE.md's
+Resource Availability clause, not silently worked around. Moved to Kaggle
+(reliable network for the same download), reusing the project's existing
+Kaggle-relay pattern (`notebooks/ebnerd_contrastive_vector_kaggle_run.py` +
+`ebnerd_contrastive_vector_src_bundle.zip`, mirroring Part 0/Part 2's
+EB-NeRD Codabench notebooks): the notebook rebuilds `ebnerd_small` via this
+project's own unmodified `build_ebnerd_bundle`, guaranteeing byte-identical
+schema to what produced the MiniLM baseline, before running the comparison.
+A real bug was caught by a local smoke test (synthetic 90%-coverage
+artifact) before this went to Kaggle: `score.py`'s unmodified
+`_lookup_scores` scores an uncovered candidate as `-inf` by design, which
+`sklearn.roc_auc_score` rejects outright — a path MiniLM's 100%-by-
+construction coverage never exercised. Fixed locally in the new script only
+(`_finite_scores_for_auc`, substitutes each impression's own minimum finite
+score minus 1, preserving `-inf`'s existing "ranks last" behavior without
+introducing an actual infinity) — not a change to `score.py`'s contract. In
+the event, real coverage came back at 100%, so this path never actually
+fired on the real data — but it would have crashed the run without the fix.
+
+## Results
+
+`experiments/contrastive_vector_ebnerd_small_2026-08-18/{config,results}.json`,
+compared against this ADR's own `experiments/embed_ebnerd_small_2026-08-10/`
+and `experiments/ranking_embed_ebnerd_small_2026-08-10/` MiniLM numbers:
+
+| Metric | MiniLM (this ADR) | Contrastive vector | CI-clear winner? |
+|---|---|---|---|
+| recall@50 | 0.14% | 0.58% | **Contrastive** |
+| recall@100 | 0.43% | 1.20% | **Contrastive** |
+| recall@200 | 1.21% | 2.47% | **Contrastive** |
+| AUC | 0.5430 | 0.5453 (95% CI 0.5435–0.5471) | **Contrastive**, but narrow — the CI floor clears the MiniLM point estimate by only 0.0005 |
+| MRR | 0.3437 | 0.3527 (95% CI 0.3510–0.3544) | **Contrastive** |
+| nDCG@5 | 0.3804 | 0.3870 (95% CI 0.3849–0.3891) | **Contrastive** |
+| nDCG@10 | 0.4591 | 0.4660 (95% CI 0.4641–0.4678) | **Contrastive** |
+| Diversity@10 | 0.7890 | 0.7800 (95% CI 0.7784–0.7817) | **MiniLM** — contrastive's CI sits entirely below MiniLM's point estimate |
+| Novelty@10 | 17.19 | 17.218 (95% CI 17.205–17.231) | **No clear winner** — MiniLM's point estimate falls inside contrastive's own CI |
+| Coverage@10 | 0.2050 | 0.2043 | Point estimate only, no CI (ADR-007) — near-identical, consistent with this ADR's own "beyond-accuracy metrics barely differ between methods" pattern |
+
+`ebnerd_small`'s cold cohort is structurally empty (min history length = 5,
+same as every other result in this ADR) — no warm/cold split possible;
+`overall` and `warm` are identical, `cold` is `NaN` throughout, as expected.
+
+## Interpretation
+
+**This is a real, CI-clear accuracy win for the provided artifact on
+`ebnerd_small`, not a marginal one** — recall@K roughly triples to quadruples
+across all three K values, and every Q4 ranking-accuracy metric (AUC, MRR,
+nDCG@5, nDCG@10) clears MiniLM with a non-overlapping CI. **It is not,
+however, a blanket "the provided artifact is better."** Diversity@10 is a
+CI-clear *loss* — the contrastive vector's top-10 rankings are measurably
+less category-diverse than MiniLM's, plausibly consistent with a model
+trained to sharply separate near-duplicate/related content (better at
+finding the *single most relevant* article, worse at surfacing varied ones
+in the same top-K) — plausible, not isolated by a controlled test here.
+Novelty ties. The honest summary is a real accuracy-vs-diversity trade-off,
+not a strictly dominant option in either direction.
+
+**Sub-decision 1's original rejection reasoning is not undermined by this
+result.** The accuracy gain is real and was worth measuring, but the
+artifact only exists for EB-NeRD — adopting it would still fracture the
+single-embedding-space property Q3.5/Q4.5's cross-dataset comparison
+depends on, exactly the objection Option A was rejected for. This addendum
+answers "what would it cost us to reject the provided artifact" (answer: a
+real, now-quantified amount of ranking accuracy on EB-NeRD specifically,
+traded for cross-dataset comparability and a diversity edge) — it does not
+answer "should we use it instead," which remains a genuinely separate
+decision (a second, EB-NeRD-only leaderboard submission) for the engineer to
+make with this evidence in hand, not one this ADR resolves unilaterally.
+
+## Conditions for Revisiting (this addendum's own)
+
+- If a second, EB-NeRD-only Codabench submission using this artifact is
+  decided on, that is a new decision point (separate ADR or explicit
+  addendum here), not an automatic consequence of this result.
+- The training-methodology documentation gap (noted above) means this
+  result's generalization beyond `ebnerd_small` validation — e.g. to
+  `ebnerd_large` or the real held-out test set — is unverified; the
+  artifact's own coverage of `ebnerd_large`/testset-era articles was not
+  checked here.
+- Diversity's CI-clear loss was not investigated beyond a plausible
+  hypothesis (sharper same/different discrimination trading off against
+  intra-list variety) — a controlled follow-up (e.g. comparing the two
+  models' cosine-similarity distributions the way Sub-decision 2's original
+  discrimination check did) would be needed to confirm it, not just assert
+  it.
+
+## Related
+
+- `scripts/run_contrastive_vector_experiment.py`,
+  `notebooks/ebnerd_contrastive_vector_kaggle_run.py`,
+  `notebooks/ebnerd_contrastive_vector_src_bundle.zip`
+- `experiments/contrastive_vector_ebnerd_small_2026-08-18/`
+- `knowledge/ai-usage-log/2026-08-18_contrastive-vector-adr008-addendum.md`
+- `docs/design_note.md`/`.tex` §2 and §6 (updated to reflect this measured
+  trade-off)
+
+---
+
+# Addendum — Second EB-NeRD Submission: Contrastive Vector on the Real Test Set (2026-08-21)
+
+**Status:** Does not reverse this ADR's decision. This is the direct
+follow-up the prior addendum's own Conditions for Revisiting flagged as a
+"genuinely separate decision... for the engineer to make" — the engineer
+made it, submitting `notebooks/ebnerd_contrastive_vector_testset_kaggle_run.py`'s
+output (`load_contrastive_index` swapped in for `build_embedding_index`,
+everything else byte-identical to the known-working `ebnerd_part2_kaggle_test_run.py`
+reference) to Codabench competition 2469 as a second, independent entry
+alongside the existing MiniLM submission (888045).
+
+## What was checked
+
+The new submission (896072, `prediction_contrastive.zip`) and the original
+MiniLM submission (888045) both round to an identical leaderboard Score
+(0.5404) — before treating that as meaningful (e.g. "the wrong file was
+uploaded"), this was verified rather than assumed:
+
+- **Checksums:** different SHA-256/CRC-32/MD5 for both the zip and the
+  extracted `predictions.txt` — not a duplicate upload.
+- **Line-by-line diff** (13,536,710 lines each): 0 impression-ID
+  misalignments (both files walk `ebnerd_testset.zip` in identical row
+  order); 99.48% of lines carry a genuinely different ranking for the same
+  impression ID; the remaining 0.52% match at the background rate expected
+  for impressions with too few candidates for more than one/few possible
+  permutations. This is the fingerprint of two independent scoring runs
+  over different embedding spaces, not a partial fallback to MiniLM.
+- **Cell 8's own validation logic**, re-run locally against the downloaded
+  file (line count, malformed-permutation check): clean, 13,536,710/13,536,710,
+  0 malformed — confirming the Kaggle run completed and packaged correctly.
+  Note: the actual Kaggle-side Cell 8 output was never relayed/logged for
+  this run, unlike every prior run in this project — a process gap, not a
+  correctness one (caught by re-deriving the same check locally instead).
+- **Submission-ID-to-detail-table attribution was genuinely ambiguous at
+  first** — Codabench's per-submission detail page displays no submission
+  ID, and an initial pass surfaced three candidate per-day tables (one,
+  MEAN AUC 0.5123, didn't match either submission and was traced to a
+  stray click on an unrelated competitor's row while browsing the public
+  leaderboard). Resolved only after the engineer re-opened each submission's
+  detail view individually and confirmed which table belonged to which ID
+  — not inferred from screenshot timing or engineer recollection alone.
+
+## Results
+
+Codabench's per-submission "Ranking Metrics: Grouped by Selected Dates"
+view (covers the stated "50% of the testset", 8 dates: 2023-06-01 through
+2023-06-08):
+
+| Date | MiniLM AUC | Contrastive AUC | MiniLM MRR | Contrastive MRR | MiniLM nDCG@5 | Contrastive nDCG@5 | MiniLM nDCG@10 | Contrastive nDCG@10 |
+|---|---|---|---|---|---|---|---|---|
+| 2023-06-01 | 0.5374 | 0.5597 | 0.3422 | 0.3588 | 0.3818 | 0.3992 | 0.4597 | 0.4758 |
+| 2023-06-02 | 0.5422 | 0.5533 | 0.3404 | 0.3610 | 0.3794 | 0.3989 | 0.4579 | 0.4775 |
+| 2023-06-03 | 0.5755 | 0.5504 | 0.3693 | 0.3607 | 0.4102 | 0.3967 | 0.4839 | 0.4744 |
+| 2023-06-04 | 0.5444 | 0.5226 | 0.3447 | 0.3384 | 0.3818 | 0.3703 | 0.4607 | 0.4533 |
+| 2023-06-05 | 0.5296 | 0.5314 | 0.3374 | 0.3461 | 0.3752 | 0.3817 | 0.4555 | 0.4620 |
+| 2023-06-06 | 0.5330 | 0.5489 | 0.3350 | 0.3672 | 0.3713 | 0.3989 | 0.4523 | 0.4771 |
+| 2023-06-07 | 0.5316 | 0.5231 | 0.3486 | 0.3507 | 0.3836 | 0.3828 | 0.4637 | 0.4645 |
+| 2023-06-08 | 0.5240 | 0.5323 | 0.3442 | 0.3592 | 0.3765 | 0.3903 | 0.4587 | 0.4714 |
+| **MEAN** | **0.5397** | **0.5402** | **0.3452** | **0.3553** | **0.3825** | **0.3898** | **0.4615** | **0.4695** |
+
+No confidence intervals are available here — this is Codabench's own
+reported per-day aggregate, not a bootstrap this project controls.
+
+## Interpretation
+
+**Contrastive leads on the mean and on every non-AUC metric shown, but the
+AUC margin is thin, not the win the local screen predicted.** Mean AUC
++0.0005 (0.5402 vs. 0.5397), with the day-to-day sign flipping three times
+(MiniLM ahead on 06-03, 06-04, 06-07) — nothing like a clean, one-sided
+result. This is **far smaller than the ~0.0023 CI-clear gap** (0.5453 vs.
+0.5430, 95% CI 0.5435–0.5471) the prior addendum measured on `ebnerd_small`
+local validation. MRR/nDCG@5/nDCG@10 means all favor contrastive by a
+larger relative margin than AUC does, so the qualitative direction from
+local validation does hold up here — but the magnitude does not transfer
+1:1, and AUC (the metric the leaderboard Score itself appears to track,
+per §3.5's coherence check) is the one that matters most for the "did this
+submission actually win" question the engineer asked.
+
+**Plausible explanation, not confirmed:** the local `ebnerd_small` edge
+was itself small (+0.0023) relative to its own CI width, measured on a
+244,647-impression validation split with different users/articles/time
+period than the real `ebnerd_testset` blind split. A margin that thin is
+consistent with washing out or narrowing further on a different,
+much-larger population — ordinary sampling behavior, not evidence of a
+pipeline defect. No bug was found in the submission pipeline itself (see
+"What was checked" above); the smaller real-world margin is the honest
+result, not an artifact of a mistake.
+
+## Conditions for Revisiting
+
+- If a third method or a tuned variant of the contrastive vector is tried,
+  this real-test-set result (not the `ebnerd_small` screen alone) is now
+  the correct baseline to beat, being the closer proxy for genuine
+  out-of-distribution generalization.
+- The per-day breakdown covers only "50% of the testset" per Codabench's
+  own footnote — the other 50%'s numbers were never obtained; if Codabench
+  exposes them (e.g. after competition close), re-checking the full-set
+  mean against this 8-day, half-set mean would be worth doing before
+  treating +0.0005 as final.
+- Whether Codabench's Score column is exactly AUC, and over which exact
+  subset, remains inference (per §3.5's own caveat) — not re-litigated
+  here.
+
+## Related
+
+- `submissions/ebnerd_testset_embed/prediction.zip` (888045),
+  `prediction_contrastive.zip` (896072, downloaded to
+  `~/Downloads/prediction_contrastive.zip` — not yet moved into
+  `submissions/`, gitignored either way per Q8)
+- `notebooks/ebnerd_contrastive_vector_testset_kaggle_run.py`,
+  `ebnerd_contrastive_vector_testset_src_bundle.zip`
+- `knowledge/ai-usage-log/2026-08-19_contrastive-vector-testset-submission.md`
+  (the run's preparation), `knowledge/ai-usage-log/2026-08-21_contrastive-vector-submission-verification.md`
+  (this addendum's own verification session)
+- `docs/design_note.md`/`.tex` §3.5 (updated with the same per-day AUC
+  table and honest margin comparison) and §6 (stale "remains an open
+  decision" bullet updated to reflect this result)
+- Prior addendum (2026-08-19) above, whose "Conditions for Revisiting" this
+  one directly resolves
+
+---
+
+# Addendum — MIND Entity-Embedding and BM25+Embedding Hybrid Screens (2026-08-21)
+
+**Status:** Does not reverse this ADR's decision. Both are pre-decision
+screens run per PROJECT_STATE.md's "before committing to a real MIND
+second-submission attempt" objective — a check for a real win before
+spending one of the Codabench competition's submission slots (confirmed
+this session, via the competition's own API:
+`max_submissions_per_day: 10`, `max_submissions_per_person: 999` on
+competition 13967 — generous, not the binding constraint here). Baseline
+throughout: MINDsmall-dev, deployed MiniLM `EmbeddingScorer`, AUC 0.6340
+(95% CI 0.6319-0.6361) — reconfirmed bit-identical this session by rerunning
+`run_ranking_eval.py --dataset mind --method embed` before either candidate.
+
+## What was checked
+
+**Candidate A — MIND entity embeddings.** New module
+`src/retrieval/entities.py`: `parse_entity_mentions` reads the unified
+schema's `entities` column (already populated for MIND by
+`src/datasets/mind.py::_combine_mind_entities`, previously unused
+downstream); `build_article_entity_vector` confidence-weights and mean-pools
+each article's linked Wikidata entities' vectors, pulled from MIND's own
+`entity_embedding.vec` (100-dim TransE); `build_entity_index` assembles one
+`EmbeddingIndex` row per article (reusing the dataclass unchanged), zero-
+filling articles with no resolvable entity. Real article coverage measured
+directly (not assumed) before evaluating, per the objective's own ordering:
+**86.1%** of MINDsmall-dev's 42,416 articles resolved to a non-zero vector.
+Scoring/ranking reuses `EmbeddingScorer`/`build_user_embedding_query`
+unchanged — the only new logic is vector construction.
+(`scripts/run_entity_embedding_experiment.py`)
+
+**Candidate B — BM25+embedding hybrid.** New script
+`scripts/run_hybrid_experiment.py`: per impression, both `BM25Scorer` and
+`EmbeddingScorer` raw scores are min-max normalized within that impression
+and blended at a flat, untuned 50/50 weight — same design ADR-009's leaky-
+feature ablation used (`_minmax`, reused directly, not duplicated). All
+three arms (bm25-only, embed-only, hybrid) scored in one pass over the same
+impression groups/tie-break/bootstrap seed, for a fair paired comparison.
+
+## Results
+
+| Candidate | Overall AUC | 95% CI | vs. baseline (0.6340, CI 0.6319-0.6361) |
+|---|---|---|---|
+| A — entity embeddings (MIND-only) | 0.5525 | 0.5503-0.5546 | **CI-clear loss** — no overlap |
+| B — BM25+embed hybrid (50/50) | 0.6263 | 0.6242-0.6284 | **CI-clear loss** — no overlap (upper bound 0.6284 < baseline lower bound 0.6319) |
+| B — BM25 alone (context) | 0.5692 | 0.5670-0.5714 | CI-clear loss, as already known from this ADR's own BM25-vs-semantic comparison |
+
+Warm/cold slices for both candidates follow the same direction as overall
+(no crossover) — see `experiments/candidate_a_entity_embed_mind_small_2026-08-21/`
+and `experiments/candidate_b_hybrid_mind_small_2026-08-21/` for the full
+per-cohort AUC/MRR/nDCG@5/nDCG@10 tables.
+
+## Interpretation
+
+**Neither candidate is a real win — both are real, CI-clear losses**, not
+noise or a wash. For A: 86.1% coverage is high enough that low coverage
+alone doesn't explain the gap; a TransE knowledge-graph embedding trained
+for graph-structural similarity (entity co-occurrence/relations) is not
+optimized for the same "topically similar text" notion MiniLM's
+sentence-embedding objective targets, and entity mentions alone discard
+everything in an article's text that isn't a linked named entity — a
+narrower, structurally weaker signal than title+abstract text, consistent
+with the measured result. For B: blending in BM25's much weaker raw signal
+(0.5692) at an equal, untuned 50/50 weight *dilutes* the stronger embedding
+signal rather than complementing it — the hybrid sits between the two
+inputs, closer to embed-only but still measurably below it, meaning the
+blend has no floor-raising effect here; an asymmetric, tuned weight favoring
+embeddings might behave differently, but that is a different, larger
+question this cheap untuned screen wasn't sized to answer (same "test
+whether it helps at all first" framing this ADR's leaky-feature-ablation
+precedent used).
+
+## Conditions for Revisiting
+
+- Candidate A: only worth another look if a genuinely different entity-use
+  strategy is tried (e.g. concatenating entity vectors to MiniLM's rather
+  than replacing it, or filtering to high-confidence mentions only) — this
+  screen tested entity vectors as a full replacement, not an addition.
+- Candidate B: an asymmetric, validation-tuned blend weight (rather than
+  untuned 50/50) is the natural next experiment if hybrid retrieval is
+  revisited — untested here by design.
+
+## Related
+
+- `src/retrieval/entities.py`, `tests/unit/test_entities.py`
+- `scripts/run_entity_embedding_experiment.py`, `scripts/run_hybrid_experiment.py`
+- `experiments/candidate_a_entity_embed_mind_small_2026-08-21/`,
+  `experiments/candidate_b_hybrid_mind_small_2026-08-21/`
+- `knowledge/ai-usage-log/2026-08-21_mind-candidate-improvements-local-validation.md`
+- See ADR-005's own 2026-08-21 addendum for Candidate C (recency-weighted
+  history), tested separately since it's a query/user-representation
+  concern, not a semantic-retrieval-design one.

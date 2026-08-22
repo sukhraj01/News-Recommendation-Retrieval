@@ -3,8 +3,10 @@ import pandas as pd
 
 from src.retrieval.embed import (
     EmbeddingIndex,
+    _default_device,
     build_embedding_index,
     build_user_embedding_query,
+    build_user_embedding_query_recency,
 )
 
 
@@ -139,3 +141,82 @@ def test_build_embedding_index_cache_invalidated_by_different_article_set(tmp_pa
     )
     assert calls["n"] == 1
     assert result.article_ids == ["a1", "a2"]
+
+
+def test_build_user_embedding_query_recency_weights_most_recent_entry_highest():
+    # a1 = oldest, a3 = most recent (last element). With decay < 1, the
+    # result should lean toward a3's direction more than an unweighted
+    # mean of the same three orthogonal-ish vectors would.
+    vector_lookup = {
+        "a1": np.array([1.0, 0.0, 0.0], dtype=np.float32),
+        "a2": np.array([0.0, 1.0, 0.0], dtype=np.float32),
+        "a3": np.array([0.0, 0.0, 1.0], dtype=np.float32),
+    }
+    query = build_user_embedding_query_recency(["a1", "a2", "a3"], vector_lookup, decay=0.5)
+    assert query is not None
+    assert query[2] > query[1] > query[0]
+
+
+def test_build_user_embedding_query_recency_decay_one_matches_unweighted_mean():
+    vector_lookup = {
+        "a1": np.array([1.0, 0.0], dtype=np.float32),
+        "a2": np.array([0.0, 1.0], dtype=np.float32),
+    }
+    recency_query = build_user_embedding_query_recency(["a1", "a2"], vector_lookup, decay=1.0)
+    plain_query = build_user_embedding_query(["a1", "a2"], vector_lookup)
+    np.testing.assert_allclose(recency_query, plain_query, atol=1e-6)
+
+
+def test_build_user_embedding_query_recency_empty_history_returns_none():
+    assert build_user_embedding_query_recency([], {"a1": np.array([1.0, 0.0])}) is None
+
+
+def test_build_user_embedding_query_recency_unresolvable_history_returns_none():
+    assert build_user_embedding_query_recency(["unknown"], {"a1": np.array([1.0, 0.0])}) is None
+
+
+def test_build_user_embedding_query_recency_weighting_skips_unresolvable_ids_by_position():
+    # Weights are computed over the FILTERED (resolvable) sequence, so an
+    # unresolvable id in the middle doesn't shift surrounding weights —
+    # this should behave identically to the same history with the unknown
+    # id simply absent.
+    vector_lookup = {
+        "a1": np.array([1.0, 0.0], dtype=np.float32),
+        "a3": np.array([0.0, 1.0], dtype=np.float32),
+    }
+    with_gap = build_user_embedding_query_recency(["a1", "unknown", "a3"], vector_lookup, decay=0.5)
+    without_gap = build_user_embedding_query_recency(["a1", "a3"], vector_lookup, decay=0.5)
+    np.testing.assert_allclose(with_gap, without_gap, atol=1e-6)
+
+
+def test_build_user_embedding_query_recency_single_article_returns_its_own_direction():
+    vector_lookup = {"a1": np.array([0.6, 0.8, 0.0], dtype=np.float32)}
+    query = build_user_embedding_query_recency(["a1"], vector_lookup, decay=0.5)
+    np.testing.assert_allclose(query, [0.6, 0.8, 0.0], atol=1e-6)
+
+
+def test_default_device_prefers_cuda_when_available(monkeypatch):
+    import torch
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: True)
+    assert _default_device() == "cuda"
+
+
+def test_default_device_falls_back_to_mps_without_cuda(monkeypatch):
+    import torch
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: True)
+    assert _default_device() == "mps"
+
+
+def test_default_device_falls_back_to_cpu_without_cuda_or_mps(monkeypatch):
+    # This is the case that broke on Kaggle's Linux runners (2026-08-21):
+    # no CUDA visible to this process, and "mps" doesn't exist at all
+    # off-Mac — must land on "cpu", the universal fallback, not raise.
+    import torch
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
+    assert _default_device() == "cpu"
