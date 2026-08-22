@@ -239,6 +239,34 @@ edge, not with a dramatically larger real-test-set win — a second data
 point in the same direction as local validation, not confirmation of a
 large effect.
 
+### 3.6 MIND candidate search: eight other approaches, before G
+
+Before committing to Candidate G (above), eight other approaches were
+screened on MINDsmall-dev against the deployed baseline (AUC 0.634,
+§3.2). Only G's cohort-gated routing cleared a CI-clear win overall, and
+only F's raw combiner cleared one on the cold cohort alone. Full
+methodology, evidence, and interpretation for each candidate is in
+ADR-010 (D–H) and ADR-011 (I).
+
+| Candidate | Method | Result vs. baseline |
+|---|---|---|
+| A | Entity embeddings (TransE, confidence-weighted pooling) | 0.553, CI-clear loss |
+| B | Untuned 50/50 BM25+embedding hybrid | 0.626, CI-clear loss |
+| C | Recency-weighted (decay=0.9) embedding query | 0.627, CI-clear loss |
+| D | Symbolic category/entity overlap score | 0.613, CI-clear loss |
+| E | Train-split popularity only, no personalization | 0.532, CI-clear loss |
+| F | 7-feature `LogisticRegression` combiner | 0.626 overall (loss); 0.593 cold (CI-clear win) |
+| H1 | `LogisticRegression`, class-balanced | 0.632, CI-clear loss |
+| H2 | `HistGradientBoostingClassifier` | 0.599, CI-clear loss |
+| I | Attention re-ranker, 5 epochs (first trained model) | 0.623, CI-clear loss |
+| I-long | Same, 30 epochs (holdout AUC climbed to 0.637) | 0.621 dev, worse than the 5-epoch run |
+| I-pop | I-long + an unnormalized popularity feature | 0.513, confounded/inconclusive (see ADR-011) |
+
+No untuned single alternative signal beats the deployed baseline
+outright; the only real wins found across either round (F's cold cohort,
+G's routing) come from combining signals around `log_popularity` — and
+even G's win didn't hold at real leaderboard scale (§3.5 above).
+
 ## 4. Anti-Gaming and Leakage (Q9)
 
 Two separate Q9 obligations, both addressed directly rather than only

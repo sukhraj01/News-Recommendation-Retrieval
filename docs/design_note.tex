@@ -15,7 +15,7 @@
 \titleformat{\subsection}{\normalfont\bfseries}{\thesubsection}{0.6em}{}
 
 \setlist{itemsep=0pt, topsep=1pt, parsep=0pt}
-\setlength{\parskip}{2pt}
+\setlength{\parskip}{1pt}
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{0.88}
 \pagestyle{empty}
@@ -33,15 +33,14 @@
 News recommendation differs structurally from catalog domains like retail
 or streaming: item relevance half-life is hours, not months, so item
 cold-start is the \emph{default} state, not an edge case (Wu et al.\ 2020;
-Kruse et al.\ 2024). This motivates content-based candidate retrieval ---
-lexical (BM25) and semantic (embeddings) --- over collaborative filtering.
+Kruse et al.\ 2024) --- motivating content-based candidate retrieval,
+lexical (BM25) and semantic (embeddings), over collaborative filtering.
 
-This project implements both retrieval methods, plus one shared evaluation
-harness, over MIND and EB-NeRD under a unified schema and temporal-split
-protocol (ADR-001, ADR-002), so the two methods and two datasets are
-compared on identical footing rather than via method-specific pipelines.
-Both methods were pushed through to real Codabench leaderboard submissions
-on both competitions (\S3.5).
+This project implements both methods, plus one shared evaluation harness,
+over MIND and EB-NeRD under a unified schema and temporal-split protocol
+(ADR-001, ADR-002), comparing methods and datasets on identical footing
+rather than via method-specific pipelines. Both were pushed through to
+real Codabench leaderboard submissions on both competitions (\S3.5).
 
 \section{Choices We Made}
 
@@ -89,13 +88,13 @@ trade-off, EB-NeRD-only, not a blanket verdict (\S6).
 \emph{recall@K} (does retrieval surface the clicked article out of the
 \emph{whole} corpus, $K \in \{50,100,200\}$) and \emph{Q4's ranking
 metrics} --- AUC, MRR, nDCG@5, nDCG@10, intra-list diversity, novelty,
-catalog coverage --- computed over the candidates \emph{already listed in
-each impression}. Ties are broken by a deterministic per-impression-seeded
+catalog coverage --- over candidates \emph{already listed in each
+impression}. Ties break via a deterministic per-impression-seeded
 pseudo-random permutation (cold users produce exact ties); $K=10$ for
 diversity/novelty. Every metric reports 95\% bootstrap CIs ($n=2000$),
-sliced by warm/cold user (history length $\geq 5$ = warm), except catalog
-coverage, reported as a point estimate only --- a set-union statistic is
-mechanically biased under with-replacement resampling (ADR-007).
+sliced warm/cold (history length $\geq 5$ = warm), except coverage, a
+point estimate only --- set-union statistics are mechanically biased
+under with-replacement resampling (ADR-007).
 
 \section{Observations}
 
@@ -151,13 +150,10 @@ closing it.
 
 On EB-NeRD, embeddings' AUC CI also does not overlap BM25's --- a modest
 ($\sim$0.011--0.014) edge --- despite BM25 winning recall@K by 1.6--2.3x
-on the \emph{same} corpus (\S3.1). These measure different things:
-recall@K asks whether the click is anywhere in the whole catalog; AUC
-asks how well the method ranks EB-NeRD's already-curated, much shorter
-candidate lists (median 9--12 vs.\ MIND's 23). A plausible (not isolated)
-explanation: EB-NeRD's long median history (81--93 articles) produces a
-diffuse mean-pooled query that struggles against the whole catalog but
-still discriminates within a pre-curated short list.
+on the \emph{same} corpus (\S3.1); recall@K asks whether the click is
+anywhere in the whole catalog, AUC asks how well the method ranks
+EB-NeRD's already-curated, shorter candidate lists (median 9--12 vs.\
+MIND's 23) --- see \S6 for the leading explanation.
 
 MRR/nDCG@5/nDCG@10: embeddings lead BM25 by a similar margin on MIND
 (e.g.\ MINDlarge nDCG@10: 0.390 vs.\ 0.350) and a smaller, mixed margin on
@@ -180,20 +176,18 @@ EB-NeRD-small val & Embed & 0.789 & 17.19 & 0.205 \\
 \end{tabular}\par}
 
 BM25 and embeddings sit within $\sim$1 point of each other on every
-beyond-accuracy metric, on every corpus --- accuracy differs meaningfully
-between methods, beyond-accuracy behavior barely does ($n$ up to 376{,}471
-impressions, so a 1-point gap is not automatically noise, but it is not
-the large, consistent effect the AUC results show).
+beyond-accuracy metric, on every corpus --- accuracy differs meaningfully,
+beyond-accuracy behavior barely does ($n$ up to 376{,}471 impressions, so
+not automatically noise, but not the large effect AUC shows).
 
 \subsection*{3.4 System cost}
 
 BM25 at MINDlarge scale: 1.70s index build, 23.5MB sparse weight matrix,
 $\sim$9.8 min projected full retrieval for 255{,}990 users (ADR-006
-Addendum). Embeddings at the same scale: 264.4s to encode+cache all
-72{,}023 articles, $\sim$10.4 min projected full retrieval (ADR-008
-Addendum). Both stay local on an 8GB machine at this scale --- only
-EB-NeRD's \emph{blind test} split (13.5M impressions, no local ground
-truth) required Kaggle.
+Addendum). Embeddings: 264.4s to encode+cache all 72{,}023 articles,
+$\sim$10.4 min projected retrieval (ADR-008 Addendum). Both stay local on
+an 8GB machine at this scale --- only EB-NeRD's blind test split (13.5M
+impressions, no local ground truth) required Kaggle.
 
 \subsection*{3.5 Leaderboard results (Q5)}
 \vspace{-2pt}
@@ -217,27 +211,24 @@ local validation AUC on \texttt{ebnerd\_small} (0.5430) --- a coherence
 check, not a claim the two are defined identically.
 
 \textbf{Second MIND submission --- cohort-gated combiner, essentially
-flat.} Local validation predicted a real, CI-clear win at every stage
-checked pre-submission: +0.0027 on MINDsmall-dev (95\% CI +0.0018 to
-+0.0034), +0.0019 on a MINDlarge-dev re-verification (95\% CI +0.0015 to
-+0.0023, ADR-010's Addendum). The real leaderboard result was
-\textbf{0.6192 vs.\ 886468's 0.6195 --- a -0.0003 difference}, essentially
-flat, not the win either local check predicted. No pipeline defect was
-found (format verified with this project's standard discipline: exact
-line count, zero malformed permutations, all 32 \texttt{N89741}-affected
-impressions individually spot-checked). Most likely explanation: a
-genuine population difference --- MIND's official dev/test splits are
-different, non-overlapping calendar weeks (ADR-001) --- and this method's
-edge was built around properties specific to the MINDlarge-dev population
-rather than a large, population-independent effect. Same category of
-finding as the EB-NeRD result below, now observed twice.
+flat.} Local validation predicted a real, CI-clear win at every stage:
++0.0027 on MINDsmall-dev (95\% CI +0.0018 to +0.0034), +0.0019 on a
+MINDlarge-dev re-verification (95\% CI +0.0015 to +0.0023, ADR-010's
+Addendum). The real result: \textbf{0.6192 vs.\ 886468's 0.6195, a
+-0.0003 difference} --- essentially flat, not the win either local check
+predicted. No pipeline defect found (line count, malformed-permutation,
+and all 32 \texttt{N89741}-affected-impression checks all clean). Most
+likely a genuine population difference --- MIND's dev/test splits are
+disjoint calendar weeks (ADR-001) --- so the edge was built around
+MINDlarge-dev-specific properties, not a population-independent effect.
+Same category of finding as the EB-NeRD result below, now observed twice.
 
 \textbf{Second EB-NeRD submission --- contrastive vector, real test set.}
-Both EB-NeRD submissions round to the same Score (0.5404) --- checked
-before trusting it: the two \texttt{predictions.txt} differ in checksum,
+Both submissions round to the same Score (0.5404) --- checked before
+trusting it: the two \texttt{predictions.txt} differ in checksum, and
 99.48\% of impressions rank differently for the same ID, confirming
-genuinely independent runs, not a duplicate upload. The per-submission
-detail view (grouped by date, ``50\% of the testset'') resolves the tie:
+independent runs, not a duplicate upload. The per-submission detail view
+(grouped by date, ``50\% of the testset'') resolves the tie:
 \vspace{-2pt}
 
 {\tiny
@@ -255,29 +246,55 @@ Contrastive AUC & 0.5597 & 0.5533 & 0.5504 & 0.5226 & 0.5314 & 0.5489 & 0.5231 &
 
 Contrastive leads 5/8 days and the mean, but thinly (+0.0005, sign flips
 three times day-to-day). MRR/nDCG@5/nDCG@10 means agree in direction
-(0.3553 vs.\ 0.3452; 0.3898 vs.\ 0.3825; 0.4695 vs.\ 0.4615), but honestly
-this AUC margin is far smaller than the \textbf{$\sim$0.0023 CI-clear gap}
-ADR-008's Addendum measured locally on \texttt{ebnerd\_small} (0.5453 vs.\
-0.5430) --- a real but small edge, not a dramatically larger win.
+(0.3553 vs.\ 0.3452; 0.3898 vs.\ 0.3825; 0.4695 vs.\ 0.4615), but this AUC
+margin is far smaller than the \textbf{$\sim$0.0023 CI-clear gap}
+ADR-008's Addendum measured locally (0.5453 vs.\ 0.5430) --- real but
+small, not a dramatically larger win.
+
+\subsection*{3.6 MIND candidate search: eight other approaches, before G}
+
+Screened on MINDsmall-dev vs.\ the baseline (0.634, \S3.2) before
+committing to G; only G's routing won CI-clear overall, only F's combiner
+won CI-clear on the cold cohort. Full evidence: ADR-010 (D--H)/ADR-011 (I).
+
+{\tiny
+\renewcommand{\arraystretch}{0.75}
+\begin{tabular}{@{}llc@{}}
+\toprule
+Cand.\ & Method & Result \\
+\midrule
+A & Entity embeddings (TransE) & 0.553, loss \\
+B & 50/50 BM25+embedding hybrid & 0.626, loss \\
+C & Recency-weighted embedding query & 0.627, loss \\
+D & Symbolic category/entity overlap & 0.613, loss \\
+E & Train-popularity only & 0.532, loss \\
+F & 7-feature LR combiner & 0.626 loss; 0.593 cold win \\
+H1 & LogisticRegression, balanced & 0.632, loss \\
+H2 & HistGradientBoosting & 0.599, loss \\
+I & Attention re-ranker, 5 epochs & 0.623, loss \\
+I-long & Same, 30 epochs & 0.621, worse than I \\
+I-pop & I-long + raw popularity feature & 0.513, inconclusive \\
+\bottomrule
+\end{tabular}\par}
+
+No untuned signal beats the baseline outright; real wins (F, G) combine
+signals around \texttt{log\_popularity} --- G's didn't hold at real scale
+(above).
 
 \section{Anti-Gaming and Leakage (Q9)}
 
-Two separate Q9 obligations, both addressed directly rather than only
-described.
-
 \begin{sloppypar}
 \textbf{Serving-time-unavailable features --- measured, not just avoided.}
-Novelty's popularity signal is computed from the \textbf{train split
-only}, Laplace-smoothed, never from the evaluation split (ADR-007). More
-specifically, EB-NeRD's raw \texttt{articles.parquet} carries three
-lifetime aggregate fields --- \texttt{total\_inviews}, \texttt{total\_pageviews},
-\texttt{total\_read\_time} --- that are unavailable at
-serving time. \texttt{src/datasets/ebnerd.py} never reads them into the
-unified schema (grep-verified). To go beyond documenting the exclusion,
+Novelty's popularity signal comes from the \textbf{train split only},
+Laplace-smoothed, never the evaluation split (ADR-007). EB-NeRD's raw
+\texttt{articles.parquet} also carries three lifetime aggregate fields
+--- \texttt{total\_inviews}, \texttt{total\_pageviews},
+\texttt{total\_read\_time} --- unavailable at serving time;
+\texttt{src/datasets/ebnerd.py} never reads them (grep-verified).
 \texttt{scripts/run\_leakage\_ablation.py} measures what including them
-would have bought: an untuned 50/50 blend of the (already-deployed)
-embedding score with a min-max-normalized leak signal built from these
-three fields, evaluated on \texttt{ebnerd\_small} validation (ADR-009):
+would buy: an untuned 50/50 blend of the deployed embedding score with a
+min-max-normalized leak signal, on \texttt{ebnerd\_small} validation
+(ADR-009):
 \end{sloppypar}
 
 {\footnotesize
@@ -292,13 +309,11 @@ nDCG@10 & 0.4591 (0.4574--0.4607) & 0.4783 (0.4767--0.4799) & No \\
 \bottomrule
 \end{tabular}\par}
 
-Every metric moves by a CI-clear margin from exposure to these three
-fields alone (AUC +0.023 absolute, $\sim$4.3\% relative), with no tuning
-of the blend weight. $\sim$48\% of articles were median-imputed rather
-than zero-filled, so this measured gap is plausibly a conservative
-\emph{underestimate}. Direct, measured evidence --- not just a stated
-rule --- for why these fields are absent from the schema entirely
-(ADR-009).
+Every metric moves by a CI-clear margin from exposure to these fields
+alone (AUC +0.023 absolute, $\sim$4.3\%), untuned. $\sim$48\% of articles
+were median-imputed, not zero-filled, so this gap is plausibly a
+conservative underestimate --- direct, measured evidence for excluding
+these fields entirely (ADR-009).
 
 \textbf{Leakage-boundary test.} \texttt{tests/integration/test\_leakage.py}
 asserts no user's history click occurs at or after their own earliest
@@ -311,83 +326,66 @@ rests on the dataset's own documented split construction (ADR-001).
 
 \section{Where It Breaks at 10$\times$}
 
-Every real scaling failure found in this project so far was invisible at
-the previously-exercised scale and appeared at roughly a 5--14x jump, not
-a 2x one --- a pattern, not a one-off.
+Every real scaling failure so far was invisible at the previously-exercised
+scale and appeared at a 5--14x jump, not a 2x one --- a pattern, not a
+one-off.
 
 \textbf{MINDsmall $\rightarrow$ MINDlarge} ($\sim$5x users: 50{,}000
-$\rightarrow$ 255{,}990; $\sim$14x exploded impression-candidate rows)
-hung indefinitely in a per-token Python loop never exercised at
-MINDsmall's row counts; the fix's first version projected to
-\textbf{$\sim$27GB} on this 8GB machine (measured directly, not
-estimated) from one Python object per repeated ID string, fixed via
-categorical dtype (12.5x measured reduction, $\sim$2.2GB); a second,
-separate bottleneck (\texttt{series.map()} on categorical data, $>$1hr
-with zero progress) was found only by profiling the actually-stuck
-process. \textbf{MINDlarge\_test (2.37M impressions) $\rightarrow$
-ebnerd\_testset (13.5M impressions, 5.7x further)} surfaced a third,
-structurally identical failure mode: a converter that materialized a full
-\texttt{list[dict]} before writing anything projected to $\sim$16GB,
-invisible at the smaller scale. Fixed by making the read path a
-generator, consumed one row at a time.
+$\rightarrow$ 255{,}990; $\sim$14x impression-candidate rows) hung in a
+per-token Python loop never exercised at MINDsmall's counts; the first
+fix projected to \textbf{$\sim$27GB} (measured, not estimated) from one
+Python object per repeated ID string, resolved via categorical dtype
+(12.5x reduction, $\sim$2.2GB); a second bottleneck
+(\texttt{series.map()} on categorical data, $>$1hr, zero progress) was
+found only by profiling the stuck process. \textbf{MINDlarge\_test (2.37M)
+$\rightarrow$ ebnerd\_testset (13.5M, 5.7x further)} hit a third,
+structurally identical failure: a converter materializing a full
+\texttt{list[dict]} before writing projected to $\sim$16GB, invisible at
+the smaller scale --- fixed by a generator consuming one row at a time.
 
-Projecting one more 10x from the largest scale currently verified
-(MINDlarge: 255{,}990 users / 72{,}023 articles; EB-NeRD: 13.5M
-impressions) is inference, not measurement, but the historical pattern
-above makes two things predictable. (1) BM25/embedding \emph{retrieval
-time} scales roughly linearly with user count, so 10x users alone
-projects to $\sim$98 min (BM25) and $\sim$104 min (embeddings) --- still
-locally feasible on time alone. (2) Brute-force cosine similarity is
-$O(\text{users} \times \text{articles})$ --- if the \emph{corpus} also
-grows 10x alongside users (plausible at real news-scale, not guaranteed),
-that is 100x compute, not 10x, projecting $\sim$10.4 min to roughly
-\textbf{17 hours} --- this would force revisiting ADR-008's ``FAISS
-unjustified'' call. (3) Every real bug found so far shared one shape --- a
-Python-object-per-row or full-materialization pattern breaking past an
-unexercised scale; nothing here guarantees another unaudited path is safe
-at a further 10x --- a documented risk, not a resolved one.
+Projecting one more 10x from the largest verified scale (MINDlarge:
+255{,}990 users/72{,}023 articles; EB-NeRD: 13.5M impressions) is
+inference, not measurement. (1) Retrieval time scales roughly linearly
+with users --- 10x alone projects to $\sim$98 min (BM25) / $\sim$104 min
+(embeddings), feasible locally. (2) Brute-force cosine is
+$O(\text{users}\times\text{articles})$ --- if the corpus also grows 10x,
+that's 100x compute: $\sim$10.4 min $\to$ roughly \textbf{17 hours},
+forcing a revisit of ADR-008's ``FAISS unjustified'' call. (3) Every bug
+so far shared one shape --- a per-row-object or full-materialization
+pattern past an unexercised scale; nothing guarantees another path is
+safe at 10x further.
 
 \section{Limitations and Open Questions}
+\enlargethispage{4\baselineskip}
 
+\begin{sloppypar}
 \begin{itemize}
 \item \textbf{True (zero-history) cold-start is a shared ceiling}, not
-  something either method solves. MIND's cold-cohort recall@200 is nearly
-  identical between methods (BM25 1.78\% vs.\ embed 1.81\%).
+  solved by either method --- MIND's cold-cohort recall@200 is nearly
+  identical (BM25 1.78\% vs.\ embed 1.81\%).
 \item \textbf{EB-NeRD's cold cohort is structurally empty} in both
-  \texttt{demo} and \texttt{small} bundles (min history length = 5, by
-  construction) --- no warm/cold comparison is possible for EB-NeRD in
-  this project; \texttt{ebnerd\_large} was never downloaded/verified.
-\item \textbf{Recall@K was never run at MINDlarge scale} (\S3.1) --- only
-  Q4's ranking metrics were.
+  \texttt{demo} and \texttt{small} (min history length = 5, by
+  construction), so no warm/cold comparison exists for EB-NeRD;
+  \texttt{ebnerd\_large} is unverified, and recall@K (\S3.1) was never run
+  at MINDlarge scale.
 \item \textbf{The Q9 leakage-boundary test is real but partial} --- passes
-  for EB-NeRD, skip-marked for MIND (no per-click timestamps; see \S4).
-\item \textbf{The Q9 ablation's magnitude is specific to an untuned
-  50/50 blend} (\S4) --- a real, CI-clear lower bound, not the maximum a
-  calibrated leaky model could extract.
-\item \textbf{The encoder choice is verified via a category-based
-  discrimination proxy}, not a curated near-duplicate/paraphrase set --- a
-  weak but real relevance signal (ADR-008, Confidence: Medium-High).
-\item \textbf{The hand-built Danish+English stopword list} (BM25 query
-  construction) is unvalidated against an NLP resource (ADR-005).
+  for EB-NeRD, skip-marked for MIND (no per-click timestamps; \S4). The
+  Q9 ablation's magnitude is specific to an untuned 50/50 blend --- a
+  real, CI-clear lower bound, not the maximum a calibrated leaky model
+  could extract.
+\item \textbf{Two choices rest on a proxy check, not a gold standard}: the
+  encoder uses a category-based discrimination proxy, not a curated
+  near-duplicate set (ADR-008); the hand-built Danish+English stopword
+  list is unvalidated against an NLP resource (ADR-005).
 \item \textbf{The EB-NeRD recall-vs-AUC disagreement isn't fully
   explained} (\S3.2): BM25 wins whole-corpus recall 1.6--2.3x, yet
-  embeddings edge it on the curated candidate-list AUC. The
-  diffuse-mean-pooled-query explanation is plausible, not isolated.
-\item \textbf{EB-NeRD's provided embeddings win accuracy, lose diversity,
-  locally} (ADR-008 Addendum) --- \S3.5's real-test-set follow-up is
-  thinner (+0.0005 AUC).
-\item \textbf{Local CI-clear validation wins have not reliably transferred
-  to real blind-test results, twice.} MIND's cohort-gated combiner
-  (\S3.5) showed CI-clear wins locally (+0.0027 MINDsmall-dev, +0.0019
-  MINDlarge-dev) then landed essentially flat on the real leaderboard
-  (-0.0003). EB-NeRD's contrastive vector showed the same pattern in
-  miniature (+0.0023 local $\to$ +0.0005 real). Neither traced to a
-  pipeline defect; the leading explanation in both cases is that the
-  method's edge was built around properties specific to the validation
-  population that the official, temporally disjoint test split doesn't
-  guarantee will hold. With $N=2$, a real named pattern about this
-  project's validation methodology, not yet a quantified relationship
-  (ADR-010's 2026-08-22 Addendum).
+  embeddings edge the curated candidate-list AUC --- plausibly the
+  diffuse mean-pooled query, not isolated.
+\item \textbf{Local CI-clear wins haven't transferred to real blind-test
+  results, twice}: MIND's combiner (+0.0027 local $\to$ -0.0003 real) and
+  EB-NeRD's contrastive vector (+0.0023 $\to$ +0.0005) --- both likely
+  population-specific.
 \end{itemize}
+\end{sloppypar}
 
 \end{document}
