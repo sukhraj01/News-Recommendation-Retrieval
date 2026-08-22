@@ -55,20 +55,61 @@ loops) rather than defined inline here. Per-epoch dev evaluation now calls
 code -- this is what actually makes the "same methodology as official
 evaluate.py" claim true, rather than merely asserted.
 
+2026-08-22 ADDENDUM (Ada availability -- reconsidering the Kaggle trade-offs)
+-----------------------------------------------------------------------------
+Three of this candidate's original design choices were explicitly justified
+by Kaggle's time/network constraints, not by architecture reasoning -- per
+CLAUDE.md's Decision Reversal clause, now that a dedicated-GPU, ~4-day-wall-
+clock resource (Ada, this institution's SLURM cluster -- see
+`scripts/mind_nrms_lite_ada_run.py`) is available, those three are worth
+reconsidering rather than carried forward unexamined:
+
+1. No pretrained word embeddings -- was "none staged in this project's
+   Kaggle datasets, downloading a multi-GB file adds real time risk".
+   RECONSIDERED: this script now loads GloVe (`glove.6B.300d.txt`, 300-dim,
+   the version whose dimensionality matches this addendum's new
+   `EMBED_DIM=300`) if available -- see CELL 4 below. Still gracefully
+   degrades to random init if no GloVe file is staged/reachable (an
+   enhancement, not a new hard dependency).
+2. `embed_dim=128` / `num_heads=8`, smaller than commonly-cited NRMS
+   reproductions -- was "traded down for Kaggle time budget". RECONSIDERED:
+   bumped to `embed_dim=300` (matches GloVe's dimensionality exactly, no
+   extra projection layer needed) / `num_heads=15` (20-dim/head, evenly
+   divides 300). Flagged honestly: this is an engineering choice for
+   divisibility + GloVe-alignment, not a verified reproduction of Wu et
+   al.'s own exact head configuration (the original ADR draft's "15-16-head"
+   recollection was itself hedged as approximate, not independently checked
+   against the paper).
+3. `NRMS_EPOCHS` default of 3, "sized to fit a single Kaggle GPU session".
+   RECONSIDERED: real early stopping added (`NRMS_PATIENCE`, default 3 --
+   stop once real dev AUC hasn't improved in that many epochs), with the
+   epoch count now a generous ceiling (`NRMS_EPOCHS` default raised to 20)
+   rather than the actual governor. Because this script already checkpoints
+   on the REAL MINDsmall-dev AUC every epoch (not an internal holdout, see
+   CELL 7's own docstring), running more epochs is safe against the I/I-long
+   overfitting trap by construction -- the worst case is wasted compute, not
+   a worse reported result, since the best checkpoint is always kept.
+
+One methodological point worth being explicit about, not smoothed over
+under "maximize AUC" pressure: checkpointing directly on MINDsmall-dev
+(rather than an internal train-side holdout, per Candidate I's stricter
+discipline) means the reported dev AUC is mildly optimistic -- the epoch
+selected is the one that happened to do best on the exact set being
+reported against. This candidate inherited that choice from the original
+draft (which explicitly reasoned about the I/I-long trap when making it);
+raising the epoch ceiling increases how many "looks" at dev happen, which
+mildly widens that same effect. Not disqualifying (every candidate in this
+project's search reports this way), but worth remembering when interpreting
+Candidate J's final number rather than treating it as a strictly held-out
+result.
+
 WHAT THIS SCRIPT DOES NOT DO
 -----------------------------
-- Does not use pretrained word embeddings (e.g. GloVe) -- none are staged
-  in this project's Kaggle datasets, and downloading a multi-GB embedding
-  file adds real time risk this close to the deadline. Word embeddings are
-  randomly initialized and trained end-to-end, which is a known, real
-  handicap (~1-2 AUC points in published ablations) -- flagged here as
-  future work, not silently absorbed.
 - Does not compute a paired bootstrap against the deployed embedding
   baseline the way Candidates I/I-long/I-pop did (that requires building a
-  `sentence-transformers` embedding index over the full dev corpus on top
-  of an already GPU/time-constrained run) -- deliberately deferred, not
-  silently skipped. `ranking_metric_ci` still gives real bootstrap CIs on
-  J's own metrics.
+  `sentence-transformers` embedding index over the full dev corpus) --
+  deliberately deferred, not silently skipped. `ranking_metric_ci` still
+  gives real bootstrap CIs on J's own metrics.
 
 Run this as a Kaggle notebook (GPU: T4 x1 or better). Paste each
 `# %% CELL N` block into its own notebook cell, in order. See this
@@ -161,16 +202,25 @@ print("train impressions (rows=candidates):", train_impressions.shape, "articles
 print("dev impressions (rows=candidates):", dev_impressions.shape, "articles:", dev_articles.shape)
 
 
-# %% CELL 3 -- vocabulary + title matrix, built via src/retrieval/nrms.py
-# (unit-tested in tests/unit/test_nrms.py). Vocab is built from train+dev
-# TITLES ONLY (no label information, so this is token coverage, not
-# leakage -- same standard practice as building a BM25 index over the full
-# corpus).
-from src.retrieval.nrms import PAD, build_vocab, encode_title  # noqa: E402
+# %% CELL 3 -- vocabulary + title matrix, built via src/retrieval/nrms.py +
+# src/retrieval/nrms_training.py (unit-tested in tests/unit/test_nrms.py and
+# test_nrms_training.py). Vocab is built from train+dev TITLES ONLY (no
+# label information, so this is token coverage, not leakage -- same
+# standard practice as building a BM25 index over the full corpus).
+from src.retrieval.nrms import PAD, build_vocab  # noqa: E402
+from src.retrieval.nrms_training import build_title_matrix  # noqa: E402
 
 MAX_TITLE_LEN = 20
 MAX_HISTORY_LEN = 50
 MIN_FREQ = 2
+# 300 to match GloVe's dimensionality exactly (CELL 4) -- 128/8 in the
+# original draft was traded down for Kaggle's time budget specifically, not
+# for an architecture reason; removed now that Ada lifts that constraint
+# (see this file's 2026-08-22 ADDENDUM docstring). 15 heads divides 300
+# evenly (20-dim/head); not a verified reproduction of Wu et al.'s own head
+# count, chosen for divisibility + GloVe alignment.
+EMBED_DIM = 300
+NUM_HEADS = 15
 
 all_articles = (
     pd.concat([train_articles[["article_id", "title"]], dev_articles[["article_id", "title"]]])
@@ -182,14 +232,7 @@ VOCAB_SIZE = len(word2id)
 PAD_ID = word2id[PAD]
 print(f"vocab size (min_freq={MIN_FREQ}): {VOCAB_SIZE:,}")
 
-news_ids_all = all_articles["article_id"].tolist()
-news_id2row = {nid: i for i, nid in enumerate(news_ids_all)}
-PAD_NEWS_ROW = len(news_ids_all)  # sentinel row of all-PAD, appended below
-
-title_matrix = torch.tensor(
-    [encode_title(t, word2id, MAX_TITLE_LEN) for t in all_articles["title"]], dtype=torch.long
-)
-title_matrix = torch.cat([title_matrix, torch.zeros(1, MAX_TITLE_LEN, dtype=torch.long)], dim=0)
+title_matrix, news_id2row, PAD_NEWS_ROW = build_title_matrix(all_articles, word2id, MAX_TITLE_LEN)
 title_matrix = title_matrix.to(DEVICE)
 print("title_matrix:", title_matrix.shape)
 
@@ -198,17 +241,71 @@ def news_row(nid) -> int:
     return news_id2row.get(nid, PAD_NEWS_ROW)
 
 
-# %% CELL 4 -- build training examples (NRMS-style negative sampling, K=4)
-# from the unified impressions/user_history tables (one exploded row per
-# candidate; grouped back into per-impression candidate lists the same way
+# %% CELL 4 -- GloVe pretrained word-embedding init (2026-08-22 addendum;
+# ADR-012's "no pretrained embeddings" trade-off, reconsidered now that Ada
+# removes the Kaggle time/network pressure that motivated it). Looks for an
+# already-attached Kaggle dataset first (e.g. the public "glove6b300dtxt"
+# dataset -- attach it as a Notebook input), then falls back to downloading
+# from Stanford's NLP group directly IF the kernel has internet enabled
+# (Settings -> Internet -> On; separate from the GPU toggle). Degrades
+# gracefully to random init (this candidate's original behavior) if neither
+# is available -- an enhancement, not a new hard dependency.
+import urllib.request  # noqa: E402
+import zipfile as _zipfile  # noqa: E402
+
+from src.retrieval.nrms_training import init_pretrained_embeddings, load_glove_vectors  # noqa: E402
+
+USE_GLOVE = os.environ.get("NRMS_USE_GLOVE", "1") == "1"
+GLOVE_FILENAME = f"glove.6B.{EMBED_DIM}d.txt"
+GLOVE_URL = "https://nlp.stanford.edu/data/glove.6B.zip"  # 822MB zip, all 4 dims (50/100/200/300)
+
+glove_path = None
+if USE_GLOVE:
+    for root, _dirs, files in os.walk("/kaggle/input"):
+        if GLOVE_FILENAME in files:
+            glove_path = Path(root) / GLOVE_FILENAME
+            break
+    if glove_path is None:
+        cache_path = Path("/kaggle/working") / GLOVE_FILENAME
+        if cache_path.exists():
+            glove_path = cache_path
+        else:
+            try:
+                print(f"{GLOVE_FILENAME} not found under /kaggle/input -- attempting download "
+                      f"(requires kernel internet access to be enabled)...")
+                zip_path = Path("/kaggle/working/glove.6B.zip")
+                urllib.request.urlretrieve(GLOVE_URL, zip_path)
+                with _zipfile.ZipFile(zip_path) as zf:
+                    zf.extract(GLOVE_FILENAME, "/kaggle/working")
+                glove_path = cache_path
+            except Exception as exc:  # noqa: BLE001 -- genuinely optional, log and continue
+                print(f"GloVe download failed ({exc!r}) -- proceeding with random embedding init.")
+                glove_path = None
+
+GLOVE_WORDS_FOUND = 0
+if glove_path is not None:
+    print(f"Loading GloVe vectors from {glove_path}...")
+    glove_vectors = load_glove_vectors(glove_path, dim=EMBED_DIM)
+    print(f"GloVe vocab loaded: {len(glove_vectors):,} words")
+else:
+    glove_vectors = None
+    print("Proceeding WITHOUT pretrained embeddings (random init) -- "
+          "see this file's docstring for why this is now optional, not assumed.")
+
+
+# %% CELL 5 -- build training examples (NRMS-style negative sampling, K=4)
+# via src/retrieval/nrms_training.py, from the unified impressions/
+# user_history tables (one exploded row per candidate; grouped back into
+# per-impression candidate lists the same way
 # `scripts/run_attention_reranker_experiment.py::_train_one_epoch` already
 # does for Candidate I). Standard NRMS training recipe: for each impression,
 # pair the clicked article with K sampled non-clicked articles from the SAME
 # impression, train as a K+1-way softmax classification (positive = index 0).
 import random  # noqa: E402
 
+from src.retrieval.nrms_training import NRMSTrainDataset, build_training_examples  # noqa: E402
+
 SEED = 0
-random.seed(SEED)
 NEG_K = 4
 # Optional cap for a quick benchmark run before committing to the full job
 # (CLAUDE.md's benchmarking philosophy -- measure before a multi-hour run,
@@ -218,54 +315,14 @@ MAX_TRAIN_EXAMPLES = os.environ.get("NRMS_MAX_TRAIN_EXAMPLES")
 MAX_TRAIN_EXAMPLES = int(MAX_TRAIN_EXAMPLES) if MAX_TRAIN_EXAMPLES else None
 
 train_history_by_user = dict(zip(train_history["user_id"], train_history["article_ids"]))
-
-train_examples = []  # (history_rows list, pos_row, [neg_rows] len NEG_K)
-train_impressions_sorted = train_impressions.sort_values(["user_id", "impression_id"], kind="stable")
-for (user_id, _impression_id), group in train_impressions_sorted.groupby(["user_id", "impression_id"], sort=False):
-    candidate_ids = group["article_id"].tolist()
-    clicked = group["clicked"].to_numpy(dtype=bool)
-    pos_list = [c for c, is_clicked in zip(candidate_ids, clicked) if is_clicked]
-    neg_list = [c for c, is_clicked in zip(candidate_ids, clicked) if not is_clicked]
-    if not pos_list or not neg_list:
-        continue
-
-    hist_ids = list(train_history_by_user.get(user_id, []))[-MAX_HISTORY_LEN:]
-    hist_rows = [news_row(nid) for nid in hist_ids]
-    for pos_id in pos_list:
-        sampled_neg = (
-            random.sample(neg_list, NEG_K) if len(neg_list) >= NEG_K
-            else [random.choice(neg_list) for _ in range(NEG_K)]
-        )
-        train_examples.append((hist_rows, news_row(pos_id), [news_row(n) for n in sampled_neg]))
-        if MAX_TRAIN_EXAMPLES is not None and len(train_examples) >= MAX_TRAIN_EXAMPLES:
-            break
-    if MAX_TRAIN_EXAMPLES is not None and len(train_examples) >= MAX_TRAIN_EXAMPLES:
-        break
-
+train_examples = build_training_examples(
+    train_impressions, train_history_by_user, news_row, NEG_K, MAX_HISTORY_LEN,
+    rng=random.Random(SEED), max_examples=MAX_TRAIN_EXAMPLES,
+)
 print(f"train examples: {len(train_examples):,}" + (" (capped by NRMS_MAX_TRAIN_EXAMPLES)" if MAX_TRAIN_EXAMPLES else ""))
 
 
-class NRMSTrainDataset(torch.utils.data.Dataset):
-    def __init__(self, examples):
-        self.examples = examples
-
-    def __len__(self):
-        return len(self.examples)
-
-    def __getitem__(self, idx):
-        hist_rows, pos_row, neg_rows = self.examples[idx]
-        hist_padded = hist_rows[-MAX_HISTORY_LEN:]
-        hist_len = len(hist_padded)
-        hist_padded = hist_padded + [PAD_NEWS_ROW] * (MAX_HISTORY_LEN - hist_len)
-        cand_rows = [pos_row] + neg_rows  # positive always index 0
-        return (
-            torch.tensor(hist_padded, dtype=torch.long),
-            torch.tensor(hist_len, dtype=torch.long),
-            torch.tensor(cand_rows, dtype=torch.long),
-        )
-
-
-# %% CELL 5 -- model: NRMS-lite, imported from src/retrieval/nrms.py
+# %% CELL 6 -- model: NRMS-lite, imported from src/retrieval/nrms.py
 # (title self-attention encoder + history self-attention encoder). Unit
 # coverage, including the all-padded-row NaN-masking edge case (zero-
 # history users, empty titles) verified with a real forward+backward pass
@@ -274,80 +331,48 @@ class NRMSTrainDataset(torch.utils.data.Dataset):
 # sufficient and what the actual fix was.
 from src.retrieval.nrms import NRMSLite  # noqa: E402
 
-
-# %% CELL 6 -- training loop with per-epoch REAL dev evaluation, using this
-# project's own Q4 ranking-metric functions (src/evaluation/ranking_metrics.py)
-# instead of hand-rolled AUC/MRR/nDCG/tie-break code -- this is what makes
-# the "same methodology as official evaluate.py" claim actually true. Per
-# I/I-long's own finding: an internal holdout metric can climb while the
-# real MINDsmall-dev metric degrades, so this loop evaluates against the
-# REAL dev set every epoch (not a train-side holdout) and checkpoints on
-# that number specifically.
-from dataclasses import asdict  # noqa: E402
-
-import torch.nn.functional as F  # noqa: E402
-
-from src.evaluation.ranking_metrics import (  # noqa: E402
-    mrr, ndcg_at_k, rank_candidates, ranking_metric_ci, safe_auc,
-)
-
-EPOCHS = int(os.environ.get("NRMS_EPOCHS", 3))
-BATCH_SIZE = 64
-LR = 1e-3
-EMBED_DIM = 128
-NUM_HEADS = 8
-N_BOOTSTRAP = 2000
-
 torch.manual_seed(SEED)
 model = NRMSLite(VOCAB_SIZE, pad_id=PAD_ID, embed_dim=EMBED_DIM, num_heads=NUM_HEADS).to(DEVICE)
-optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+if glove_vectors is not None:
+    GLOVE_WORDS_FOUND = init_pretrained_embeddings(model.news_encoder.embed, glove_vectors, word2id)
+    print(f"GloVe-initialized {GLOVE_WORDS_FOUND:,}/{VOCAB_SIZE:,} vocab words "
+          f"({GLOVE_WORDS_FOUND / VOCAB_SIZE:.1%} coverage); remainder keep random init. "
+          f"Embeddings stay trainable (fine-tuned end-to-end, not frozen).")
+    model = model.to(DEVICE)
 
-train_ds = NRMSTrainDataset(train_examples)
+
+# %% CELL 7 -- training loop with per-epoch REAL dev evaluation (via
+# src/retrieval/nrms_training.py's shared train_one_epoch/
+# evaluate_impressions, backed by this project's own Q4 ranking-metric
+# functions in src/evaluation/ranking_metrics.py, not hand-rolled AUC/MRR/
+# nDCG/tie-break code -- this is what makes the "same methodology as
+# official evaluate.py" claim actually true). Per I/I-long's own finding:
+# an internal holdout metric can climb while the real MINDsmall-dev metric
+# degrades, so this loop evaluates against the REAL dev set every epoch
+# (not a train-side holdout) and checkpoints on that number specifically --
+# see this file's 2026-08-22 ADDENDUM docstring for the honest caveat that
+# comes with checkpointing directly on dev.
+#
+# 2026-08-22 addendum: real early stopping (NRMS_PATIENCE) replaces the
+# original fixed low EPOCHS-as-governor design now that Ada removes the
+# Kaggle-session time pressure that motivated a low default.
+from dataclasses import asdict  # noqa: E402
+
+from src.evaluation.ranking_metrics import ranking_metric_ci  # noqa: E402
+from src.retrieval.nrms_training import evaluate_impressions, train_one_epoch  # noqa: E402
+
+EPOCHS = int(os.environ.get("NRMS_EPOCHS", 20))       # ceiling / safety valve, not the real governor
+PATIENCE = int(os.environ.get("NRMS_PATIENCE", 3))    # real governor: stop after this many non-improving epochs
+BATCH_SIZE = 64
+LR = 1e-3
+N_BOOTSTRAP = 2000
+
+optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+train_ds = NRMSTrainDataset(train_examples, MAX_HISTORY_LEN, PAD_NEWS_ROW)
 train_loader = torch.utils.data.DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True,
                                             num_workers=2, drop_last=True)
 
 dev_history_by_user = dict(zip(dev_history["user_id"], dev_history["article_ids"]))
-dev_impressions_sorted = dev_impressions.sort_values(["user_id", "impression_id"], kind="stable")
-
-
-@torch.no_grad()
-def evaluate_dev() -> pd.DataFrame:
-    """Per-impression AUC/MRR/nDCG, directly comparable to every prior
-    candidate's reported number (baseline 0.6195/0.634, H1/H2/I/I-long/
-    I-pop ~0.61-0.62) because it reuses the exact same functions those
-    candidates' own dev evaluation used."""
-    model.eval()
-    rows = []
-    for (user_id, impression_id), group in dev_impressions_sorted.groupby(["user_id", "impression_id"], sort=False):
-        candidate_ids = group["article_id"].tolist()
-        clicked = group["clicked"].to_numpy(dtype=bool)
-        if clicked.all() or not clicked.any():
-            continue  # safe_auc is undefined here too -- skip before building tensors
-
-        hist_ids = list(dev_history_by_user.get(user_id, []))[-MAX_HISTORY_LEN:]
-        hist_rows = [news_row(nid) for nid in hist_ids]
-        hist_len = len(hist_rows)
-        hist_padded = hist_rows + [PAD_NEWS_ROW] * (MAX_HISTORY_LEN - hist_len)
-        hist_t = title_matrix[torch.tensor(hist_padded, device=DEVICE)].unsqueeze(0)  # (1, L, T)
-        hist_pad_mask = torch.tensor(
-            [[i >= hist_len for i in range(MAX_HISTORY_LEN)]], dtype=torch.bool, device=DEVICE
-        )
-        cand_rows = torch.tensor([news_row(nid) for nid in candidate_ids], device=DEVICE)
-        cand_t = title_matrix[cand_rows].unsqueeze(0)  # (1, C, T)
-
-        scores = model(hist_t, hist_pad_mask, cand_t).squeeze(0).cpu().numpy()
-        order = rank_candidates(scores, impression_id, seed=SEED)
-        ranked_clicked = clicked[order]
-        rows.append({
-            "impression_id": impression_id, "user_id": user_id,
-            "auc": safe_auc(scores, clicked),
-            "mrr": mrr(ranked_clicked),
-            "ndcg5": ndcg_at_k(ranked_clicked, 5),
-            "ndcg10": ndcg_at_k(ranked_clicked, 10),
-        })
-    model.train()
-    return pd.DataFrame(rows)
-
 
 import time  # noqa: E402
 import json  # noqa: E402
@@ -355,47 +380,38 @@ import json  # noqa: E402
 history_log = []
 best_auc = -1.0
 best_dev_df = None
+epochs_without_improvement = 0
 t0 = time.time()
 for epoch in range(1, EPOCHS + 1):
-    epoch_loss = 0.0
-    n_batches = 0
-    for hist_rows, hist_len, cand_rows in train_loader:
-        hist_rows, hist_len, cand_rows = hist_rows.to(DEVICE), hist_len.to(DEVICE), cand_rows.to(DEVICE)
-        hist_t = title_matrix[hist_rows]  # (batch, L, T)
-        b = hist_rows.shape[0]
-        hist_pad_mask = torch.arange(MAX_HISTORY_LEN, device=DEVICE).unsqueeze(0) >= hist_len.unsqueeze(1)
-        cand_t = title_matrix[cand_rows]  # (batch, C, T)
-
-        scores = model(hist_t, hist_pad_mask, cand_t)
-        target = torch.zeros(b, dtype=torch.long, device=DEVICE)  # positive is always index 0
-        loss = F.cross_entropy(scores, target)
-
-        optimizer.zero_grad()
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        optimizer.step()
-
-        epoch_loss += loss.item()
-        n_batches += 1
-
-    dev_df = evaluate_dev()
+    train_loss = train_one_epoch(model, train_loader, optimizer, DEVICE, MAX_HISTORY_LEN, title_matrix)
+    dev_df = evaluate_impressions(
+        model, dev_impressions, dev_history_by_user, news_row, title_matrix,
+        MAX_HISTORY_LEN, PAD_NEWS_ROW, DEVICE, seed=SEED,
+    )
     dev_auc = float(dev_df["auc"].dropna().mean()) if not dev_df.empty else float("nan")
     elapsed = time.time() - t0
-    print(f"epoch {epoch}/{EPOCHS} | train_loss={epoch_loss / max(n_batches, 1):.4f} | "
+    print(f"epoch {epoch}/{EPOCHS} | train_loss={train_loss:.4f} | "
           f"REAL dev AUC={dev_auc:.4f} n_impressions={len(dev_df)} | elapsed={elapsed/60:.1f}min", flush=True)
     history_log.append({
-        "epoch": epoch, "train_loss": epoch_loss / max(n_batches, 1),
+        "epoch": epoch, "train_loss": train_loss,
         "dev_auc": dev_auc, "n_impressions_scored": len(dev_df), "elapsed_seconds": round(elapsed, 1),
     })
 
     if dev_auc > best_auc:
         best_auc = dev_auc
         best_dev_df = dev_df
+        epochs_without_improvement = 0
         torch.save(model.state_dict(), "/kaggle/working/nrms_lite_best.pt")
         print("  -> new best dev AUC, checkpoint saved")
+    else:
+        epochs_without_improvement += 1
+        if epochs_without_improvement >= PATIENCE:
+            print(f"  -> no improvement for {PATIENCE} epochs, stopping early "
+                  f"(best={best_auc:.4f} at epoch {epoch - PATIENCE})")
+            break
 
 
-# %% CELL 7 -- compare against every prior candidate on the SAME metric
+# %% CELL 8 -- compare against every prior candidate on the SAME metric
 # (via the SAME bootstrap CI code every other candidate's reported CI comes
 # from -- src/evaluation/ranking_metrics.py::ranking_metric_ci), save results
 BASELINE_LOCAL_Q4_AUC = 0.634       # embed method, local candidate-list AUC (design_note.md 3.2)
@@ -418,7 +434,9 @@ best_epoch = max(history_log, key=lambda h: h["dev_auc"]) if history_log else No
 print("=" * 80)
 print("CANDIDATE J (NRMS-lite) SUMMARY -- paste this whole block back")
 print("=" * 80)
-print(f"Best dev AUC across {EPOCHS} epochs: {best_auc:.4f} (epoch {best_epoch['epoch'] if best_epoch else None})")
+print(f"Best dev AUC across {len(history_log)}/{EPOCHS} epochs run (early-stopped on patience={PATIENCE}): "
+      f"{best_auc:.4f} (epoch {best_epoch['epoch'] if best_epoch else None})")
+print(f"GloVe pretrained init: {'yes, ' + format(GLOVE_WORDS_FOUND / VOCAB_SIZE, '.1%') + ' coverage' if glove_vectors is not None else 'no (random init)'}")
 if "auc" in metric_ci:
     ci = metric_ci["auc"]
     print(f"Best-epoch dev AUC with bootstrap CI: {ci['metric']:.4f} "
@@ -440,10 +458,14 @@ config = {
     "max_title_len": MAX_TITLE_LEN,
     "max_history_len": MAX_HISTORY_LEN,
     "neg_k": NEG_K,
-    "epochs": EPOCHS,
+    "epochs_ceiling": EPOCHS,
+    "epochs_run": history_log[-1]["epoch"] if history_log else 0,
+    "patience": PATIENCE,
     "batch_size": BATCH_SIZE,
     "lr": LR,
-    "pretrained_embeddings": False,
+    "pretrained_embeddings": glove_vectors is not None,
+    "glove_words_found": GLOVE_WORDS_FOUND,
+    "glove_coverage": GLOVE_WORDS_FOUND / VOCAB_SIZE if glove_vectors is not None else None,
     "min_word_freq": MIN_FREQ,
     "n_train_examples": len(train_examples),
     "max_train_examples_cap": MAX_TRAIN_EXAMPLES,
