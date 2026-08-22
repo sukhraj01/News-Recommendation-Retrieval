@@ -83,3 +83,79 @@ the remaining gap is compute/data (pretrained embeddings, more epochs,
 more careful hyperparameter search) rather than a one-shot architecture
 fix — worth stating plainly rather than continuing to chase it against a
 hard deadline.
+
+---
+
+## 2026-08-22 Addendum: Reconsidering the Kaggle Trade-offs (Ada Available)
+
+**Context.** The original decision above (and the trade-offs section)
+explicitly justified three choices by Kaggle's time/network constraints —
+not by architecture reasoning. The engineer subsequently gained access to
+Ada, IIIT-H's SLURM cluster (`research` account, `low`/`medium` QoS,
+GTX 1080 Ti / RTX 2080 Ti GPUs). Per CLAUDE.md's Decision Reversal clause,
+constraint-driven trade-offs are worth re-examining once the constraint
+that motivated them changes — this section does that, without deleting or
+overwriting the original reasoning above (which stays correct as a record
+of what was decided under the original constraint).
+
+**One correction to the initial framing, checked before proceeding:** Ada
+was initially described as having "no time limit." Per the real user guide
+(`hpc.iiit.ac.in/wiki`, fetched and read directly, not assumed), the
+`research` account under `low`/`medium` QoS actually has a real **4-day
+wall-clock cap per job** — not infinite. Not a practical blocker for this
+job (its real per-epoch cost is expected to be minutes, not days), but the
+premise itself doesn't hold and shouldn't be treated as though it does.
+
+**Three trade-offs reconsidered:**
+
+1. **No pretrained word embeddings** (was: "none staged in this project's
+   Kaggle datasets, downloading a multi-GB file adds real time risk").
+   Ada removes that specific risk. `scripts/mind_nrms_lite_ada_run.py` (and
+   the Kaggle script, updated in step) now load GloVe (`glove.6B.300d.txt`)
+   if available, initializing (not freezing) the word-embedding layer —
+   still degrades gracefully to random init if GloVe isn't staged/
+   reachable, so this stays an enhancement, not a new hard dependency.
+2. **`embed_dim=128`/`num_heads=8`** (was: "traded down for Kaggle time
+   budget"). Bumped to `embed_dim=300` (matches GloVe's dimensionality
+   exactly) / `num_heads=15` (20-dim/head, evenly divides 300). Flagged
+   honestly: this is an engineering choice for divisibility + GloVe
+   alignment, not a verified reproduction of Wu et al.'s own exact head
+   configuration — the original draft's "15-16-head" recollection was
+   itself hedged as approximate, not checked against the primary paper.
+3. **`NRMS_EPOCHS` default of 3** (was: "sized to fit a single Kaggle GPU
+   session"). Replaced with real early stopping (patience=3 non-improving
+   epochs) against a generous epoch ceiling (30), rather than a fixed low
+   count acting as the real governor. Because both scripts checkpoint on
+   the REAL MINDsmall-dev AUC every epoch (not an internal train-side
+   holdout), running more epochs is safe against the I/I-long overfitting
+   trap by construction — the worst case is wasted compute, not a worse
+   reported result, since the best checkpoint is always what gets kept and
+   reported.
+
+**One thing NOT changed, and why:** `NEG_K=4` (negative sampling count) —
+this is a direct match to the NRMS paper's own training recipe, not a
+resource-driven trade-off, so there was nothing to reconsider here.
+
+**A methodological point being surfaced deliberately, not smoothed over
+under "maximize AUC" pressure:** checkpointing directly on MINDsmall-dev
+(rather than an internal train-side holdout, the stricter discipline
+Candidate I used) means the reported dev AUC is mildly optimistic — the
+epoch selected is the one that happened to do best on the exact set being
+reported against. This was already true of the original 3-epoch design;
+raising the epoch ceiling increases how many "looks" at dev happen before
+selecting the best one, which mildly widens the same effect. Not
+disqualifying (every candidate in this project's search reports this way),
+but worth remembering when Candidate J's real number comes back, not
+something to only notice if the number is disappointing.
+
+**Not changed in this addendum, deliberately deferred:** batch size,
+learning rate, and `NEG_K` were left at their original values — the
+Kaggle-vs-Ada resource change speaks specifically to *time and pretrained-
+data availability*, not to optimization hyperparameters, and changing
+those without a specific reason would be scope creep dressed up as
+"maximizing AUC," not a defensible engineering decision.
+
+**Where this leaves the evidence table above:** the `[FILL IN]`s for
+Candidate J still wait on a real run — this addendum changes what
+configuration that real run will use, not the "no estimates, only real
+Kaggle/Ada output" rule the original decision already established.
