@@ -1,4 +1,4 @@
-gt # Lexical & Semantic Retrieval on MIND and EB-NeRD
+# Lexical & Semantic Retrieval on MIND and EB-NeRD
 
 > Assignment 1 — CS4.406 Information Retrieval & Extraction
 
@@ -80,8 +80,15 @@ poetry install
 ## Verify Installation
 
 ```bash
-poetry run pytest tests/unit/ -v
+make test-unit
 ```
+
+(Not `pytest tests/unit/ -v` directly — `make test-unit` first regenerates
+`tests/fixtures/*.zip` via `scripts/generate_test_fixtures.py`. Those fixture
+zips are gitignored per Q8's "no `*.zip` in git" policy, so they don't exist
+on a fresh clone; `make fixtures` is a real prerequisite of this target, not
+just documentation, so a bare `pytest` invocation here would fail with
+`FileNotFoundError` on a clean checkout.)
 
 ## Build the Data Pipeline
 
@@ -89,14 +96,19 @@ poetry run pytest tests/unit/ -v
 make data
 ```
 
-Expected output:
+Expected output (verified 2026-08-14 against a real run):
 
 ```text
-✓ Downloaded datasets
+✓ Raw data present
 ✓ Parsed unified schema
-✓ Temporal split created
+✓ Temporal split preserved (official train/dev/validation boundaries)
 ✓ Feature store built
 ```
+
+Builds the fast tier only (MINDsmall + ebnerd_demo) — `include_mind_large`/
+`include_ebnerd_small` are opt-in flags on `src.pipeline.orchestrator.build_all`,
+not exposed via `make data` (see "Running Experiments" below for how the
+MINDlarge/ebnerd_small-scale experiment numbers in this repo were produced).
 
 ---
 
@@ -139,15 +151,26 @@ make test
 Run individual suites:
 
 ```bash
-pytest tests/unit/ -v
-pytest tests/integration/ -v
-pytest tests/reproducibility/ -v
+make test-unit            # regenerates tests/fixtures/*.zip first, see below
+make test-integration
+make test-reproducibility
 ```
 
-To verify reproducibility:
+`test-unit` (and `test`, which runs the full suite) depend on a `fixtures`
+Make target that regenerates `tests/fixtures/*.zip` from
+`scripts/generate_test_fixtures.py` — these zips are gitignored (Q8), not
+committed, so a fresh clone has no `tests/fixtures/*.zip` until this runs.
+Generation is deterministic and takes under a second, so it's unconditional
+rather than timestamp-gated (this repo's `make` is the GNU Make 3.81 macOS
+ships by default, which can't cleanly express "these three output files are
+one prerequisite" the modern way). `test-integration`/`test-reproducibility`
+don't depend on `fixtures` — neither suite reads `tests/fixtures/`.
+
+If you ever need the fixture zips without running tests (e.g. to inspect
+them):
 
 ```bash
-pytest tests/reproducibility/ -v
+make fixtures
 ```
 
 Each experiment records:
