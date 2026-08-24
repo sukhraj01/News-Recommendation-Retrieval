@@ -220,6 +220,19 @@ reason GloVe already worked this way.
 | J, no GloVe (job 2675355) | No (download failed) | 236,344 | 8/11 | 0.6242 | 0.6220-0.6262 |
 | **J, with GloVe (job 2675573)** | **Yes, 96.8% coverage** | 236,344 | 3/6 | **0.6391** | **0.6370-0.6412** |
 
+Full Q4 metric suite for the adopted (GloVe) run's best epoch, verified
+directly against `results.json` (not just the console paste):
+
+| Metric | Value | 95% CI |
+|---|---|---|
+| AUC | 0.6391 | 0.6370-0.6412 |
+| MRR | 0.3434 | 0.3409-0.3459 |
+| nDCG@5 | 0.3241 | 0.3213-0.3267 |
+| nDCG@10 | 0.3898 | 0.3873-0.3923 |
+
+All from `n_impressions=73,152`, `n_users=50,000`, `n_skipped=0` — the
+full real MINDsmall-dev split, no subsetting.
+
 Full config/results: `experiments/candidate_j_nrms_lite_ada_2026-08-24/{config,results}.json`
 (the no-GloVe run's raw JSON was overwritten on Ada by the second run
 sharing the same `--results-dir` — a real housekeeping miss, not repeated
