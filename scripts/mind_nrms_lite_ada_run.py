@@ -127,6 +127,10 @@ def main() -> None:
     parser.add_argument("--num-heads", type=int, default=15)
     parser.add_argument("--max-title-len", type=int, default=20)
     parser.add_argument("--max-history-len", type=int, default=50)
+    parser.add_argument("--bundle", choices=["small", "large"], default="small",
+                         help="MINDsmall (default) or MINDlarge -- selects which zips to "
+                              "download/parse (large is ~14x more train impressions, ~5x more "
+                              "dev impressions; verified real ratios, not estimated -- see ADR-012)")
     parser.add_argument("--min-word-freq", type=int, default=2)
     parser.add_argument("--neg-k", type=int, default=4)
     parser.add_argument("--batch-size", type=int, default=64)
@@ -152,11 +156,13 @@ def main() -> None:
     # now-irrelevant machine. download_mind_bundle is idempotent (no-ops if
     # the file already exists), so this is safe whether or not the data
     # happens to already be there.
+    bundle_prefix = "MINDsmall" if args.bundle == "small" else "MINDlarge"
+    train_zip_name, dev_zip_name = f"{bundle_prefix}_train.zip", f"{bundle_prefix}_dev.zip"
     args.raw_dir.mkdir(parents=True, exist_ok=True)
-    print(f"Ensuring MINDsmall_train.zip/MINDsmall_dev.zip are present under {args.raw_dir} "
+    print(f"Ensuring {train_zip_name}/{dev_zip_name} are present under {args.raw_dir} "
           f"(downloads if missing -- do not assume a prior session's node-local scratch persists)...", flush=True)
-    train_zip = download_mind_bundle("MINDsmall_train.zip", args.raw_dir)
-    dev_zip = download_mind_bundle("MINDsmall_dev.zip", args.raw_dir)
+    train_zip = download_mind_bundle(train_zip_name, args.raw_dir)
+    dev_zip = download_mind_bundle(dev_zip_name, args.raw_dir)
 
     print("Building MIND feature store via src/pipeline/orchestrator.py::build_mind_split "
           "(this project's real MIND loader -- not a standalone re-parse)...", flush=True)
