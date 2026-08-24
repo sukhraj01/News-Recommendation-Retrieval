@@ -34,7 +34,7 @@
 # place, but this is still real headroom, not assumed safe.
 
 #SBATCH -A research
-#SBATCH --qos=low
+#SBATCH --qos=medium
 #SBATCH --partition=u22
 #SBATCH --nodelist=gnode007
 #SBATCH --gres=gpu:1

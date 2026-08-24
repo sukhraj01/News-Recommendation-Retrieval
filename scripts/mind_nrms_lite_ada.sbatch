@@ -43,7 +43,7 @@
 # real account ceiling.
 
 #SBATCH -A research
-#SBATCH --qos=low
+#SBATCH --qos=medium
 #SBATCH --partition=u22
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=10
