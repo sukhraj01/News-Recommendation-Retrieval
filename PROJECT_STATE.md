@@ -2,6 +2,36 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
+> **IN-PROGRESS CHECKPOINT (2026-08-24, mid-session):** Candidate J's
+> MINDsmall-dev win (0.6391, ADR-012) is done and fully committed —
+> nothing below this note is at risk. **Currently in progress: MINDlarge-
+> dev re-verification, not yet complete.** State right now:
+> - Local repo has a real fix (`src/pipeline/download.py::download_mind_bundle`,
+>   commit `c2b8598`) for a genuine `ContentTooShortError` hit downloading
+>   `MINDlarge_train.zip` (531MB) on Ada — `urlretrieve` had no retry/resume.
+> - **Not yet confirmed whether that fix has actually landed on Ada** — an
+>   `rsync` was run but the very next attempt still hit the *old* error,
+>   meaning the sync likely didn't pick up the file. Next action: on Ada,
+>   `grep -n "max_retries" ~/assignment-1-news-retrieval/src/pipeline/download.py`
+>   — if empty, re-run the `rsync` from the engineer's Mac (exact command
+>   in this session's chat log / any recent commit message in this repo)
+>   before retrying anything.
+> - The engineer's Ada account was just upgraded `low` → `medium` QoS
+>   (confirmed via `sacctmgr show assoc user=$USER format=Account,QOS,DefaultQOS`)
+>   — real, not yet exploited; may raise the memory/CPU ceilings that
+>   caused earlier `QOSMaxMemoryPerUser`/`QOSMaxCpuPerUserLimit` failures,
+>   but exact new limits are unverified, don't assume specifics.
+> - Once the sync is confirmed, the benchmark command (small MINDlarge
+>   subset, `--no-glove`, run from inside a fresh `srun` allocation — the
+>   previous one hit its 6-hour interactive cap and was killed) is in
+>   `scripts/mind_nrms_lite_ada_large.sbatch`'s own header comment and
+>   this session's chat log. After a clean benchmark, submit the real job:
+>   `sbatch scripts/mind_nrms_lite_ada_large.sbatch` (pinned to `gnode007`
+>   to reuse the already-cached GloVe file there).
+> - **Open, for the engineer, once MINDlarge-dev result is in:** whether
+>   to generate real MINDlarge_test predictions and pursue a Codabench
+>   resubmission — not decided, not started.
+
 **Last Updated:** August 24, 2026 (latest session — the MIND candidate-search line, explicitly closed on Aug 22 per the engineer's own hard-stop instruction, was explicitly **reopened** this session after the engineer gained access to Ada (IIIT-H's SLURM HPC cluster), removing the Kaggle-session time/compute constraints that motivated three of Candidate J's original design trade-offs. **Candidate J (NRMS-lite — trainable title + click-history encoders, Wu et al. 2019, GloVe-initialized) produced this project's first real, CI-clear win from a genuinely new architecture: 0.6391 (95% CI 0.6370-0.6412) vs. the deployed baseline's 0.6340 (CI 0.6319-0.6361) — no CI overlap.** A first Ada run without GloVe (download failed) scored 0.6242, statistically flat against Candidate I — confirming architecture alone wasn't the lever; GloVe was. Full detail, including a real multi-hour HPC environment-setup saga (Python 3.6→3.11 via `uv`, a CUDA-version mismatch, node-local `/ssd_scratch` not being cluster-shared, and a throttled GloVe download fixed with resumable `wget -c`), is in ADR-012 and this session's `knowledge/ai-usage-log/` entry. **Open, for the engineer:** whether to pursue MINDlarge re-verification and a possible Codabench resubmission, per this project's standing practice for any local win (ADR-010). See below and ADR-012 (full) / ADR-011's new addendum (cross-reference) for detail. The Aug 22 closure and everything before it (Candidates A-I, I-long, I-pop, all real losses) remains an accurate historical record, not erased — see the Aug 22 entries below.
 
 **Current Phase:** MIND + EB-NeRD Codabench submissions (Q5) and the design note (Q7 deliverable #2) remain complete as of Aug 14 (not re-verified this session). Both real MIND submissions are still on record (886468 @ 0.6195, 896696 @ 0.6192). **The MIND candidate-search line is active again** (reopened this session, see above) — Candidate J's real win means the design note's §3.5/§6 "no candidate ever beat baseline locally" framing is now stale and needs updating to reflect J, and a MINDlarge/Codabench-resubmission decision is open. See ADR-012 (full) and ADR-011's 2026-08-24 addendum (cross-reference) for detail.
