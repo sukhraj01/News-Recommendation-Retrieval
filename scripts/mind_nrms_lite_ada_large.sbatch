@@ -8,15 +8,15 @@
 # Submit with: sbatch scripts/mind_nrms_lite_ada_large.sbatch
 # Monitor with: squeue -u $USER ; tail -f mind_nrms_lite_large_<jobid>.out
 #
-# Pinned to gnode007 (--nodelist) specifically to reuse the GloVe file
-# already downloaded there (/ssd_scratch/$USER/glove/glove.6B.300d.txt,
-# from the MINDsmall run) -- /ssd_scratch is node-local, not shared
-# across the cluster (confirmed the hard way getting the MINDsmall run
-# working), so landing on a different node would mean re-paying the
-# ~9-hour throttled-download tax for no reason. If gnode007 is
-# unavailable/busy, this will queue rather than run elsewhere -- an
-# explicit, real tradeoff (faster once scheduled, but only schedulable on
-# one specific node), not an oversight.
+# NOT pinned to a specific node (an earlier version pinned --nodelist=
+# gnode007 to reuse a cached GloVe file there -- reverted: gnode007 was
+# busy long enough that the queue wait itself exceeded the ~9h it would
+# take to just re-download GloVe on whatever node is actually free, so
+# the pin was net-negative in practice, not just theory). GloVe will
+# re-download via _ensure_glove's own resumable `wget -c` retry logic
+# (mind_nrms_lite_ada_run.py) if not already present on whichever node
+# this lands on -- slower, but bounded and proven to complete (it
+# already has, once, over this same throttled connection).
 #
 # Scale: MINDlarge is ~14.2x MINDsmall's train impressions (2,232,748 vs
 # 156,965, both real counts from this project's own prior MINDlarge
@@ -36,7 +36,6 @@
 #SBATCH -A research
 #SBATCH --qos=medium
 #SBATCH --partition=u22
-#SBATCH --nodelist=gnode007
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem-per-cpu=4G
