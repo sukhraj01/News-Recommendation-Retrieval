@@ -40,9 +40,9 @@ Usage (see the .sbatch file for the full submission wrapper):
 import argparse
 import json
 import random
+import subprocess
 import sys
 import time
-import urllib.request
 import zipfile
 from dataclasses import asdict
 from datetime import date
@@ -55,6 +55,7 @@ import pandas as pd  # noqa: E402
 import torch  # noqa: E402
 
 from src.evaluation.ranking_metrics import ranking_metric_ci  # noqa: E402
+from src.pipeline.download import download_mind_bundle  # noqa: E402
 from src.pipeline.orchestrator import build_mind_split  # noqa: E402
 from src.retrieval.nrms import PAD, NRMSLite, build_vocab  # noqa: E402
 from src.retrieval.nrms_training import (  # noqa: E402
@@ -75,6 +76,13 @@ GLOVE_URL = "https://nlp.stanford.edu/data/glove.6B.zip"
 
 
 def _ensure_glove(glove_dir: Path, embed_dim: int, no_download: bool) -> Path | None:
+    """Downloads via `wget -c` (shelled out, not `urllib.request.urlretrieve`)
+    specifically because a real run hit `ContentTooShortError` -- the
+    connection to Stanford's server dropped partway (160MB/822MB) and
+    `urlretrieve` has no retry/resume logic at all, so a single dropped
+    connection meant total failure. `wget -c` resumes from a partial file
+    and retries automatically -- the actual fix for the failure mode
+    observed, not just "try again and hope"."""
     glove_dir.mkdir(parents=True, exist_ok=True)
     target = glove_dir / f"glove.6B.{embed_dim}d.txt"
     if target.exists():
@@ -83,9 +91,13 @@ def _ensure_glove(glove_dir: Path, embed_dim: int, no_download: bool) -> Path | 
         return None
     zip_path = glove_dir / "glove.6B.zip"
     try:
-        print(f"Downloading GloVe from {GLOVE_URL} (this needs internet access from wherever "
-              f"this script runs -- the login node, if compute nodes don't have it)...", flush=True)
-        urllib.request.urlretrieve(GLOVE_URL, zip_path)
+        print(f"Downloading GloVe from {GLOVE_URL} via wget -c (resumable/retrying -- this needs "
+              f"internet access from wherever this script runs)...", flush=True)
+        subprocess.run(
+            ["wget", "-c", "--tries=10", "--waitretry=15", "--timeout=60",
+             "--retry-connrefused", GLOVE_URL, "-O", str(zip_path)],
+            check=True,
+        )
         with zipfile.ZipFile(zip_path) as zf:
             zf.extract(target.name, glove_dir)
         return target
@@ -99,7 +111,9 @@ def _ensure_glove(glove_dir: Path, embed_dim: int, no_download: bool) -> Path | 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--raw-dir", type=Path, required=True,
-                         help="dir containing MINDsmall_train.zip and MINDsmall_dev.zip")
+                         help="dir for MINDsmall_train.zip/MINDsmall_dev.zip -- downloaded here "
+                              "automatically if not already present (safe to point at node-local "
+                              "scratch storage that may be empty on this run)")
     parser.add_argument("--data-dir", type=Path, required=True,
                          help="scratch dir for the built parquet feature store")
     parser.add_argument("--glove-dir", type=Path, default=None,
@@ -130,14 +144,19 @@ def main() -> None:
         print("WARNING: no GPU detected -- confirm the sbatch script requested --gres=gpu:1 "
               "and that this job actually landed on a GPU node.", flush=True)
 
-    train_zip = args.raw_dir / "MINDsmall_train.zip"
-    dev_zip = args.raw_dir / "MINDsmall_dev.zip"
-    for p in (train_zip, dev_zip):
-        if not p.exists():
-            raise FileNotFoundError(
-                f"{p} not found. Download the official MINDsmall_train.zip/MINDsmall_dev.zip "
-                f"and place them under --raw-dir before running."
-            )
+    # Auto-download if not already present -- required, not just convenient:
+    # /ssd_scratch is LOCAL to each compute node on Ada (confirmed the hard
+    # way this session: data staged on one node was invisible to a batch
+    # job that landed on a different node), so this script can't assume
+    # --raw-dir was pre-populated by an earlier interactive session on a
+    # now-irrelevant machine. download_mind_bundle is idempotent (no-ops if
+    # the file already exists), so this is safe whether or not the data
+    # happens to already be there.
+    args.raw_dir.mkdir(parents=True, exist_ok=True)
+    print(f"Ensuring MINDsmall_train.zip/MINDsmall_dev.zip are present under {args.raw_dir} "
+          f"(downloads if missing -- do not assume a prior session's node-local scratch persists)...", flush=True)
+    train_zip = download_mind_bundle("MINDsmall_train.zip", args.raw_dir)
+    dev_zip = download_mind_bundle("MINDsmall_dev.zip", args.raw_dir)
 
     print("Building MIND feature store via src/pipeline/orchestrator.py::build_mind_split "
           "(this project's real MIND loader -- not a standalone re-parse)...", flush=True)
