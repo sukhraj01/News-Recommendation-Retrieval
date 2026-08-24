@@ -60,8 +60,22 @@ def ensure_raw_data(
         )
 
 
-def download_mind_bundle(filename: str, dest_dir: Path = MIND_RAW_DIR) -> Path:
-    """Download one MIND zip (e.g. 'MINDsmall_train.zip') if not already present."""
+def download_mind_bundle(filename: str, dest_dir: Path = MIND_RAW_DIR, max_retries: int = 10) -> Path:
+    """Download one MIND zip (e.g. 'MINDsmall_train.zip') if not already present.
+
+    Retries with HTTP Range-based resume on a dropped connection, writing to
+    a `.part` file until complete. `urllib.request.urlretrieve` (the
+    original implementation) makes a single attempt and raises
+    `ContentTooShortError` outright on any interruption -- a real failure
+    observed downloading `MINDlarge_train.zip` (531MB) over a throttled/
+    unstable connection (Ada's compute nodes). Deliberately pure-`urllib`,
+    not a `wget` subprocess: this function also runs in `make data` on
+    whatever machine has this repo cloned, and `wget` isn't preinstalled on
+    macOS (confirmed on this project's own dev machine), so shelling out to
+    it here would trade one portability problem for another.
+    """
+    import time
+    import urllib.error
     import urllib.request
 
     if filename not in MIND_BUNDLE_URLS:
@@ -76,5 +90,32 @@ def download_mind_bundle(filename: str, dest_dir: Path = MIND_RAW_DIR) -> Path:
         return dest_path
 
     url = MIND_BUNDLE_URLS[filename]
-    urllib.request.urlretrieve(url, dest_path)
-    return dest_path
+    part_path = dest_dir / f"{filename}.part"
+
+    for attempt in range(max_retries):
+        resume_from = part_path.stat().st_size if part_path.exists() else 0
+        request = urllib.request.Request(url)
+        if resume_from:
+            request.add_header("Range", f"bytes={resume_from}-")
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                # A server that ignores the Range header returns 200 (full
+                # content from byte 0) instead of 206 -- restart the file
+                # rather than appending a fresh full copy onto a partial one.
+                mode = "ab" if resume_from and response.status == 206 else "wb"
+                with open(part_path, mode) as f:
+                    while True:
+                        chunk = response.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+            part_path.rename(dest_path)
+            return dest_path
+        except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as exc:
+            if attempt == max_retries - 1:
+                raise
+            print(f"Download of {filename} interrupted ({exc!r}), retrying "
+                  f"({attempt + 1}/{max_retries}) with resume from byte {resume_from}...")
+            time.sleep(15)
+
+    raise AssertionError("unreachable")  # loop always returns or raises
