@@ -571,3 +571,42 @@ future work, not undertaken here.
 - `experiments/candidate_i_attention_reranker_mind_small_2026-08-22_e30/{config,results}.json`
 - `experiments/candidate_i_attention_reranker_mind_small_2026-08-22_e30_pop/{config,results}.json`
 - `knowledge/ai-usage-log/2026-08-22_gbdt-combiner-candidate-h.md` (prompt 4)
+
+---
+
+# Addendum — Candidate J Reopens This Line With a Real Win (2026-08-24)
+
+**Status:** This ADR's own closing line ("three model classes ... have now
+all been tried and lost") no longer holds. The engineer explicitly
+reopened the MIND candidate-search line this session (new Ada HPC compute
+access removed the resource constraints that motivated the prior
+hard-stop), and Candidate J — a genuinely different architecture from I/
+I-long/I-pop, not a further extension of this ADR's own attention
+mechanism — produced this project's first real, CI-clear win.
+
+**What changed:** where I/I-long/I-pop all scored a shallow attention head
+on top of *frozen* sentence embeddings, Candidate J replaces that with a
+trainable title encoder and a trainable history-sequence encoder (the
+NRMS architecture proper, Wu et al. 2019), plus GloVe pretrained word
+embeddings. Full design, environment history (Kaggle → Ada), and results
+are in **`decisions/ADR-012-nrms-lite-candidate-j.md`** — not duplicated
+here in full, per this project's practice of keeping one canonical home
+per decision and cross-referencing rather than copying.
+
+**Headline result:** 0.6391 (95% CI 0.6370-0.6412) vs. this ADR's own
+established baseline CI (0.6319-0.6361) — no overlap, a real win. Also
+confirms this ADR's own "Conditions for Revisiting" Research Trigger
+("if a real win is eventually found... MINDlarge re-verification remains
+standing project practice") is now the live open question, not a
+hypothetical.
+
+**This ADR's own I/I-long/I-pop conclusions are unchanged and still
+correct as a record of what was tested and why it lost** — Candidate J
+does not retroactively fix or explain away those results, it tests a
+different, additional hypothesis (trainable encoders + pretrained
+embeddings) that this ADR's own "Conditions for Revisiting" section had
+already flagged as the next lever, not something this ADR got wrong.
+
+See ADR-012 for the full interpretation, including the honest caveat
+about dev-set checkpoint selection and the still-open MINDlarge/
+Codabench-submission questions.

@@ -2,11 +2,11 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-**Last Updated:** August 22, 2026 (latest session — closed out the MIND candidate-search line for good this session: re-ran Candidate I with 30 epochs (I-long) and with an added popularity feature (I-pop), per the engineer's own bounded follow-up request. I-long is a clean, real negative — holdout AUC climbed every epoch through 30, real MINDsmall-dev result still didn't beat baseline (in fact slightly worse than the 5-epoch run, -0.0126 vs -0.0107 paired). I-pop collapsed to near-random (AUC 0.5133) with a wrong-signed fitted popularity weight — flagged honestly as a confounded result (raw, unnormalized popularity feature, unlike every other candidate's standardized features), not a clean second negative. Per the engineer's explicit hard-stop instruction, the session ends here — no further candidates, no MINDlarge). This landed shortly after a separate thread uploaded Candidate G's real second MIND Codabench submission: 0.6192, essentially flat vs. the first submission's 0.6195, despite a CI-clear local win at every validation stage. A third, earlier Aug 21 thread verified the EB-NeRD second submission (contrastive vector, ID 896072) is genuinely distinct from the first and pulled its real per-day AUC breakdown — see the Aug 21 Session Notes entry below and ADR-008's 2026-08-21 Addendum. Note: the Aug 14 entry below was never reconciled against work done in intervening sessions (Aug 16 design-note verification, Aug 18 Q6 draft) — those sessions' own notes/logs are the record for that gap; this session did not audit or re-verify them and this line should not be read as confirming they're current.
+**Last Updated:** August 24, 2026 (latest session — the MIND candidate-search line, explicitly closed on Aug 22 per the engineer's own hard-stop instruction, was explicitly **reopened** this session after the engineer gained access to Ada (IIIT-H's SLURM HPC cluster), removing the Kaggle-session time/compute constraints that motivated three of Candidate J's original design trade-offs. **Candidate J (NRMS-lite — trainable title + click-history encoders, Wu et al. 2019, GloVe-initialized) produced this project's first real, CI-clear win from a genuinely new architecture: 0.6391 (95% CI 0.6370-0.6412) vs. the deployed baseline's 0.6340 (CI 0.6319-0.6361) — no CI overlap.** A first Ada run without GloVe (download failed) scored 0.6242, statistically flat against Candidate I — confirming architecture alone wasn't the lever; GloVe was. Full detail, including a real multi-hour HPC environment-setup saga (Python 3.6→3.11 via `uv`, a CUDA-version mismatch, node-local `/ssd_scratch` not being cluster-shared, and a throttled GloVe download fixed with resumable `wget -c`), is in ADR-012 and this session's `knowledge/ai-usage-log/` entry. **Open, for the engineer:** whether to pursue MINDlarge re-verification and a possible Codabench resubmission, per this project's standing practice for any local win (ADR-010). See below and ADR-012 (full) / ADR-011's new addendum (cross-reference) for detail. The Aug 22 closure and everything before it (Candidates A-I, I-long, I-pop, all real losses) remains an accurate historical record, not erased — see the Aug 22 entries below.
 
-**Current Phase:** MIND + EB-NeRD Codabench submissions (Q5) and the design note (Q7 deliverable #2) remain complete as of Aug 14 (see below, not re-verified this session). Both real MIND submissions are on record (886468 @ 0.6195, 896696 @ 0.6192), the design note (§3.5, §6) documents the honest gap between local prediction and real outcome, and **this session** ADR-010 gained a further addendum (Candidate H) and ADR-011 (Candidate I, the project's first neural training) gained its own addendum (30-epoch + popularity re-tests) — all documenting real losses against the deployed baseline. **The MIND candidate-search line is now explicitly closed for this project** — remaining time goes to the design note and Q7 checklist, per the engineer's own instruction. See ADR-010's 2026-08-22 addenda and ADR-011 (plus its addendum) for full detail.
+**Current Phase:** MIND + EB-NeRD Codabench submissions (Q5) and the design note (Q7 deliverable #2) remain complete as of Aug 14 (not re-verified this session). Both real MIND submissions are still on record (886468 @ 0.6195, 896696 @ 0.6192). **The MIND candidate-search line is active again** (reopened this session, see above) — Candidate J's real win means the design note's §3.5/§6 "no candidate ever beat baseline locally" framing is now stale and needs updating to reflect J, and a MINDlarge/Codabench-resubmission decision is open. See ADR-012 (full) and ADR-011's 2026-08-24 addendum (cross-reference) for detail.
 
-**Current Objective:** **Closed, per the engineer's explicit hard-stop instruction: the MIND candidate-search line is done. Nothing tried — four model classes across two sessions (linear, tree, attention-over-embeddings, and attention-over-embeddings-plus-popularity) — has produced a real, held-up improvement over the deployed embedding baseline (0.6340).** Summary of every real, CI-clear result: Candidate G showed a local win at every validation stage but the real MINDlarge_test leaderboard came back essentially flat (0.6192 vs. 0.6195, -0.0003) — the same "local win compresses at real test" pattern also seen on EB-NeRD. H1 (LogisticRegression, balanced): 0.6319, paired -0.0021 — CI-clear loss. H2 (HistGradientBoostingClassifier): 0.5985, paired -0.0355 — larger CI-clear loss. Candidate I (attention re-ranker, 5 epochs): 0.6233, paired -0.0107 — CI-clear loss. **This session's two bounded follow-ups, per the engineer's own request:** **I-long** (same architecture, 30 epochs): holdout AUC climbed every single epoch through 30 (never plateaued, reached 0.6372 — above baseline), but the real MINDsmall-dev result (0.6214, paired -0.0126) was *worse* than the 5-epoch run — a clean, real answer that more training is not the fix, and a second instance (one level earlier in the pipeline) of the same "validation metric improving doesn't guarantee the real target metric follows" pattern G/EB-NeRD already demonstrated. **I-pop** (30 epochs + a learnable popularity term, testing whether its absence explained I's flat cold cohort): collapsed to near-random, AUC 0.5133 (paired -0.1207), with a wrong-signed fitted weight (-0.105, vs. F/H1's strongly positive ~+0.66-0.74) — investigated and attributed to a specific, identifiable implementation gap (raw/unnormalized `log_popularity` fed directly into the model, unlike every other candidate's `StandardScaler`-normalized version), documented honestly as a **confounded, inconclusive result**, not a clean second negative finding about popularity itself. Per the engineer's explicit instruction, this closes the round — no fix-and-rerun, no new candidate, no MINDlarge. All of this is documented in ADR-010's 2026-08-22 addenda, ADR-011 and its addendum, ADR-008's 2026-08-21 Addendum, and the design note's §3.5/§6. Round-1/round-2 candidate-search history in ADR-010, ADR-008's earlier Addendum (A/B), and ADR-005's Addendum (C).
+**Current Objective:** **Candidate J is a real local win — MINDlarge re-verification and any Codabench resubmission decision are open for the engineer, not yet done.** Full real-data comparison, MIND candidate search (all real, CI-clear results, baseline 0.6340 CI 0.6319-0.6361): G (deployed submission) 0.6192 real leaderboard vs. 0.6195 first submission, flat; H1 0.6319 (-0.0021, loss); H2 0.5985 (-0.0355, loss); I (5 epoch) 0.6233 (-0.0107, loss); I-long (30 epoch) 0.6214 (-0.0126, loss); I-pop 0.5133 (-0.1207, confounded/inconclusive); **J, no GloVe (Ada, first attempt)** 0.6242, statistically flat vs. I; **J, with GloVe (Ada, real win)** **0.6391 (95% CI 0.6370-0.6412) — CI-clear win, no overlap with baseline's CI.** This is the first architecture (not combiner) to beat baseline locally in this project's entire search. Honest caveat carried forward, not smoothed over: both J runs checkpoint directly on real MINDsmall-dev (not an internal holdout), which is mildly optimistic — a large-enough margin that this is unlikely to explain the win away entirely, but a real reason MINDlarge re-verification (this project's standing practice before any submission decision, per ADR-010) matters here specifically, not just as a formality. Full detail in ADR-012 (canonical) and ADR-011's addendum (cross-reference). Round-1/round-2 candidate-search history in ADR-010, ADR-008's earlier Addendum (A/B), ADR-005's Addendum (C), and the Aug 22 entries below (still accurate as history).
 
 ---
 
@@ -110,6 +110,8 @@ Honest status against the assignment's four required deliverables, updated at th
 | ADR-005 (addendum, 2026-08-21) | Recency-Weighted MIND Embedding Query (Candidate C) | Decided (does not reverse ADR-005) | Re-tests ADR-005's originally un-benchmarked rejection of recency weighting, this time for MIND's *embedding*-based user representation (decay=0.9, untuned), not BM25. Result: 0.6265 (CI 0.6243-0.6286) vs. baseline 0.6340 (CI 0.6319-0.6361) — CI-clear loss, including for warm users specifically, where the "recent clicks are more predictive" intuition was expected to help most. A real negative result, not just an untested risk anymore — the underlying MIND history-order assumption remains unverified. |
 | ADR-010 (2026-08-21) | MIND Second-Submission Candidate Search, Round 2 (Symbolic Overlap, Popularity, Learned Combiner, Cohort Gating) | Decided (adopt Candidate G, conditional) | Symbolic category/entity overlap (D: 0.6134) and train-popularity-only (E: 0.5318) both lose CI-clear. A 7-feature logistic-regression combiner trained on MINDsmall-train (F) loses overall (0.6255) but wins CI-clear on the cold cohort (0.5926 vs. baseline's 0.5737) — the first win either round produced. Cohort-gated routing built directly from that split (G: deployed embed scorer for warm, F's combiner for cold) gets overall AUC 0.6366; marginal CIs overlap the baseline's narrowly, but the statistically correct **paired** bootstrap (G and baseline share almost all impressions) shows +0.0027 (95% CI +0.0018 to +0.0034), excluding zero — a real win. Adoption is conditional on deciding whether to re-verify at MINDlarge scale before an actual Codabench submission (open, for the engineer). |
 | ADR-010 (addendum, 2026-08-21/22) | MINDlarge Verification + Second-Submission Build | Decided (condition resolved) | Candidate G re-verified at MINDlarge-dev scale on Kaggle: real, CI-clear paired win, +0.0019 AUC (95% CI +0.0015 to +0.0023) — same direction as the MINDsmall-dev screen, smaller effect size. Getting there fixed three real, previously-latent bugs (flat-packed HF-mirror zip, hardcoded Mac-only `mps` device, a full-column read that drove the local machine into heavy swapping), all root-caused and unit-tested, none Kaggle-specific. `scripts/generate_mind_gated_predictions.py` then generated real MINDlarge_test predictions locally (~4.2hr; feasible since this scale had run locally before and the processed bundle/embedding cache already existed) — a pre-run smoke test caught a fourth bug (multi-feature combiner producing NaN, not -inf, on MIND's documented `N89741`-style missing-candidate quirk), fixed before the real run. Output verified (exact line count, zero malformed permutations, all 32 affected impressions spot-checked) and packaged identically to the first submission at `submissions/mind_large_test_gated_cohort/prediction.zip`. Not yet uploaded — engineer's explicit action. |
+| ADR-011 (2026-08-22, + addendum) | Neural Candidate-Aware Attention Re-ranker (Candidates I, I-long, I-pop) | Decided (not adopted) | Attention over frozen MiniLM embeddings (no trainable text encoder). I (5 epoch): 0.6233, CI-clear loss. I-long (30 epoch): 0.6214, CI-clear loss — holdout AUC climbed every epoch (0.6067→0.6372) while real dev AUC got worse, a clean answer that more training wasn't the fix. I-pop (+popularity term): 0.5133, confounded by an unnormalized-feature implementation gap, reported as inconclusive not a clean second negative. 2026-08-24 addendum cross-references ADR-012 (Candidate J), a different architecture that reopened this line with a real win. |
+| ADR-012 (2026-08-22 decision, 2026-08-24 real results) | NRMS-Lite: Trainable Title + History Encoders (Candidate J) | Decided — real, CI-clear WIN | Trainable title-self-attention + history-self-attention encoders (Wu et al. 2019), replacing I/I-long/I-pop's frozen-embedding approach. First without GloVe (Ada run, download failed): 0.6242, statistically flat vs. I — architecture alone didn't move the needle. With GloVe (96.8% vocab coverage, second Ada run after fixing the download with resumable `wget -c`): **0.6391 (95% CI 0.6370-0.6412) vs. baseline 0.6340 (CI 0.6319-0.6361) — no CI overlap, a real win**, the first from a genuinely new architecture in this project's entire MIND search. Just short of the literature band (0.64-0.66). Honest caveat: both runs checkpoint directly on real dev, not an internal holdout — mildly optimistic, though the margin is large. MINDlarge re-verification and any Codabench resubmission are open, for the engineer. |
 
 ---
 
@@ -281,6 +283,7 @@ Experiment results are recorded in the `experiments/` directory as implementatio
 
 ## Upcoming
 
+- **New, open (2026-08-24):** Candidate J (ADR-012) is a real, CI-clear MIND local win (0.6391 vs. baseline 0.6340) — whether to run MINDlarge re-verification and pursue a possible Codabench resubmission is an explicit engineer decision, not yet made. If pursued, follow the same standing practice ADR-010's addendum used for Candidate G (MINDlarge-dev screen before any real submission). The design note's §3.5/§6 MIND section also needs updating to reflect this result — currently still describes the search as having found no local win.
 - **Done (2026-08-21):** the second-submission decision from 2026-08-19 is complete — `notebooks/ebnerd_contrastive_vector_testset_kaggle_run.py` ran on Kaggle, `prediction_contrastive.zip` was submitted to competition 2469 (ID 896072, Score 0.5404, tying the rounded MiniLM score) and verified genuinely distinct from the original submission (checksums, 99.48% of impressions re-ranked, Cell 8's own line-count/malformed check re-run locally and clean). The real-test-set detail-view comparison (mean AUC 0.5402 contrastive vs. 0.5397 MiniLM, +0.0005) is a real but much thinner edge than local `ebnerd_small` validation's CI-clear +0.0023 gap — see ADR-008's 2026-08-21 Addendum ("Second EB-NeRD Submission") and `docs/design_note.md`/`.tex` §3.5 for the full write-up. `prediction_contrastive.zip` currently lives at `~/Downloads/`, not yet moved into `submissions/ebnerd_testset_contrastive/` — a housekeeping step still open.
 - Both Codabench leaderboard submissions are now done (see Component Status and Deliverables Checklist above) — Q6 (design note) is the only deliverable left blocking on them, and now has both real scores to draw on.
 - `README.md` needs a `scripts/run_embed_experiment.py` / `--method embed` usage note, plus `scripts/generate_mind_predictions.py` — not updated yet, flagged again for next.
@@ -392,6 +395,132 @@ found anywhere in the submission pipeline.
   `~/Downloads/prediction_contrastive.zip` (896072)
 - `knowledge/ai-usage-log/2026-08-19_contrastive-vector-testset-submission.md`,
   `knowledge/ai-usage-log/2026-08-21_contrastive-vector-submission-verification.md`
+
+---
+
+## August 22-24, 2026 (latest) — Candidate J (NRMS-Lite) Reopens the MIND Search With a Real Win (ADR-012)
+
+### Context
+
+Direct continuation from the Aug 22 closure below: the engineer arrived
+with a script (`mind_nrms_lite_kaggle_run.py`) and an ADR template
+already drafted from outside this repo, targeting Candidate J — a
+lightweight, from-scratch NRMS reproduction (Wu et al. 2019) testing
+whether H1/H2/I/I-long/I-pop's plateau was a missing-architecture problem
+(no trainable title encoder, no click-history sequence model) rather than
+a real ceiling. Per the engineer's own instructions, this session first
+reviewed and integrated the script into the repo (it had no visibility
+into `src/pipeline` when written), then, once the engineer separately
+gained access to Ada (IIIT-H's SLURM HPC cluster), reconsidered every
+design choice that had been explicitly traded down for Kaggle's time/
+network constraints, then ran it for real.
+
+### What was done
+
+- **Integration review** found the script duplicated `src/pipeline`'s real
+  MIND loader (standalone polars TSV parsing instead of
+  `build_mind_split`) and hand-rolled AUC/MRR/nDCG/CI code instead of
+  reusing `src/evaluation/ranking_metrics.py`. Rewired to both — this
+  project's usual "one canonical implementation" discipline.
+- **The model code review caught a real bug the numpy-only simulation
+  couldn't:** a live forward+backward test (`tests/unit/test_nrms.py`)
+  found that `torch.nan_to_num` on the forward output does NOT stop
+  `nn.MultiheadAttention` from propagating NaN into shared projection
+  weights during backward when a batch contains a fully-masked row
+  (zero-history user, empty-title article) — `0 * NaN = NaN` under IEEE
+  754. Fixed by pre-empting the NaN (guarantee ≥1 unmasked key before
+  softmax, zero the result with a plain finite multiply) rather than
+  mopping up after the fact. New `src/retrieval/nrms.py` (model classes)
+  and `src/retrieval/nrms_training.py` (shared training/eval/GloVe
+  helpers, reused by both the Kaggle and Ada scripts — avoids duplicating
+  the training loop a second time).
+- **Ada reconsideration:** three trade-offs explicitly justified by
+  Kaggle's constraints, not architecture reasoning, were revisited once
+  Ada removed them — GloVe pretrained embeddings (was: skipped, "no
+  multi-GB download this close to the deadline"), `embed_dim`/`num_heads`
+  (128/8 → 300/15, matching GloVe's dimensionality), and the fixed
+  `NRMS_EPOCHS=3` default (replaced with real early stopping, patience=3,
+  against a raised ceiling of 30 — safe against the I/I-long overfitting
+  trap since both scripts checkpoint on REAL MINDsmall-dev every epoch).
+  One premise corrected before proceeding, not assumed: Ada was described
+  as having "no time limit" — the real user guide showed a genuine
+  ~4-day wall-clock cap for the `research` account's `low`/`medium` QoS.
+- **A real, multi-hour HPC environment saga**, each step diagnosed from
+  real error output, not guessed: the login node's system Python (3.6)
+  couldn't run this project's type hints; `module avail` errors out on
+  this cluster (broken modulefiles); Miniconda's installer refused
+  outright (`glibc >=2.28` required, node has 2.17); `uv` (a static
+  binary + portable Python builds) worked where both failed;
+  `uv pip install` crashed on the LOGIN node specifically (a real memory
+  ceiling, not a bug) — fixed by running it inside an `srun` allocation
+  instead; the default `pip`-resolved `torch` build required CUDA 13.0,
+  too new for the node's actual driver (max CUDA 12.8) — fixed by
+  installing from `download.pytorch.org/whl/cu121` specifically;
+  `/ssd_scratch` turned out to be **local to each compute node, not
+  shared across the cluster** (data staged via one interactive session
+  was invisible to the batch job that landed on a different node) — fixed
+  by making `mind_nrms_lite_ada_run.py` auto-download the MIND zips
+  itself (`src/pipeline/download.py`, idempotent), the same pattern
+  GloVe already used; and `downloads.cs.stanford.edu`'s GloVe zip proved
+  to be persistently throttled from this cluster (~15-50KB/s, not a
+  blip) — the first Ada run's GloVe download failed outright
+  (`ContentTooShortError`, `urlretrieve` has no retry/resume), fixed at
+  the root by shelling out to `wget -c --tries=10 --retry-connrefused`
+  instead, which survived the same throttled connection on the second
+  attempt (9h15m, but it completed).
+- Real `sinfo`-verified partition name (`u22`, not the Ada wiki's stale
+  `long` example) and a real `QOSMaxCpuPerUserLimit` block (an idle
+  interactive session was still holding CPUs the queued batch job
+  needed) both diagnosed from real SLURM error output along the way.
+
+### Key Findings
+
+- **First Ada run (job 2675355, no GloVe — download failed both in an
+  interactive test and the batch job's first attempt):** 0.6242 (95% CI
+  0.6220-0.6262), 236,344 real training examples, best at epoch 8/11
+  (early-stopped). Statistically flat against Candidate I (0.6233) — a
+  real, clean answer that the architecture change ALONE, without
+  pretrained embeddings, does not resolve the plateau.
+- **Second Ada run (job 2675573, GloVe succeeded — 96.8% vocab
+  coverage):** **0.6391 (95% CI 0.6370-0.6412)**, best at epoch 3/6
+  (early-stopped). **Real, CI-clear WIN against the deployed baseline**
+  (0.6340, CI 0.6319-0.6361) — no CI overlap. This is the first time in
+  this project's entire MIND candidate search (A through J) that a
+  genuinely new architecture, not a combiner stacking already-deployed
+  scorers (which is what Candidate G was), has produced a real win. Lands
+  0.0009 below the literature band's low end (0.64) — within noise of
+  clearing it, unlike every prior candidate.
+- **The no-GloVe-vs-GloVe comparison is itself real, controlled evidence**
+  that pretrained embeddings, not the architecture components alone, were
+  the dominant missing lever — exactly what this document's own
+  pre-registered priority-order guess anticipated before either run
+  happened, now confirmed rather than assumed.
+- **Honest caveat carried forward, not dropped now that the result is
+  good:** both runs checkpoint directly on real MINDsmall-dev every
+  epoch (not an internal train-side holdout, Candidate I's stricter
+  discipline), which is mildly optimistic. The CI-clear margin is large
+  enough that this is unlikely to explain the win away entirely, but it's
+  a real, specific reason MINDlarge re-verification matters here, not
+  just standing process.
+
+### What's Next
+
+**Open, for the engineer, not decided here:** whether to pursue MINDlarge
+re-verification and a possible Codabench resubmission, per this project's
+standing practice (ADR-010) for any real local win before deployment.
+New/modified this session: `src/retrieval/nrms.py`, `nrms_training.py`,
+`tests/unit/test_nrms.py`, `test_nrms_training.py`,
+`scripts/mind_nrms_lite_kaggle_run.py`, `mind_nrms_lite_ada_run.py`,
+`mind_nrms_lite_ada.sbatch`, `decisions/ADR-012-nrms-lite-candidate-j.md`
+(canonical, full detail), `ADR-011`'s new addendum (cross-reference),
+`experiments/candidate_j_nrms_lite_ada_2026-08-24/`, this file.
+
+### Related
+
+- `decisions/ADR-012-nrms-lite-candidate-j.md` (canonical — full design,
+  environment history, and results)
+- `decisions/ADR-011-neural-attention-reranker.md`'s 2026-08-24 addendum
+- `experiments/candidate_j_nrms_lite_ada_2026-08-24/{config,results}.json`
 
 ---
 

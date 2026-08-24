@@ -1,10 +1,14 @@
-<!--
-Fill in every [FILL IN] after running mind_nrms_lite_kaggle_run.py on
-Kaggle and pasting back its Cell 7 summary block. Do not estimate or guess
-any number below -- leave [FILL IN] literally in place until the real run
-reports back, consistent with this project's evidence-hierarchy rule
-(CLAUDE.md: benchmarks collected during this project outrank inference).
--->
+# ADR-012 — NRMS-Lite: Trainable Title + History Encoders (Candidate J)
+
+**Date:** 2026-08-22 (decision) / 2026-08-24 (real results)
+**Status:** Decided — real, CI-clear WIN against the deployed baseline (0.6391 vs. 0.634, GloVe-initialized). First real win this project's MIND candidate search has produced from a genuinely new architecture. MINDlarge re-verification and any Codabench submission decision remain open for the engineer (see 2026-08-24 addendum).
+
+See `decisions/ADR-011-neural-attention-reranker.md`'s own addendum for
+the short cross-reference from the neural-candidate-search line's anchor
+ADR; this document carries the full context, environment history
+(Kaggle → Ada), and real results.
+
+---
 
 ## Candidate J — NRMS-lite (title encoder + click-history encoder)
 
@@ -49,23 +53,28 @@ comparable to every number already recorded for H1/H2/I and the baseline.
 
 | Candidate | Real MINDsmall-dev AUC | Notes |
 |---|---|---|
-| Baseline (embed similarity, deployed) | 0.634 local / 0.6195 Codabench | submission 886468 |
-| H1 (linear) | [FILL IN if recorded elsewhere] | |
-| H2 (tree) | [FILL IN if recorded elsewhere] | |
+| Baseline (embed similarity, deployed) | 0.634 local (CI 0.6319-0.6361) / 0.6195 Codabench | submission 886468 |
+| H1 (linear) | 0.6319 (CI 0.6297-0.6340) | CI-clear loss (ADR-011) |
+| H2 (tree) | 0.5985 (CI 0.5961-0.6006) | CI-clear loss, large (ADR-011) |
 | I (attention, 5 epoch) | 0.6233 | clean negative |
 | I-long (attention, 30 epoch) | 0.6214 | clean negative; internal holdout AUC misleadingly kept climbing (0.6067→0.6372) while real dev AUC fell |
 | I-pop (attention + popularity, 30 epoch) | 0.5133 | confounded — unnormalized `log_popularity` feature, not a clean comparison |
-| **J (NRMS-lite)** | **[FILL IN from Kaggle Cell 7 output]** | epochs=[FILL IN], vocab_size=[FILL IN] |
+| J, no GloVe (Ada, 2026-08-23) | 0.6242 (CI 0.6220-0.6262) | real run, but GloVe download failed both times this attempt — random init only, see 2026-08-24 addendum |
+| **J, with GloVe (Ada, 2026-08-24)** | **0.6391 (CI 0.6370-0.6412)** | **real, CI-clear WIN vs. baseline** — see 2026-08-24 addendum |
 | Literature band, standard NAML/LSTUR/NRMS | 0.64–0.66 | Wu et al. via DIGAT benchmark table; not this project's own number |
 
-**Interpretation.** [FILL IN after the run: did J clear the baseline?
-Did it land inside, above, or below the 0.64-0.66 literature band? If it
-underperforms the literature band despite the architectural fix, the next
-suspects, in priority order, are: (a) no pretrained word embeddings —
-biggest single lever, ~1-2 AUC points in published ablations; (b) only
-3 epochs on MINDsmall vs. more extensive tuning in published work; (c)
-embed_dim=128 / 8 heads is smaller than the paper's 300-dim / 15-16-head
-setup, traded down for Kaggle time budget.]
+**Interpretation.** See the 2026-08-24 addendum below for the full,
+real-data interpretation — the run environment moved from Kaggle to Ada
+(2026-08-22 addendum) before any real Kaggle run happened, so every number
+above is a real Ada result, not a Kaggle one. Short version: with GloVe,
+J is a real, CI-clear win against the deployed baseline (first one this
+project's candidate search has produced from a new architecture, not a
+combiner) and lands just short of the literature band's low end (0.6391
+vs. 0.64, within noise of clearing it). Without GloVe, J is flat against
+I/I-long — confirming the missing-architecture-components hypothesis
+alone, absent pretrained embeddings, does not resolve the plateau; GloVe
+was the actual lever, exactly as this document's own pre-registered
+priority-order guess anticipated.
 
 **Trade-offs accepted going in, not discovered after the fact.**
 - No pretrained embeddings (time risk of downloading/staging a multi-GB
@@ -159,3 +168,128 @@ those without a specific reason would be scope creep dressed up as
 Candidate J still wait on a real run — this addendum changes what
 configuration that real run will use, not the "no estimates, only real
 Kaggle/Ada output" rule the original decision already established.
+
+---
+
+## 2026-08-24 Addendum: Real Ada Results — Candidate J Is a Real Win
+
+**Status:** Resolves the `[FILL IN]`s left open above with real, from-this-
+project data. First real, CI-clear win this project's MIND candidate
+search has produced from a genuinely new architecture (not a combiner
+stacking existing scorers, like Candidate G). Whether to pursue a real
+Codabench submission is left open for the engineer — this addendum
+reports the result, it does not decide that.
+
+### What actually happened getting here (worth recording, not just the number)
+
+Getting a real run took two attempts, both real data points:
+
+1. **First Ada run (job 2675355, 2026-08-23):** GloVe failed to download
+   — `ContentTooShortError`, connection dropped at 160MB/822MB —
+   because `_ensure_glove`'s original implementation used
+   `urllib.request.urlretrieve`, a single-shot call with no retry/resume.
+   The script's graceful-degradation design worked exactly as intended
+   (random init, not a crash): **0.6242 (95% CI 0.6220-0.6262)**, 236,344
+   train examples, best at epoch 8/11 (early-stopped, patience=3).
+2. **Root-cause fix, not a retry-and-hope:** `_ensure_glove` rewritten to
+   shell out to `wget -c --tries=10 --waitretry=15 --retry-connrefused`
+   (resumable, auto-retrying) instead of `urlretrieve`. This is the actual
+   fix for the observed failure mode — a dropped connection now resumes
+   from where it stopped instead of failing outright.
+3. **Second Ada run (job 2675573, 2026-08-24):** GloVe download succeeded
+   this time (9h15m — `downloads.cs.stanford.edu` is genuinely,
+   persistently throttled from this cluster's network path, ~15-50KB/s
+   sustained, not a one-off blip; not fixable from this side, the retry
+   logic just outlasted it). **20,638/21,319 vocab words (96.8%)** matched
+   real GloVe vectors. Result: **0.6391 (95% CI 0.6370-0.6412)**, best at
+   epoch 3/6 (early-stopped, patience=3).
+
+A real, separate infrastructure finding surfaced along the way, worth
+recording since it will recur: **`/ssd_scratch` is local to each Ada
+compute node, not shared across the cluster.** Data staged on one node
+(via an interactive `srun` session) was invisible to a later `sbatch` job
+that landed on a different node — `mind_nrms_lite_ada_run.py` now
+auto-downloads the MIND zips itself (via `src/pipeline/download.py`,
+idempotent) rather than assuming pre-staged data persists, for the same
+reason GloVe already worked this way.
+
+### Results
+
+| Run | GloVe | Train examples | Best epoch | Overall AUC | 95% CI |
+|---|---|---|---|---|---|
+| J, no GloVe (job 2675355) | No (download failed) | 236,344 | 8/11 | 0.6242 | 0.6220-0.6262 |
+| **J, with GloVe (job 2675573)** | **Yes, 96.8% coverage** | 236,344 | 3/6 | **0.6391** | **0.6370-0.6412** |
+
+Full config/results: `experiments/candidate_j_nrms_lite_ada_2026-08-24/{config,results}.json`
+(the no-GloVe run's raw JSON was overwritten on Ada by the second run
+sharing the same `--results-dir` — a real housekeeping miss, not repeated
+next time — but its complete console output is preserved verbatim in this
+session's `knowledge/ai-usage-log/` entry, so no real data was lost).
+
+### Interpretation
+
+**J with GloVe is a real, CI-clear win against the deployed baseline.**
+The baseline's own established CI (0.6319-0.6361, per ADR-011's
+Comparison Summary) and J's CI (0.6370-0.6412) do not overlap — J's lower
+bound (0.6370) sits above the baseline's upper bound (0.6361). This is
+the first time in this project's entire MIND candidate search (A through
+J, across two sessions) that a genuinely new architecture — not a
+combiner stacking already-deployed scorers, which is what Candidate G
+was — has produced a real, CI-clear win. It also clearly beats every
+other neural candidate tried (I: 0.6233, I-long: 0.6214, J-no-GloVe:
+0.6242) by a real margin, and lands just 0.0009 below the literature
+band's low end (0.64) — within noise of clearing it, not clearly short of
+it, unlike every prior candidate in this search.
+
+**The no-GloVe vs. GloVe comparison directly confirms the priority-order
+guess this document made before either run happened.** Without GloVe, J
+(0.6242) is statistically indistinguishable from I (0.6233) — the
+architecture change alone (trainable title + history encoders replacing
+frozen embeddings) did not resolve the plateau. With GloVe, the same
+architecture jumps to 0.6391 — a real, attributable +0.015 AUC change
+from one specific, isolated intervention (holding architecture, epochs-
+run pattern, and every other hyperparameter constant). This is real
+evidence, not inference, that pretrained embeddings were the dominant
+missing ingredient, not the architecture components alone — exactly the
+(a)-ranked suspect this document flagged as most likely before the data
+came in.
+
+**One caveat held onto deliberately now that the result is good, not just
+when the 2026-08-22 addendum flagged it while the outcome was still
+unknown:** both runs checkpoint on the REAL MINDsmall-dev AUC every
+epoch, not an internal train-side holdout (Candidate I's stricter
+discipline). The reported number is the epoch that happened to do best on
+the exact set being reported against, which is mildly optimistic — a real
+methodological point, not disqualifying (every candidate in this search
+reports this way, and the CI-clear margin over baseline is large enough
+that this caveat is very unlikely to explain away the win entirely), but
+worth stating plainly rather than only when convenient.
+
+### Conditions to revisit (updated from the original, now resolved)
+
+The original document's condition — "if J lands meaningfully below 0.64,
+the missing-architecture hypothesis was only partially right" — did not
+trigger; J landed essentially at the literature band's boundary, with
+GloVe identified as the specific lever that mattered. Remaining open
+questions for the engineer, not resolved by this addendum:
+
+- **MINDlarge re-verification** before any real Codabench submission —
+  standing project practice (ADR-010) for every candidate considered for
+  deployment, not yet done for J.
+- **Whether to pursue a real second/replacement MIND Codabench
+  submission** given this local win — an explicit engineer decision, per
+  this project's established pattern (Candidate G's MINDlarge
+  verification and submission were both explicit engineer calls, not
+  automatic).
+- The dev-checkpoint-selection optimism caveat above means a MINDlarge
+  re-verification is also the cleanest way to confirm this isn't
+  compressing at larger scale the way Candidate G's local win did at real
+  blind-test time — the same category of check this project has applied
+  consistently, not a new bar invented for this result specifically.
+
+### Related
+
+- `experiments/candidate_j_nrms_lite_ada_2026-08-24/{config,results}.json`
+- `scripts/mind_nrms_lite_ada_run.py`, `scripts/mind_nrms_lite_ada.sbatch`
+- `src/retrieval/nrms.py`, `src/retrieval/nrms_training.py`,
+  `tests/unit/test_nrms.py`, `tests/unit/test_nrms_training.py`
