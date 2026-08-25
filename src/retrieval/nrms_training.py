@@ -198,3 +198,70 @@ def init_pretrained_embeddings(
                 embedding.weight.data[idx] = torch.from_numpy(vec)
                 found += 1
     return found
+
+
+class NRMSLiteScorer:
+    """Implements `src/retrieval/score.py::Scorer`'s `score(query,
+    candidate_ids) -> np.ndarray` contract so a trained NRMSLite model can
+    plug into `src/submission/mind_format.py::write_predictions` unchanged
+    -- the same real-submission path every prior candidate in this project
+    used (Candidate G's `GatedScorer`, the original `EmbeddingScorer`).
+
+    `query` is a user's raw history `article_ids` list (as stored in
+    `user_history.parquet`, prefixed ids, unpooled) -- not a precomputed
+    vector, since this model's history representation is the model's own
+    learned attention pooling over titles, not something computable
+    outside the model. `[]` is the empty-history convention (matching
+    every other scorer's cold-start contract in this project).
+
+    A candidate id absent from `news_id2row` (MIND's documented
+    `N89741`-style missing-candidate quirk -- a real, observed gap between
+    a split's `behaviors.tsv` candidates and its own `news.tsv`) scores
+    `-inf`, the same convention `score.py::_lookup_scores` and
+    `AttentionRerankScorer` (`rerank.py`) already use -- replicated here
+    rather than imported, since this scorer's per-call shape (one
+    impression, model-forward-based) doesn't fit those helpers' full-
+    corpus-array assumption.
+    """
+
+    def __init__(
+        self, model, news_id2row: dict, pad_news_row: int, title_matrix: torch.Tensor,
+        max_history_len: int, device: torch.device,
+    ):
+        self.model = model
+        self.news_id2row = news_id2row
+        self.pad_news_row = pad_news_row
+        self.title_matrix = title_matrix
+        self.max_history_len = max_history_len
+        self.device = device
+        self.model.eval()
+
+    def _news_row(self, article_id) -> int:
+        return self.news_id2row.get(article_id, self.pad_news_row)
+
+    @torch.no_grad()
+    def score(self, query, candidate_ids) -> np.ndarray:
+        k = len(candidate_ids)
+        known_mask = np.fromiter(
+            (c in self.news_id2row for c in candidate_ids), dtype=bool, count=k
+        )
+        scores = np.full(k, -np.inf, dtype=np.float64)
+        if not known_mask.any():
+            return scores
+
+        hist_ids = list(query)[-self.max_history_len:]
+        hist_rows = [self._news_row(a) for a in hist_ids]
+        hist_len = len(hist_rows)
+        hist_padded = hist_rows + [self.pad_news_row] * (self.max_history_len - hist_len)
+        hist_t = self.title_matrix[torch.tensor(hist_padded, device=self.device)].unsqueeze(0)
+        hist_pad_mask = torch.tensor(
+            [[i >= hist_len for i in range(self.max_history_len)]], dtype=torch.bool, device=self.device
+        )
+
+        known_ids = [c for c, keep in zip(candidate_ids, known_mask) if keep]
+        cand_rows = torch.tensor([self._news_row(a) for a in known_ids], device=self.device)
+        cand_t = self.title_matrix[cand_rows].unsqueeze(0)
+
+        known_scores = self.model(hist_t, hist_pad_mask, cand_t).squeeze(0).cpu().numpy()
+        scores[known_mask] = known_scores
+        return scores

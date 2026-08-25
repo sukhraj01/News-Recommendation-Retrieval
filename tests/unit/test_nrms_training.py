@@ -8,8 +8,9 @@ import numpy as np
 import pandas as pd
 import torch
 
-from src.retrieval.nrms import build_vocab
+from src.retrieval.nrms import PAD, NRMSLite, build_vocab
 from src.retrieval.nrms_training import (
+    NRMSLiteScorer,
     NRMSTrainDataset,
     build_title_matrix,
     build_training_examples,
@@ -119,3 +120,50 @@ def test_init_pretrained_embeddings_stays_trainable():
     embedding = torch.nn.Embedding(2, 2, padding_idx=0)
     init_pretrained_embeddings(embedding, {"cat": np.array([1.0, 1.0], dtype=np.float32)}, word2id)
     assert embedding.weight.requires_grad
+
+
+def _tiny_scorer_fixture():
+    articles = pd.DataFrame({
+        "article_id": ["a1", "a2", "a3"],
+        "title": ["hello world", "foo bar", "baz qux"],
+    })
+    word2id = build_vocab(articles["title"], min_freq=1)
+    title_matrix, news_id2row, pad_row = build_title_matrix(articles, word2id, max_title_len=4)
+    torch.manual_seed(0)
+    model = NRMSLite(len(word2id), pad_id=word2id[PAD], embed_dim=8, num_heads=2)
+    scorer = NRMSLiteScorer(model, news_id2row, pad_row, title_matrix, max_history_len=5, device=torch.device("cpu"))
+    return scorer
+
+
+def test_nrms_lite_scorer_returns_one_score_per_candidate():
+    scorer = _tiny_scorer_fixture()
+    scores = scorer.score(["a1"], ["a2", "a3"])
+    assert scores.shape == (2,)
+    assert np.isfinite(scores).all()
+
+
+def test_nrms_lite_scorer_unknown_candidate_scores_negative_infinity():
+    scorer = _tiny_scorer_fixture()
+    scores = scorer.score(["a1"], ["a2", "unknown_article"])
+    assert np.isfinite(scores[0])
+    assert scores[1] == -np.inf
+
+
+def test_nrms_lite_scorer_all_unknown_candidates_returns_all_negative_infinity():
+    scorer = _tiny_scorer_fixture()
+    scores = scorer.score(["a1"], ["unknown1", "unknown2"])
+    assert scores.tolist() == [-np.inf, -np.inf]
+
+
+def test_nrms_lite_scorer_empty_history_still_scores_known_candidates():
+    scorer = _tiny_scorer_fixture()
+    scores = scorer.score([], ["a1", "a2"])
+    assert scores.shape == (2,)
+    assert np.isfinite(scores).all()
+
+
+def test_nrms_lite_scorer_history_longer_than_max_gets_truncated_not_erroring():
+    scorer = _tiny_scorer_fixture()  # max_history_len=5
+    scores = scorer.score(["a1", "a2", "a3", "a1", "a2", "a3", "a1"], ["a1"])
+    assert scores.shape == (1,)
+    assert np.isfinite(scores).all()
