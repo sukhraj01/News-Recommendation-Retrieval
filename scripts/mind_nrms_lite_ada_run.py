@@ -63,8 +63,14 @@ from src.retrieval.nrms_training import (  # noqa: E402
     init_pretrained_embeddings, load_glove_vectors, train_one_epoch,
 )
 
-BASELINE_LOCAL_Q4_AUC = 0.634
-BASELINE_CODABENCH_SCORE = 0.6195
+# Real, measured baselines per bundle -- NOT interchangeable. A real run
+# (2026-08-25) printed the MINDsmall number while actually evaluating on
+# MINDlarge-dev, comparing 0.6579 against the wrong 0.634 reference
+# instead of MINDlarge-dev's own real baseline (0.6335, verified against
+# the official evaluate.py to within 0.0002 -- see PROJECT_STATE.md). Both
+# are close by coincidence; they are not the same measurement.
+BASELINE_LOCAL_Q4_AUC_BY_BUNDLE = {"small": 0.634, "large": 0.6335}
+BASELINE_CODABENCH_SCORE = 0.6195  # MINDlarge_test submission 886468 -- same test set regardless of bundle
 PRIOR_CANDIDATES_AUC = {
     "H1_linear": None,
     "H2_tree": None,
@@ -288,10 +294,12 @@ def main() -> None:
               f"n_users={ci['n_users']}, n_skipped={ci['n_skipped']}")
     print(f"GloVe pretrained init: "
           f"{'yes, ' + format(glove_words_found / vocab_size, '.1%') + ' coverage' if glove_vectors else 'no (random init)'}")
-    print(f"vs. deployed baseline (local Q4 AUC): {BASELINE_LOCAL_Q4_AUC:.4f}")
+    baseline_local_q4_auc = BASELINE_LOCAL_Q4_AUC_BY_BUNDLE[args.bundle]
+    print(f"vs. deployed baseline (local Q4 AUC, {args.bundle} bundle): {baseline_local_q4_auc:.4f}")
     print(f"vs. deployed baseline (Codabench score): {BASELINE_CODABENCH_SCORE:.4f}")
     print(f"vs. prior neural candidates: {PRIOR_CANDIDATES_AUC}")
-    print("Literature band for standard NAML/LSTUR/NRMS on MINDsmall: ~0.64-0.66 AUC")
+    if args.bundle == "small":
+        print("Literature band for standard NAML/LSTUR/NRMS on MINDsmall: ~0.64-0.66 AUC")
 
     config = {
         "candidate": "J_nrms_lite", "environment": "ada_slurm", "date": str(date.today()),
@@ -309,7 +317,7 @@ def main() -> None:
         "best_epoch": best_epoch["epoch"] if best_epoch else None,
         "best_epoch_metric_ci": metric_ci,
         "comparison": {
-            "baseline_local_q4_auc": BASELINE_LOCAL_Q4_AUC,
+            "baseline_local_q4_auc": baseline_local_q4_auc,
             "baseline_codabench_score": BASELINE_CODABENCH_SCORE,
             "prior_candidates_auc": PRIOR_CANDIDATES_AUC,
             "literature_band_standard_models_mindsmall": [0.64, 0.66],
