@@ -306,3 +306,145 @@ questions for the engineer, not resolved by this addendum:
 - `scripts/mind_nrms_lite_ada_run.py`, `scripts/mind_nrms_lite_ada.sbatch`
 - `src/retrieval/nrms.py`, `src/retrieval/nrms_training.py`,
   `tests/unit/test_nrms.py`, `tests/unit/test_nrms_training.py`
+
+---
+
+## 2026-08-25 Addendum: MINDlarge-Dev Re-Verification — the Win Widens, Not Compresses
+
+**Status:** Resolves the prior addendum's open "MINDlarge re-verification"
+condition. Real result: **0.6579 (95% CI 0.6569-0.6588) vs. the real
+MINDlarge-dev baseline of 0.6335** — a **+0.0244 AUC** margin, larger than
+the MINDsmall-dev win (+0.0051), not smaller. This is the opposite of
+every other local-win-checked-at-scale result in this project's history.
+Whether to generate real MINDlarge_test predictions and pursue a
+Codabench resubmission remains open for the engineer — not decided here.
+
+### A real bug caught before it corrupted this write-up
+
+The script's console output printed "vs. deployed baseline (local Q4
+AUC): 0.6340" — but that's a hardcoded constant left over from the
+MINDsmall runs, not the right number for a `--bundle large` run. The real
+MINDlarge-dev baseline, independently verified elsewhere in this project
+against the official `evaluate.py` (within 0.0002), is **0.6335** — close
+to 0.634 by coincidence, not the same measurement. Caught by manually
+cross-checking against `PROJECT_STATE.md` before writing this addendum,
+not by the script itself — fixed at the root
+(`scripts/mind_nrms_lite_ada_run.py`, `BASELINE_LOCAL_Q4_AUC_BY_BUNDLE`)
+so a future run gets this right automatically instead of depending on
+whoever reads the output to catch it.
+
+### What was done
+
+Same model, same training/eval code as the MINDsmall run (`--bundle
+large` added to `mind_nrms_lite_ada_run.py` rather than a new script —
+only which zips get downloaded/parsed differs). Real infrastructure
+issues hit and fixed along the way, each from a real error, not
+anticipated in advance:
+
+- `download_mind_bundle` (the project's shared MIND downloader, used by
+  `make data` too) hit the same `ContentTooShortError` the GloVe download
+  hit at MINDsmall scale — `MINDlarge_train.zip` (531MB) dropped mid-
+  transfer, and `urlretrieve` has no retry/resume. Fixed at the root with
+  a pure-`urllib` Range-header retry/resume loop (not a `wget` subprocess
+  like the GloVe fix — this function also runs in `make data` on
+  whichever machine has the repo cloned, and `wget` isn't preinstalled on
+  macOS, confirmed on this project's own dev machine). New
+  `tests/unit/test_download.py`, 6 tests, including the resume-from-
+  correct-byte-offset case specifically, not just "it eventually works."
+- The engineer's Ada account was upgraded `low` → `medium` QoS mid-
+  session (confirmed via `sacctmgr`) — broke both `sbatch` scripts
+  outright (`Invalid qos specification`) until fixed.
+- An initial version pinned the MINDlarge job to `gnode007` specifically,
+  to reuse a GloVe file already cached there from the MINDsmall run
+  (avoiding a second ~9h throttled download). **This backfired in
+  practice, not just in theory:** `gnode007` stayed busy long enough that
+  the queue wait itself exceeded what a fresh GloVe download would have
+  cost on any free node. Reverted to unpinned; GloVe re-downloaded from
+  scratch on whichever node the job landed on (successfully, via the
+  already-proven resumable download).
+- The benchmark step (`--max-train-examples 3000`, matching this
+  project's own benchmark-before-commit discipline) confirmed the real
+  MINDlarge feature store builds cleanly with no memory errors (101,527
+  train articles, 72,023 dev articles — the dev count matches this
+  project's previously recorded MINDlarge-dev figure exactly) before the
+  full job was ever submitted, but an SSH disconnection killed that
+  interactive session before it produced a timing number. Not repeated:
+  the real full run went through `sbatch` instead, immune to client-side
+  connection drops by design.
+
+### Results
+
+Real MINDlarge-dev, best epoch (1 of 4 run, early-stopped patience=3),
+`n_impressions=376,471` (the full real split), `n_users=255,990`,
+`n_skipped=0`:
+
+| Metric | Value | 95% CI |
+|---|---|---|
+| AUC | 0.6579 | 0.6569-0.6588 |
+| MRR | 0.3581 | 0.3570-0.3592 |
+| nDCG@5 | 0.3411 | 0.3399-0.3422 |
+| nDCG@10 | 0.4064 | 0.4053-0.4074 |
+
+GloVe: 25,170/26,293 vocab words (95.7% coverage). 3,383,656 real training
+examples (14.3x MINDsmall's 236,344 — consistent with the ~14.2x train-
+impression scale ratio this project already had on record). Real per-
+epoch timing: ~117 min/epoch, consistently across all 4 epochs run —
+close to the ~110 min/epoch projected before the run (within 7%), a real
+validation of that projection method, not just a lucky guess. Total job
+wall time roughly 9.25h (GloVe download) + 7.83h (4 epochs of train+eval)
+≈ 17h, comfortably inside the 3-day budget.
+
+Full config/results:
+`experiments/candidate_j_nrms_lite_ada_mindlarge_2026-08-25/{config,results}.json`.
+
+### Interpretation
+
+**The win is real and larger at MINDlarge scale, not smaller.** Every
+prior instance of "check a local win at bigger/real scale" in this
+project went the other direction: Candidate G's MINDsmall-dev win of
++0.0027 shrank to +0.0019 at MINDlarge-dev and to essentially flat
+(-0.0003) at the real Codabench blind test; the EB-NeRD contrastive-
+vector result did the same, thinning from a CI-clear local gap to a much
+thinner real-test edge. Candidate J's MINDsmall-dev margin (+0.0051)
+instead widened nearly 5x to +0.0244 at MINDlarge-dev. This is real,
+measured evidence — not a hoped-for pattern — that this result behaves
+differently from every prior candidate this project has checked at scale.
+
+**A plausible explanation, flagged as inference, not proven:** Candidate
+G was a combiner over already-fixed, precomputed scalar features — more
+data doesn't give it anything new to learn, since the ceiling was the
+feature set itself (ADR-010's own finding). Candidate J has a trainable
+title encoder and a trainable history encoder with real capacity to use
+more data — MINDlarge's ~14x larger real training set is exactly the kind
+of resource a model like this can actually benefit from in a way a fixed-
+feature combiner structurally cannot. This is a real, falsifiable
+explanation consistent with the data, not independently verified by a
+controlled ablation here.
+
+**The dev-checkpoint-selection caveat, carried forward again:** this
+result still checkpoints directly on the real dev split, same caveat as
+before. Given the margin here (+0.0244) is roughly 5x the MINDsmall
+result's own margin, this caveat is even less likely to explain the win
+away than it already was — but it's the same category of caveat, stated
+for the same reason: not smoothing it over because the news is good.
+
+### Conditions to revisit (updated — MINDlarge condition now resolved)
+
+- ~~MINDlarge re-verification before any real Codabench submission~~
+  **Resolved by this addendum:** real, CI-clear win, margin widened not
+  compressed.
+- **Whether to generate real MINDlarge_test predictions and pursue a
+  Codabench resubmission — still open, for the engineer.** Given this
+  result is the first in this project's history to widen rather than
+  compress at scale, the honest expectation going into a real blind-test
+  submission is more optimistic than it was for Candidate G or the
+  EB-NeRD result — but "more optimistic" is not "certain," and this
+  project's own standing discipline is to find out for real rather than
+  assume.
+
+### Related
+
+- `experiments/candidate_j_nrms_lite_ada_mindlarge_2026-08-25/{config,results}.json`
+- `scripts/mind_nrms_lite_ada_run.py` (`--bundle large`),
+  `scripts/mind_nrms_lite_ada_large.sbatch`
+- `src/pipeline/download.py` (retry/resume fix), `tests/unit/test_download.py`
