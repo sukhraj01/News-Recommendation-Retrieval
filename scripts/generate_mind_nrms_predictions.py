@@ -106,18 +106,28 @@ def main() -> None:
     test_history = pd.read_parquet(args.data_dir / "test" / "user_history.parquet")
     print(f"test: {len(test_articles):,} articles, {len(test_history):,} users with history", flush=True)
 
-    # title_matrix covers train+dev+test articles -- test may include
-    # articles never seen in train/dev; their titles still encode correctly
-    # against the reconstructed word2id (unseen words map to UNK, which the
-    # model has a real learned representation for), no architecture or
-    # vocab change needed for genuinely new articles.
-    all_articles = (
-        pd.concat([train_dev_articles, test_articles[["article_id", "title"]]])
-        .drop_duplicates(subset="article_id").reset_index(drop=True)
+    # title_matrix covers TEST'S OWN ARTICLE CATALOG ONLY -- not train+dev+
+    # test unioned. This matters, and got it wrong once already (caught via
+    # the N89741 spot-check, not code review): every other scorer in this
+    # project (EmbeddingScorer/BM25Scorer/GatedScorer) builds its candidate
+    # index from the target split's own articles.parquet only, per ADR-005's
+    # "each split's own catalog is the query-time universe" convention. A
+    # first version of this script unioned in train+dev articles too (the
+    # word2id vocabulary genuinely needs train+dev; the article catalog for
+    # SCORING does not) -- which "resurrected" MIND's documented N89741
+    # missing-candidate quirk (a candidate real in train/dev's news.tsv but
+    # absent from test's own news.tsv) with a borrowed title instead of the
+    # -inf fallback every other candidate/submission in this project uses
+    # for this exact case. Real run confirmed the bug (0/32 known-affected
+    # impressions had N89741 correctly ranked last) before this fix.
+    # Practical impact of the bug was narrow (32/2,370,727 impressions,
+    # ~0.0013%) but the fix is still real, not cosmetic -- consistency with
+    # every other submission's handling of this documented edge case.
+    title_matrix, news_id2row, pad_news_row = build_title_matrix(
+        test_articles[["article_id", "title"]].reset_index(drop=True), word2id, args.max_title_len
     )
-    title_matrix, news_id2row, pad_news_row = build_title_matrix(all_articles, word2id, args.max_title_len)
     title_matrix = title_matrix.to(device)
-    print(f"title_matrix covers {len(all_articles):,} unique articles across train+dev+test", flush=True)
+    print(f"title_matrix covers {len(test_articles):,} articles (test's own catalog only)", flush=True)
 
     model = NRMSLite(vocab_size, pad_id=pad_id, embed_dim=args.embed_dim, num_heads=args.num_heads).to(device)
     state_dict = torch.load(args.checkpoint, map_location=device)
