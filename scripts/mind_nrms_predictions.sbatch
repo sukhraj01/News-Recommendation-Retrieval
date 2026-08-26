@@ -35,7 +35,7 @@ VENV_DIR="$HOME/venvs/nrms_lite_uv"
 RAW_DIR="/ssd_scratch/$USER/mind_raw_large"
 DATA_DIR="/ssd_scratch/$USER/mind_nrms_lite/data_large"
 CHECKPOINT="$HOME/mind_nrms_lite_large_results/nrms_lite_best.pt"
-OUT_DIR="$HOME/mind_nrms_predictions"
+OUT_DIR="${OUT_DIR:-$HOME/mind_nrms_predictions}"  # override: sbatch --export=ALL,OUT_DIR=/path scripts/mind_nrms_predictions.sbatch
 
 source "$VENV_DIR/bin/activate"
 cd "$REPO_DIR"
