@@ -531,8 +531,38 @@ expected to score measurably differently.
 ### Submission artifact
 
 `submissions/mind_large_test_nrms_lite/prediction.zip` (`prediction.txt`
-at the zip root, matching every prior submission's packaging). Upload to
-Codabench is the engineer's own action — not performed here.
+at the zip root, matching every prior submission's packaging).
+
+### Real Codabench Result — a Genuine Leaderboard Win
+
+**Uploaded by the engineer 2026-08-26 06:58. Submission ID 901961, Score
+0.6462.** Confirmed via both the submission-upload confirmation
+screenshot and the public leaderboard rank screenshot (rank 47/91,
+username `apollo19`), saved to
+`submissions/mind_large_test_nrms_lite/leaderboard_screenshot_{upload,rank}.png`.
+
+| Submission | Score (real Codabench AUC) |
+|---|---|
+| 886468 (original MiniLM embed baseline) | 0.6195 |
+| 896696 (Candidate G, cohort-gated combiner) | 0.6192 |
+| **901961 (Candidate J, NRMS-lite)** | **0.6462** |
+
+Next three leaderboard columns (MRR/nDCG@5/nDCG@10 by this project's
+established column-order inference, same as every prior submission):
+0.3058 / 0.3292 / 0.3872.
+
+**This is a real, substantial win on the actual blind leaderboard — the
+first one this project's entire MIND candidate search has produced.**
++0.0267 over the original baseline submission, +0.0270 over Candidate G.
+Some compression did occur from the MINDlarge-dev screen (0.6579 →
+0.6462, a real -0.0117), consistent with this project's now-repeated
+observation that local/screening numbers don't fully transfer to the
+real blind test — but unlike Candidate G (whose entire local win
+evaporated to flat/negative) or the EB-NeRD contrastive result (whose
+edge thinned to near-nothing), Candidate J's real result stayed a clear,
+meaningful win rather than compressing away. Worth stating plainly: this
+is the outcome, not the promise, of the missing-architecture-plus-
+pretrained-embeddings hypothesis this candidate was built to test.
 
 ### Related
 
@@ -540,4 +570,6 @@ Codabench is the engineer's own action — not performed here.
   `tests/unit/test_nrms_training.py` (scorer tests)
 - `scripts/generate_mind_nrms_predictions.py`,
   `scripts/mind_nrms_predictions.sbatch`
+- `submissions/mind_large_test_nrms_lite/prediction.zip`,
+  `leaderboard_screenshot_{upload,rank}.png`
 - `submissions/mind_large_test_nrms_lite/prediction.zip`
