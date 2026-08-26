@@ -517,21 +517,38 @@ uses train+dev (the trained embedding table's vocabulary genuinely
 depends on what it was trained on, independent of the scoring-time
 candidate catalog question).
 
-**Practical impact assessed, not just asserted: negligible.** 32 out of
-2,370,727 impressions (0.0013%) — every other candidate has the same
-title regardless of which split's catalog it's read from, so only these
-32 impressions' internal rankings could possibly differ. Given this, the
-engineer's explicit call was to **submit the already-generated,
-otherwise-fully-validated prediction set as-is** rather than block the
-submission on a multi-hour rerun for a discrepancy this narrow, while a
-corrected re-run proceeds separately (`OUT_DIR=$HOME/mind_nrms_predictions_corrected`)
-for methodological completeness — not because the original set is
-expected to score measurably differently.
+**Practical impact assessed, not just asserted — and then corrected once
+measured directly.** The initial estimate (32 out of 2,370,727
+impressions, 0.0013%) came from checking only the *one* previously-
+documented example of this gap (`N89741`) — not an exhaustive count of
+every article present in train/dev's catalog but absent from test's own.
+Given this, the engineer's explicit call at the time was to **submit the
+already-generated, otherwise-fully-validated prediction set as-is**
+rather than block the submission on a multi-hour rerun for a discrepancy
+believed this narrow, while a corrected re-run proceeded separately
+(`OUT_DIR=$HOME/mind_nrms_predictions_corrected`).
 
-### Submission artifact
+**Once the corrected run completed, a direct line-by-line diff against
+the original (not another estimate) found the real impact was larger:
+2,087 of 2,370,727 impressions differ (0.088%)** — about 65x the initial
+estimate, since `N89741` was evidently not the only article with this
+gap. Still small in absolute terms, and still very unlikely to move an
+AUC averaged over 2.37M impressions at any precision Codabench reports —
+but a real correction to the earlier "negligible" claim, not a
+confirmation of it. Given the real number, the engineer chose to
+**resubmit the corrected prediction set** rather than let the earlier,
+narrower estimate stand as the reason not to (see below).
 
-`submissions/mind_large_test_nrms_lite/prediction.zip` (`prediction.txt`
-at the zip root, matching every prior submission's packaging).
+### Submission artifacts
+
+- `submissions/mind_large_test_nrms_lite/prediction.zip` — the original
+  (train+dev+test-catalog bug) set, submitted as 901961, Score 0.6462
+  (see below).
+- `submissions/mind_large_test_nrms_lite_corrected/prediction.zip` — the
+  corrected (test-catalog-only) set, same validation discipline passed
+  (exact line count, zero malformed lines), real measured diff against
+  the original: 2,087/2,370,727 impressions (0.088%). Submitted as a
+  fourth MIND entry once the real impact was measured (see below).
 
 ### Real Codabench Result — a Genuine Leaderboard Win
 
