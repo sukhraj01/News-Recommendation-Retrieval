@@ -448,3 +448,96 @@ for the same reason: not smoothing it over because the news is good.
 - `scripts/mind_nrms_lite_ada_run.py` (`--bundle large`),
   `scripts/mind_nrms_lite_ada_large.sbatch`
 - `src/pipeline/download.py` (retry/resume fix), `tests/unit/test_download.py`
+
+---
+
+## 2026-08-26 Addendum: Real MINDlarge_test Predictions Generated and Submitted
+
+**Status:** Resolves the prior addendum's remaining open question — the
+engineer chose to pursue a real Codabench resubmission given the
+MINDlarge-dev result. Real predictions generated, rigorously validated,
+one real (narrow-impact) bug found and fixed, and a submission-ready
+`prediction.zip` produced. The actual Codabench upload is the engineer's
+own manual action, per this project's established convention (I never
+upload submissions myself).
+
+### What was built
+
+`src/retrieval/nrms_training.py::NRMSLiteScorer` implements the `Scorer`
+protocol (`score.py`) so the trained checkpoint plugs into
+`src/submission/mind_format.py::write_predictions` unchanged — the same
+real-submission path `EmbeddingScorer`/Candidate G's `GatedScorer` used.
+`scripts/generate_mind_nrms_predictions.py` handles the one genuinely
+tricky part: the trained model's word vocabulary (`word2id`) was never
+saved to disk, only the weights were, so scoring test titles correctly
+requires reconstructing the *exact* same vocabulary the model trained
+with — verified two independent ways before trusting it (reconstructed
+`vocab_size` must match the training run's recorded value exactly, AND
+`model.load_state_dict()` itself raises on any shape mismatch).
+
+### Real run
+
+Job 2678461: real MINDlarge_test scoring, 2,370,727 impressions, 138.9
+minutes. Hit one real, already-known-category bug along the way (missing
+`rank_bm25` in the minimal Ada venv — `mind_format.py` needs it
+transitively via `score.py`'s `Scorer` type import, even though this
+candidate never calls BM25 itself; fixed by installing it, a real project
+dependency we'd simply skipped during minimal venv setup).
+
+### Validation (same discipline as every prior real submission)
+
+- **Line count**: 2,370,727 — exact match to this project's own
+  previously recorded real MINDlarge_test impression count, independently
+  re-verified via `wc -l` locally, not just the script's own printed count.
+- **Format**: 0 malformed lines across all 2,370,727 — every line valid
+  JSON, every rank list a genuine permutation of 1..N, no duplicate
+  impression ids, no stray spaces inside the JSON array.
+- **N89741 spot-check (MIND's documented missing-candidate quirk, 32
+  known-affected impressions) — this is where a real bug was found, not
+  where one was ruled out.**
+
+### A real bug, caught by the spot-check, not by review
+
+The script built the model's scoring article catalog (`title_matrix`/
+`news_id2row`) from **train+dev+test articles combined**. Every other
+scorer in this project (`EmbeddingScorer`, `BM25Scorer`, Candidate G's
+`GatedScorer`) builds its candidate index from the **target split's own
+article catalog only** (ADR-005's "each split's own catalog is the
+query-time universe" convention). Unioning in train+dev meant `N89741`
+(real in train/dev's `news.tsv`, genuinely absent from test's own — the
+documented quirk) got scored using a borrowed title instead of falling
+back to `-inf` like every prior real submission in this project handles
+this exact case. The spot-check confirmed it directly: 0 of 32 known-
+affected impressions had `N89741` ranked last.
+
+Fixed at the root (`generate_mind_nrms_predictions.py`, prior commit):
+`title_matrix`/`news_id2row` now built from `test_articles` only;
+`word2id`/`vocab_size` reconstruction is unchanged and correctly still
+uses train+dev (the trained embedding table's vocabulary genuinely
+depends on what it was trained on, independent of the scoring-time
+candidate catalog question).
+
+**Practical impact assessed, not just asserted: negligible.** 32 out of
+2,370,727 impressions (0.0013%) — every other candidate has the same
+title regardless of which split's catalog it's read from, so only these
+32 impressions' internal rankings could possibly differ. Given this, the
+engineer's explicit call was to **submit the already-generated,
+otherwise-fully-validated prediction set as-is** rather than block the
+submission on a multi-hour rerun for a discrepancy this narrow, while a
+corrected re-run proceeds separately (`OUT_DIR=$HOME/mind_nrms_predictions_corrected`)
+for methodological completeness — not because the original set is
+expected to score measurably differently.
+
+### Submission artifact
+
+`submissions/mind_large_test_nrms_lite/prediction.zip` (`prediction.txt`
+at the zip root, matching every prior submission's packaging). Upload to
+Codabench is the engineer's own action — not performed here.
+
+### Related
+
+- `src/retrieval/nrms_training.py::NRMSLiteScorer`,
+  `tests/unit/test_nrms_training.py` (scorer tests)
+- `scripts/generate_mind_nrms_predictions.py`,
+  `scripts/mind_nrms_predictions.sbatch`
+- `submissions/mind_large_test_nrms_lite/prediction.zip`
