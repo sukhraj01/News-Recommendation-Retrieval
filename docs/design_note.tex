@@ -199,6 +199,7 @@ Competition & Method & Score & Submission ID & Date \\
 \midrule
 MIND (competitions/13967) & Embed (MiniLM) & 0.6195 & 886468 & 2026-08-12 13:01 \\
 MIND (competitions/13967) & Cohort-gated combiner & 0.6192 & 896696 & 2026-08-22 \\
+MIND (competitions/13967) & \textbf{NRMS-lite (Cand.\ J)} & \textbf{0.6462} & 901961 & 2026-08-26 \\
 EB-NeRD (competitions/2469) & Embed (MiniLM) & 0.5404 & 888045 & 2026-08-13 23:08 \\
 EB-NeRD (competitions/2469) & Contrastive vector & 0.5404 & 896072 & 2026-08-21 13:01 \\
 \bottomrule
@@ -221,7 +222,6 @@ and all 32 \texttt{N89741}-affected-impression checks all clean). Most
 likely a genuine population difference --- MIND's dev/test splits are
 disjoint calendar weeks (ADR-001) --- so the edge was built around
 MINDlarge-dev-specific properties, not a population-independent effect.
-Same category of finding as the EB-NeRD result below, now observed twice.
 
 \textbf{Second EB-NeRD submission --- contrastive vector, real test set.}
 Both submissions round to the same Score (0.5404) --- checked before
@@ -251,11 +251,20 @@ margin is far smaller than the \textbf{$\sim$0.0023 CI-clear gap}
 ADR-008's Addendum measured locally (0.5453 vs.\ 0.5430) --- real but
 small, not a dramatically larger win.
 
-\subsection*{3.6 MIND candidate search: eight other approaches, before G}
+\textbf{Third MIND submission --- NRMS-lite (Candidate J), a real win.}
+A trainable title/history self-attention architecture (Wu et al.\ 2019,
+GloVe-init, ADR-012), unlike every frozen-embedding candidate below.
+Trail: MINDsmall-dev 0.6391 $\to$ MINDlarge-dev 0.6579 (margin
+\emph{widened}, unique among all candidates) $\to$ real leaderboard
+\textbf{0.6462} (\textbf{+0.0267} over the original submission ---
+compressed from the dev screen, but a real win, unlike the combiner above).
 
-Screened on MINDsmall-dev vs.\ the baseline (0.634, \S3.2) before
-committing to G; only G's routing won CI-clear overall, only F's combiner
-won CI-clear on the cold cohort. Full evidence: ADR-010 (D--H)/ADR-011 (I).
+\subsection*{3.6 MIND candidate search: ten approaches, and what worked}
+
+Ten approaches screened on MINDsmall-dev vs.\ baseline (0.634, \S3.2)
+before J, all atop \emph{frozen} embeddings with a shallow head. Only
+G's routing won CI-clear overall (didn't hold at real scale), only F's
+combiner won CI-clear on the cold cohort. Evidence: ADR-010 (D--H)/011 (I)/012 (J).
 
 {\tiny
 \renewcommand{\arraystretch}{0.75}
@@ -269,17 +278,15 @@ C & Recency-weighted embedding query & 0.627, loss \\
 D & Symbolic category/entity overlap & 0.613, loss \\
 E & Train-popularity only & 0.532, loss \\
 F & 7-feature LR combiner & 0.626 loss; 0.593 cold win \\
+G & Cohort-gated routing & 0.637 local win; 0.6192 real (flat) \\
 H1 & LogisticRegression, balanced & 0.632, loss \\
 H2 & HistGradientBoosting & 0.599, loss \\
 I & Attention re-ranker, 5 epochs & 0.623, loss \\
 I-long & Same, 30 epochs & 0.621, worse than I \\
 I-pop & I-long + raw popularity feature & 0.513, inconclusive \\
+\textbf{J} & \textbf{Trainable title+history encoders} & \textbf{0.658 local win; 0.6462 real win} \\
 \bottomrule
 \end{tabular}\par}
-
-No untuned signal beats the baseline outright; real wins (F, G) combine
-signals around \texttt{log\_popularity} --- G's didn't hold at real scale
-(above).
 
 \section{Anti-Gaming and Leakage (Q9)}
 
@@ -356,7 +363,7 @@ pattern past an unexercised scale; nothing guarantees another path is
 safe at 10x further.
 
 \section{Limitations and Open Questions}
-\enlargethispage{4\baselineskip}
+\enlargethispage{8\baselineskip}
 
 \begin{sloppypar}
 \begin{itemize}
@@ -381,10 +388,11 @@ safe at 10x further.
   explained} (\S3.2): BM25 wins whole-corpus recall 1.6--2.3x, yet
   embeddings edge the curated candidate-list AUC --- plausibly the
   diffuse mean-pooled query, not isolated.
-\item \textbf{Local CI-clear wins haven't transferred to real blind-test
-  results, twice}: MIND's combiner (+0.0027 local $\to$ -0.0003 real) and
-  EB-NeRD's contrastive vector (+0.0023 $\to$ +0.0005) --- both likely
-  population-specific.
+\item \textbf{Local wins compress at real scale, but don't always
+  vanish}: MIND's combiner and EB-NeRD's contrastive vector compressed to
+  flat; Candidate J widened at MINDlarge-dev, then compressed at the real
+  leaderboard but stayed substantial (+0.0267 over baseline, \S3.5/3.6)
+  --- architecture plausibly affects compression (inference).
 \end{itemize}
 \end{sloppypar}
 

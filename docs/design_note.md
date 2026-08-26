@@ -163,6 +163,7 @@ impressions, no local ground truth) required Kaggle.
 |---|---|---|---|---|
 | MIND (competitions/13967) | Embed (MiniLM) | 0.6195 | 886468 | 2026-08-12 13:01 |
 | MIND (competitions/13967) | Cohort-gated combiner (§ADR-010 Addendum) | 0.6192 | 896696 | 2026-08-22 |
+| MIND (competitions/13967) | **NRMS-lite, Candidate J (§ADR-012)** | **0.6462** | 901961 | 2026-08-26 06:58 |
 | EB-NeRD (competitions/2469) | Embed (MiniLM) | 0.5404 | 888045 | 2026-08-13 23:08 |
 | EB-NeRD (competitions/2469) | Contrastive vector (§ADR-008 Addendum) | 0.5404 | 896072 | 2026-08-21 13:01 |
 
@@ -197,6 +198,35 @@ substantially at real blind-test scale — now observed twice, on two
 different datasets, worth reading as a real pattern about this project's
 validation methodology rather than two unrelated surprises (ADR-010's
 2026-08-22 addendum).
+
+**Third MIND submission — NRMS-lite (Candidate J), a real leaderboard
+win.** Unlike the cohort-gated combiner above, this candidate is a
+genuinely different architecture (§3.6): trainable self-attention title
+and click-history encoders (Wu et al. 2019), GloVe-initialized, trained
+on a dedicated GPU (institutional HPC access obtained specifically for
+this, after the earlier candidate search had been closed for lack of
+compute). Real trail across three checkpoints: MINDsmall-dev 0.6391 (95%
+CI 0.6370–0.6412, vs. baseline 0.6340) → MINDlarge-dev re-verification
+0.6579 (95% CI 0.6569–0.6588, vs. baseline 0.6335) — a margin that
+**widened**, not compressed, the only candidate in this project where
+that happened → real Codabench leaderboard **0.6462**. Some compression
+did occur at the final, real step (0.6579 → 0.6462), consistent with
+this project's repeated finding below that local numbers don't fully
+transfer to the real blind test — but unlike the cohort-gated combiner
+or the EB-NeRD contrastive result, the result stayed a real, substantial
+win rather than compressing to flat: **+0.0267 over the original
+baseline submission, +0.0270 over the cohort-gated combiner.** A
+narrow-impact bug (32 of 2,370,727 impressions, 0.0013% — the scoring
+catalog initially included train+dev articles rather than test's own
+only, misapplying MIND's documented `N89741` missing-candidate handling)
+was found via this project's standard spot-check discipline and fixed;
+practical impact was assessed as negligible before deciding to submit
+the original prediction set rather than block on a rerun. A corrected
+verification run was still in progress at time of writing and is not
+expected to change this result materially. Full detail, including the
+literature-motivated hypothesis this candidate tested (a trainable text/
+history encoder plus pretrained embeddings, missing from every prior MIND
+attempt) and the real HPC/infrastructure work involved, is in ADR-012.
 
 **Second EB-NeRD submission — contrastive vector on the real test set.**
 Both EB-NeRD submissions round to an identical Score column (0.5404).
@@ -239,14 +269,16 @@ edge, not with a dramatically larger real-test-set win — a second data
 point in the same direction as local validation, not confirmation of a
 large effect.
 
-### 3.6 MIND candidate search: eight other approaches, before G
+### 3.6 MIND candidate search: ten approaches, and what finally worked
 
-Before committing to Candidate G (above), eight other approaches were
-screened on MINDsmall-dev against the deployed baseline (AUC 0.634,
-§3.2). Only G's cohort-gated routing cleared a CI-clear win overall, and
-only F's raw combiner cleared one on the cold cohort alone. Full
+Before Candidate J (§3.5) — the eventual real leaderboard win — ten
+other approaches were screened on MINDsmall-dev against the deployed
+baseline (AUC 0.634, §3.2), all scoring on top of *frozen* sentence
+embeddings with a shallow head. Only G's cohort-gated routing cleared a
+CI-clear win overall (and didn't hold at real leaderboard scale, §3.5),
+and only F's raw combiner cleared one on the cold cohort alone. Full
 methodology, evidence, and interpretation for each candidate is in
-ADR-010 (D–H) and ADR-011 (I).
+ADR-010 (D–H), ADR-011 (I), and ADR-012 (J).
 
 | Candidate | Method | Result vs. baseline |
 |---|---|---|
@@ -256,16 +288,22 @@ ADR-010 (D–H) and ADR-011 (I).
 | D | Symbolic category/entity overlap score | 0.613, CI-clear loss |
 | E | Train-split popularity only, no personalization | 0.532, CI-clear loss |
 | F | 7-feature `LogisticRegression` combiner | 0.626 overall (loss); 0.593 cold (CI-clear win) |
+| G | Cohort-gated routing (deployed embed + F for cold) | 0.637 local (CI-clear win); 0.6192 real leaderboard (flat, §3.5) |
 | H1 | `LogisticRegression`, class-balanced | 0.632, CI-clear loss |
 | H2 | `HistGradientBoostingClassifier` | 0.599, CI-clear loss |
 | I | Attention re-ranker, 5 epochs (first trained model) | 0.623, CI-clear loss |
 | I-long | Same, 30 epochs (holdout AUC climbed to 0.637) | 0.621 dev, worse than the 5-epoch run |
 | I-pop | I-long + an unnormalized popularity feature | 0.513, confounded/inconclusive (see ADR-011) |
+| **J** | **Trainable title+history encoders, GloVe-initialized (Wu et al. 2019)** | **0.658 MINDlarge-dev (CI-clear win); 0.6462 real leaderboard (real win, §3.5)** |
 
-No untuned single alternative signal beats the deployed baseline
-outright; the only real wins found across either round (F's cold cohort,
-G's routing) come from combining signals around `log_popularity` — and
-even G's win didn't hold at real leaderboard scale (§3.5 above).
+Every candidate through I shared the same structural ceiling: a shallow
+head over *frozen* embeddings, never a trainable text/history encoder.
+Candidate J tested that specific hypothesis directly — and, distinctly
+from every other candidate here, needed dedicated GPU compute (obtained
+after this search had already been closed once for lack of it) to do so.
+The result: the only candidate in this list whose local win *widened*
+rather than compressed moving to larger/real scale, and the only one
+whose real leaderboard result was a substantial win rather than flat.
 
 ## 4. Anti-Gaming and Leakage (Q9)
 
@@ -389,19 +427,32 @@ a resolved one.
   anywhere, including inside the archive itself. Whether to also submit a
   second, EB-NeRD-only leaderboard entry using it is an open decision for
   the engineer, not something this note resolves.
-- **Local CI-clear validation wins have not reliably transferred to real
-  blind-test leaderboard results, twice.** MIND's cohort-gated combiner
+- **Local CI-clear validation wins compress at real blind-test scale —
+  but do not always vanish, and one predicted the real result correctly
+  in direction, not just optimistically.** MIND's cohort-gated combiner
   (§3.5) showed a CI-clear win at both a MINDsmall-dev screen (+0.0027)
   and a MINDlarge-dev re-verification (+0.0019), then landed essentially
   flat on the real leaderboard (-0.0003, 896696 vs. 886468). EB-NeRD's
   contrastive-vector submission (§3.5) showed the same pattern in
   miniature: a +0.0023 CI-clear local win compressed to +0.0005 mean AUC
-  on the real test set. Neither case traced to a pipeline defect (both
-  format-verified with this project's standard discipline); the leading
-  explanation in both is that the method's edge was built around
-  properties specific to the validation population (a cohort mix, a
-  small model's fitted coefficients) that the official, temporally
-  disjoint test split doesn't guarantee will hold. With `N=2`, this is a
-  real, named pattern about this project's validation methodology, not
-  yet a quantified relationship between local and real effect sizes
-  (ADR-010's 2026-08-22 addendum).
+  on the real test set. **Candidate J (§3.5/§3.6) is a third, genuinely
+  different data point: a local win that *widened* moving from
+  MINDsmall-dev to MINDlarge-dev (+0.0051 → +0.0244), then compressed at
+  the final real-leaderboard step (0.6579 → 0.6462) like the other two —
+  but stayed a real, substantial win (+0.0267 over the original
+  submission) rather than compressing to flat.** None of the three cases
+  traced to a pipeline defect (all format-verified with this project's
+  standard discipline, including a real narrow-impact bug found and fixed
+  in Candidate J's own submission pipeline via the established spot-check
+  process). The leading explanation for the two flat cases is that the
+  method's edge was built around properties specific to the validation
+  population that the official, temporally disjoint test split doesn't
+  guarantee will hold; Candidate J's more robust transfer is plausibly
+  because a trainable encoder learns more generalizable structure than a
+  small combiner's fitted coefficients over fixed features — inference,
+  not independently verified by a controlled ablation. With `N=3`, this
+  is a clearer, still-not-fully-quantified pattern about this project's
+  validation methodology: local wins reliably compress at real scale, but
+  the *architecture* behind the win appears to matter for whether that
+  compression reaches zero (ADR-010's 2026-08-22 addendum, ADR-012's
+  2026-08-25/26 addenda).
