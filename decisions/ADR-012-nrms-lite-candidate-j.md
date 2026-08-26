@@ -562,7 +562,14 @@ username `apollo19`), saved to
 |---|---|
 | 886468 (original MiniLM embed baseline) | 0.6195 |
 | 896696 (Candidate G, cohort-gated combiner) | 0.6192 |
-| **901961 (Candidate J, NRMS-lite)** | **0.6462** |
+| **901961 (Candidate J, NRMS-lite, original catalog bug)** | **0.6462** |
+| **Corrected resubmission (test-catalog-only fix)** | **0.6462 — identical** |
+
+**Confirms the impact assessment empirically, closing the loop:** even
+the corrected 2,087-impression diff (0.088%, §"A real bug" above) moved
+the real leaderboard score by nothing measurable at Codabench's reported
+precision. The catalog bug was real and worth fixing, but never put the
+submitted result in question.
 
 Next three leaderboard columns (MRR/nDCG@5/nDCG@10 by this project's
 established column-order inference, same as every prior submission):
