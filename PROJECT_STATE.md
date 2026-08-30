@@ -2,6 +2,74 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
+> **RESOLVED (2026-08-30): Candidate K is a real, confirmed Codabench
+> leaderboard win — EB-NeRD's first.** Submission ID **907863**, uploaded
+> 2026-08-29 23:01, scored **0.7542** on the real leaderboard (per-date
+> breakdown mean: 0.7535) — a genuine **+0.2138** over the previous deployed
+> EB-NeRD submission (0.5404) and **+0.1572** over the challenge's own
+> popularity baseline (0.5970), which this project's EB-NeRD line had never
+> beaten before. Within **0.0157 AUC of the honest, leakage-free literature
+> ceiling** (0.7699 — the real winning team's score once the organizers
+> stripped features later found to leak future information). **0.80 was not
+> reached — stated plainly, not rounded up.** Screenshots:
+> `submissions/ebnerd_testset_gbdt_k/leaderboard_screenshot_{upload,rank}.png`.
+>
+> Full trail: local `ebnerd_small` **0.7514–0.7528** → a targeted audit
+> (prompted by the engineer questioning whether recency was used properly)
+> found short-term interest was computed once per user against a split-wide
+> reference, effectively static rather than per-impression — fixed, plus two
+> genuinely missed leak-safe signals added (context-article match, causal
+> session position) → corrected local `ebnerd_small` **0.7581–0.7597** → real
+> `ebnerd_large` training on Ada (12,063,890 train / 12,566,385 validation
+> impressions, full scale) → local `ebnerd_large` validation **0.7590** (95%
+> CI 0.7588–0.7593, essentially unmoved by ~10.7x more training data — a real
+> null result on scale, not smoothed over) → real Codabench **0.7542**, a
+> small honest compression (−0.0048) from local, not the evaporation
+> (Candidate G) or near-total thinning (EB-NeRD contrastive vector) every
+> other CI-clear local win in this project has shown at real test scale.
+>
+> Five distinct, real engineering incidents were hit and fixed getting this
+> onto Ada, none of them modelling bugs: a genuine SLURM OOM (root-caused to
+> two large training-matrix copies never being freed, fixed in code and by
+> raising `--mem-per-cpu`); a real missing-column crash in the blind test set
+> itself (`ebnerd_testset` carries no `article_id` field, unlike
+> train/validation — fixed by extending the same degrade-gracefully pattern
+> already used for optional history columns); a second lightgbm+torch
+> segfault in the test suite (same root cause as an earlier one this session,
+> fixed the same way — relocating the shared function out of the
+> lightgbm-importing script); a cluster-side GPU-idle job cancellation
+> pattern (fixed by splitting the pipeline into a CPU-only download stage and
+> a GPU stage that starts using the GPU within seconds, plus a
+> `$HOME`-persistent shared cache); and one `#SBATCH`-ordering bug in a new
+> script caught and fixed before it shipped, not after another failed
+> submission.
+>
+> Three findings worth carrying forward regardless of any candidate's score:
+> 1. **The project venv was miscomputing.** numpy 1.26.4 had been source-built
+>    against CPython 3.14, an unsupported combination with no released wheel,
+>    and returned provably wrong array results. Rebuilt on Python 3.11 (which
+>    `pyproject.toml` already declares); full suite green afterwards. **It is
+>    not known whether any earlier recorded number in this project came from
+>    the defective build — they have not been re-verified.**
+> 2. **Two literature figures this project was working from were wrong.**
+>    BlackPearl scored **88.15**, not 82.20, and no published leakage-free
+>    BlackPearl number exists; the organizers ablated only the winner
+>    (88.64 → **76.99**). 76.99 is the honest clean anchor. Separately,
+>    Candidate H2 used `HistGradientBoostingClassifier`, not LightGBM/CatBoost.
+> 3. **The BlackPearl-derived long/short-term hypothesis is falsified**, and
+>    more confidently so after the recency fix and at real `ebnerd_large`
+>    scale: short-term features contribute **0.8%** of model gain (down from
+>    an already-small 1.9%); **freshness contributes 33.3%**, with
+>    `article_age_h` the single top feature throughout. What wins on EB-NeRD
+>    is *which candidate is freshest relative to the others in the same
+>    in-view list* and *what the user is reading right now*
+>    (`context_embed_sim`), not hierarchical long/short-term interest
+>    modelling.
+>
+> Full detail in **ADR-013** (canonical, three addenda: 2026-08-27 recency fix
+> + dataset audit, 2026-08-29 real `ebnerd_large` training + five Ada
+> incidents, 2026-08-30 real Codabench result).
+
 > **RESOLVED (2026-08-26): Candidate J is a real, confirmed Codabench
 > leaderboard win.** Real score: **0.6462** (submission ID 901961, rank
 > 47/91, uploaded 2026-08-26 06:58) — vs. the original baseline's 0.6195
@@ -13,7 +81,7 @@
 > stayed a clear win rather than evaporating like Candidate G's did).
 > Screenshots and full detail in ADR-012's 2026-08-26 addendum.
 
-**Last Updated:** August 26, 2026 (latest session — the MIND candidate-search line, explicitly closed on Aug 22 per the engineer's own hard-stop instruction, was reopened after the engineer gained access to Ada (IIIT-H's SLURM HPC cluster) and carried all the way through to a real, confirmed Codabench leaderboard win. **Candidate J (NRMS-lite — trainable title + click-history encoders, Wu et al. 2019, GloVe-initialized): MINDsmall-dev 0.6391, MINDlarge-dev 0.6579 (win widened, not compressed), real Codabench 0.6462 (submission 901961) — a genuine +0.0267 improvement over the original 0.6195 baseline submission, first real leaderboard win this project's MIND search has ever produced.** Along the way: a real multi-hour HPC environment-setup saga (Python 3.6→3.11 via `uv`, a CUDA-version mismatch, node-local `/ssd_scratch` not being cluster-shared, throttled downloads fixed with resumable retry logic in two places), and a real prediction-generation bug (scoring catalog wrongly included train+dev, not test-only) caught by a spot-check and fixed at the root. Initial impact estimate (32/2,370,727, checked against only the one known example) was later corrected once measured directly: real diff is 2,087/2,370,727 (0.088%, ~65x the estimate) — small, but the engineer chose to resubmit the corrected set as a fourth MIND entry rather than let the narrower estimate stand. Full detail in ADR-012 (canonical, four addenda) and ADR-011's addendum (cross-reference). The Aug 22 closure and everything before it (Candidates A-I, I-long, I-pop, all real losses) remains an accurate historical record, not erased — see the Aug 22 entries below.
+**Last Updated:** August 30, 2026 (Candidate K / ADR-013 — EB-NeRD GBDT ranker, **RESOLVED as a real, confirmed Codabench win: submission 907863, Score 0.7542**, +0.2138 over the previous deployed EB-NeRD submission and +0.1572 over the challenge's own popularity baseline — the first time this project's EB-NeRD line has beaten either. Within 0.0157 of the honest leakage-free literature ceiling (0.7699); 0.80 was not reached. Full trail from local ebnerd_small through a real recency-computation fix, real ebnerd_large training on Ada, and the real leaderboard result is in ADR-013's three addenda. Previous session entry follows — the MIND candidate-search line, explicitly closed on Aug 22 per the engineer's own hard-stop instruction, was reopened after the engineer gained access to Ada (IIIT-H's SLURM HPC cluster) and carried all the way through to a real, confirmed Codabench leaderboard win. **Candidate J (NRMS-lite — trainable title + click-history encoders, Wu et al. 2019, GloVe-initialized): MINDsmall-dev 0.6391, MINDlarge-dev 0.6579 (win widened, not compressed), real Codabench 0.6462 (submission 901961) — a genuine +0.0267 improvement over the original 0.6195 baseline submission, first real leaderboard win this project's MIND search has ever produced.** Along the way: a real multi-hour HPC environment-setup saga (Python 3.6→3.11 via `uv`, a CUDA-version mismatch, node-local `/ssd_scratch` not being cluster-shared, throttled downloads fixed with resumable retry logic in two places), and a real prediction-generation bug (scoring catalog wrongly included train+dev, not test-only) caught by a spot-check and fixed at the root. Initial impact estimate (32/2,370,727, checked against only the one known example) was later corrected once measured directly: real diff is 2,087/2,370,727 (0.088%, ~65x the estimate) — small, but the engineer chose to resubmit the corrected set as a fourth MIND entry rather than let the narrower estimate stand. Full detail in ADR-012 (canonical, four addenda) and ADR-011's addendum (cross-reference). The Aug 22 closure and everything before it (Candidates A-I, I-long, I-pop, all real losses) remains an accurate historical record, not erased — see the Aug 22 entries below.
 
 **Current Phase:** MIND + EB-NeRD Codabench submissions (Q5) and the design note (Q7 deliverable #2) were complete as of Aug 14, but the design note's MIND section (§3.5/§6) is now stale — it describes the candidate search as having found no local/real win, which Candidate J's real 0.6462 leaderboard result contradicts. **Updating the design note to reflect Candidate J is the one clearly remaining task from this whole line of work.** Both MIND submissions are now three: 886468 @ 0.6195, 896696 @ 0.6192, 901961 @ 0.6462 (new best). See ADR-012 (full) and ADR-011's addendum (cross-reference) for detail.
 
@@ -32,6 +100,60 @@
 | Benchmarking Framework | ✅ Complete (BM25 + semantic) | 100% | `experiments/{bm25,embed,ranking_bm25,ranking_embed}_{dataset}_{date}/{config,results}.json` pattern applied to both retrieval methods on all three fast-tier corpora plus MINDlarge-dev |
 | Codabench Submission Format | ✅ Complete (MIND: converter + dev-set validation. EB-NeRD: converter + ebnerd_small validation + a real scale fix) | 100% | `src/submission/mind_format.py` — official `impression_id [rank_1,...,rank_N]` format, re-reads the raw zip directly to preserve original candidate order (the processed feature store's deterministic sort destroys it). Validated end-to-end against the real `evaluation/official/evaluate.py` on MINDlarge_dev for both BM25 and embeddings: AUC/nDCG match the project's own `ranking_metrics.py` almost exactly; the one real MRR disagreement is a verified, fully-explained metric-definition difference (official sums 1/rank over all clicked items vs. this project's first-hit-only MRR), not a converter bug. `src/submission/ebnerd_format.py` — direct port of the same design, validated against `ebnerd_small`'s validation split via the same `evaluate.py`. **This session: `read_raw_impressions` (which materialized the whole split as a `list[dict]` before writing anything) was found, by direct measurement, to project to ~16GB at ebnerd_testset's real 13,536,710-impression scale, on top of ~8.5GB for the `behaviors` DataFrame itself (pandas' own `memory_usage(deep=True)` undercounts this >3x for object-dtype list columns) — a real risk MINDlarge_test's 2.37M-impression Part 4 run never surfaced. Fixed at the root: `iter_raw_impressions` is now a generator `write_predictions`/`write_truth_file` consume one row at a time (never materializing the full list), and `read_zip_parquet`/`iter_raw_impressions` now request only the columns actually needed. `read_raw_impressions` kept as `list(iter_raw_impressions(...))` — unchanged contract, all 7 existing unit tests plus 2 new ones (equivalence + laziness) pass, full suite 164/165 (1 pre-existing skip). |
 | Leaderboard Submission | ✅ Complete (MIND now has 3 submissions, EB-NeRD now has 2 submissions) | 100% | **MIND, NRMS-lite (2026-08-26): submission ID 901961, `submissions/mind_large_test_nrms_lite/prediction.zip`, Score 0.6462** — a real, substantial win over both prior MIND submissions (886468 @ 0.6195, 896696 @ 0.6192), the first real leaderboard win this project's entire MIND candidate search has produced. Full detail in ADR-012's 2026-08-26 addendum. MIND, embed (MiniLM): `submissions/mind_large_test_embed/prediction.zip` uploaded to Codabench — leaderboard **Score column 0.6195**, next three columns 0.3006 / 0.3225 / 0.3785 (submission ID 886468, 2026-08-12 13:01). EB-NeRD (competition 2469), MiniLM: `submissions/ebnerd_testset_embed/prediction.zip` uploaded — leaderboard **Score column 0.5404**, next three columns 0.3447 / 0.3823 / 0.4613 (submission ID 888045, 2026-08-13 23:08). Column headers were cropped out of both screenshots, so the exact metric labels aren't directly confirmed — but the four values line up closely with this project's own locally-measured AUC/MRR/nDCG@5/nDCG@10 for embeddings on `ebnerd_small` (0.5430 / 0.3437 / 0.3804 / 0.4591), in that order, strongly suggesting Score = AUC. **EB-NeRD, contrastive vector (2026-08-21): submission ID 896072, `prediction_contrastive.zip`, also Score 0.5404** — an identical rounded Score to 888045 was verified NOT to mean a duplicate upload (different checksums, 99.48% of 13,536,710 impressions rank differently for the same ID). The per-submission detail view (opened individually per submission ID, since Codabench's detail page itself shows no ID — an initial pass nearly mis-attributed a third-party competitor's stray detail table to one of these two) resolves the tie: mean AUC over the 8-date/50%-of-testset breakdown is 0.5402 (contrastive) vs. 0.5397 (MiniLM), a real but thin +0.0005 edge, far smaller than the ~0.0023 CI-clear gap the same comparison showed on local `ebnerd_small` validation (ADR-008's 2026-08-21 Addendum). **MIND, cohort-gated combiner (2026-08-22): submission ID 896696, `submissions/mind_large_test_gated_cohort/prediction.zip`, Score 0.6192** — essentially flat vs. 886468's 0.6195 (-0.0003), despite CI-clear local wins at both the MINDsmall-dev screen (+0.0027) and a MINDlarge-dev re-verification (+0.0019, ADR-010's Addendum). No pipeline defect found (format re-verified with the same discipline as every other submission). Same category of finding as the EB-NeRD contrastive-vector result immediately above — a CI-clear local win compressing substantially at real blind-test scale — now observed twice, on two different datasets; documented as a real, honest pattern in ADR-010's 2026-08-22 Addendum and the design note's §3.5/§6, not smoothed into a false "it worked." Leaderboard runs on the real held-out test set, so exact match to local validation isn't expected regardless — the agreement (or lack of it) is a coherence check, not a reproduction. Screenshots of both the submission-upload confirmation and the leaderboard rank saved to `submissions/{mind_large_test_embed,ebnerd_testset_embed}/leaderboard_screenshot_{upload,rank}.png` (gitignored along with the rest of `submissions/`, per Q8 — source material for the Q6 design note); the second EB-NeRD and second MIND submissions' own screenshots remain on the Desktop, not yet copied into `submissions/`. |
+
+---
+
+# Candidate K — EB-NeRD GBDT Learning-to-Rank (ADR-013, 2026-08-26 → 2026-08-30, RESOLVED)
+
+**Real Codabench result: submission 907863, Score 0.7542** — see the banner
+above and ADR-013's 2026-08-30 addendum for the full comparison. Everything
+below this line was the local-validation state partway through the session,
+kept as an accurate record of how the candidate got there, not the final word.
+
+| Item | Status |
+|---|---|
+| Feature module `src/retrieval/ebnerd_features.py` (65 features after the recency fix + audit) | ✅ Built, 39+ unit tests |
+| Experiment `scripts/run_ebnerd_gbdt_experiment.py` (3 arms + 3 baselines) | ✅ Run on ebnerd_small and real ebnerd_large |
+| Vectorised AUC (`per_impression_auc`, relocated to `src/evaluation/ranking_metrics.py`) | ✅ 11 tests prove exact match to `safe_auc` incl. ties/multi-click/degenerate |
+| Streaming validation scoring | ✅ Verified bit-identical to the materialised path; 18 min → 149 s, memory-bounded |
+| Leakage audit, all features individually | ✅ ADR-013 table; guard enforced in code + parametrised tests |
+| Leakage integration tests on the real bundle | ✅ 8 tests, `slow`-marked |
+| Submission generator (chunked) | ✅ Dry-run scored **0.7524 by the official `evaluate.py`**, exact match to the harness; real testset run wrote 13,536,710 lines matching the true count exactly |
+| Ada pipeline (`ebnerd_prepare_bundle.py` + `ebnerd_gbdt_ada_{prepare,train,score_only}.sbatch`) | ✅ Run for real on Ada — see ADR-013's 2026-08-29 addendum for five distinct incidents hit and fixed |
+| ebnerd_large training | ✅ Real scale: 12,063,890 train / 12,566,385 validation impressions; local validation AUC 0.7590 |
+| Codabench submission | ✅ **Submission 907863, Score 0.7542** — arm shipped: **K_rank_nopos** |
+
+**Local result (ebnerd_small validation, 244,647 impressions / 15,342 users):**
+
+| Arm | AUC | 95% CI |
+|---|---|---|
+| K_cls (binary) | 0.7528 | 0.7511–0.7548 |
+| K_rank_nopos (position withheld) — **the arm to ship** | 0.7524 | 0.7507–0.7543 |
+| K_rank (lambdarank) | 0.7514 | 0.7496–0.7533 |
+| embed_sim (deployed method, same split) | 0.5430 | 0.5415–0.5444 |
+| random | 0.4993 | 0.4979–0.5006 |
+| history-window popularity | 0.4269 | 0.4252–0.4288 |
+
+**Harness sanity:** `embed_sim` reproduces ADR-008 addendum 2's 0.5430 on this
+split to four decimals, and `random` lands at 0.4993 — the evaluation path is
+the same instrument every earlier candidate was judged with.
+
+**The popularity row is NOT the challenge's 0.5970 baseline.** It counts clicks
+over the 21-day *history* window (the only leak-safe source); history-popular
+articles are by construction older, and older is anti-predictive in news. The
+two numbers are different constructions and are not compared.
+
+**Position-bias ablation:** withholding `position_in_view` /
+`relative_position_in_view` *improved* AUC by a CI-clear +0.0011, so the result
+is not "learned Ekstra Bladet's own ranker". K_rank_nopos is quotable without
+caveat, which is why it is the arm selected for submission.
+
+**Known data artifact (bounded, not hidden):** 13 articles across 5.5M candidate
+rows carry a `published_time` later than an impression showing them (0.025%
+train / 0.002% validation). CTR in those rows is *lower* than baseline, so it is
+not exploitable; values are left untransformed because clipping to zero would
+make exactly those rows look maximally fresh. Bounded by test.
+
 
 ---
 

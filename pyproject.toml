@@ -20,6 +20,7 @@ sentence-transformers = "^5.7.0"
 pyarrow = "^22.0.0"
 tqdm = "^4.65.0"
 scipy = "^1.11.0"
+lightgbm = "^4.7.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.0.0"
