@@ -1,5 +1,5 @@
-\documentclass[11pt]{article}
-\usepackage[margin=0.85in]{geometry}
+\documentclass[10.5pt]{article}
+\usepackage[margin=0.75in]{geometry}
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{array}
@@ -40,7 +40,10 @@ This project implements both methods, plus one shared evaluation harness,
 over MIND and EB-NeRD under a unified schema and temporal-split protocol
 (ADR-001, ADR-002), comparing methods and datasets on identical footing
 rather than via method-specific pipelines. Both were pushed through to
-real Codabench leaderboard submissions on both competitions (\S3.5).
+real Codabench leaderboard submissions on both competitions (\S3.5). Each
+dataset's weakest link was then chased with a follow-on candidate ---
+NRMS-lite for MIND (\S3.6), a LightGBM ranker for EB-NeRD (\S3.7) --- both
+of which became this project's real leaderboard wins.
 
 \section{Choices We Made}
 
@@ -76,13 +79,10 @@ users get an explicit all-zero vector, mirroring BM25's own cold-start
 reporting posture.
 \end{sloppypar}
 
-\begin{sloppypar}
 Rejecting EB-NeRD's provided embeddings (above) was argued, not measured,
-until a follow-up (ADR-008 Addendum, 2026-08-19, same eval code) found the
-provided artifact wins recall@K and every Q4 accuracy metric by a
-CI-clear margin (AUC 0.5453 vs.\ 0.5430) but loses Diversity@10 --- a real
-trade-off, EB-NeRD-only, not a blanket verdict (\S6).
-\end{sloppypar}
+until a follow-up (ADR-008 Addendum) found the provided artifact wins
+recall@K/accuracy CI-clear (AUC 0.5453 vs.\ 0.5430) but loses Diversity@10
+--- a real, EB-NeRD-only trade-off, not a blanket verdict.
 
 \textbf{Evaluation.} Two distinct questions are measured, not conflated:
 \emph{recall@K} (does retrieval surface the clicked article out of the
@@ -120,7 +120,7 @@ EB-NeRD-small val & Embed & 0.14\% & 0.43\% & 1.21\% \\
 
 {\footnotesize *EB-NeRD's active-user-filtered bundles have zero cold-start
 users (min history length = 5) by construction. Source:
-\texttt{experiments/\{bm25,embed\}\_\{mind,ebnerd,ebnerd\_small\}\_2026-08-10/}.
+\texttt{experiments/\allowbreak\{bm25,embed\}\_\allowbreak\{mind,ebnerd,ebnerd\_small\}\_\allowbreak2026-08-10/}.
 Not run at MINDlarge scale --- flagged in \S6, not approximated.\par}
 
 \subsection*{3.2 Q4 ranking metrics --- AUC / MRR / nDCG (bootstrap 95\% CI)}
@@ -142,22 +142,16 @@ EB-NeRD-small val & Embed & 0.543 (0.541--0.544) & --- & n/a \\
 \end{tabular}\par}
 
 On MIND (both scales), embeddings' AUC CI does not overlap BM25's on
-either cohort. The warm/cold gap is \emph{not} similar between methods:
-BM25's is $\Delta$0.052--0.056, embeddings' is $\Delta$0.068--0.070 ---
-embeddings lift warm AUC by $\sim$0.065--0.067 over BM25 but cold by only
-$\sim$0.050--0.053, widening the relative warm/cold disparity rather than
-closing it.
-
-On EB-NeRD, embeddings' AUC CI also does not overlap BM25's --- a modest
-($\sim$0.011--0.014) edge --- despite BM25 winning recall@K by 1.6--2.3x
-on the \emph{same} corpus (\S3.1); recall@K asks whether the click is
-anywhere in the whole catalog, AUC asks how well the method ranks
-EB-NeRD's already-curated, shorter candidate lists (median 9--12 vs.\
-MIND's 23) --- see \S6 for the leading explanation.
-
-MRR/nDCG@5/nDCG@10: embeddings lead BM25 by a similar margin on MIND
-(e.g.\ MINDlarge nDCG@10: 0.390 vs.\ 0.350) and a smaller, mixed margin on
-EB-NeRD (e.g.\ EB-NeRD-small nDCG@10: 0.459 vs.\ 0.454).
+either cohort, and widens the relative warm/cold disparity rather than
+closing it (embeddings lift warm AUC $\sim$0.065--0.067 over BM25 but
+cold by only $\sim$0.050--0.053). On EB-NeRD, embeddings' AUC CI also
+doesn't overlap BM25's --- a modest ($\sim$0.011--0.014) edge --- despite
+BM25 winning recall@K by 1.6--2.3x on the \emph{same} corpus (\S3.1):
+recall@K asks whether the click is anywhere in the whole catalog, AUC
+asks how well the method ranks EB-NeRD's already-curated, shorter
+candidate lists (median 9--12 vs.\ MIND's 23) --- see \S6. MRR/nDCG@5/@10
+follow AUC's direction on both datasets (e.g.\ MINDlarge nDCG@10: 0.390
+vs.\ 0.350; EB-NeRD-small: 0.459 vs.\ 0.454).
 
 \subsection*{3.3 Diversity / novelty / coverage (K=10, point estimate for coverage)}
 
@@ -202,6 +196,7 @@ MIND (competitions/13967) & Cohort-gated combiner & 0.6192 & 896696 & 2026-08-22
 MIND (competitions/13967) & \textbf{NRMS-lite (Cand.\ J)} & \textbf{0.6462} & 901961 & 2026-08-26 \\
 EB-NeRD (competitions/2469) & Embed (MiniLM) & 0.5404 & 888045 & 2026-08-13 23:08 \\
 EB-NeRD (competitions/2469) & Contrastive vector & 0.5404 & 896072 & 2026-08-21 13:01 \\
+EB-NeRD (competitions/2469) & \textbf{GBDT ranker (Cand.\ K, \S3.7)} & \textbf{0.7542} & 907863 & 2026-08-29 23:01 \\
 \bottomrule
 \end{tabular}\par}
 \vspace{-3pt}
@@ -212,44 +207,24 @@ local validation AUC on \texttt{ebnerd\_small} (0.5430) --- a coherence
 check, not a claim the two are defined identically.
 
 \textbf{Second MIND submission --- cohort-gated combiner, essentially
-flat.} Local validation predicted a real, CI-clear win at every stage:
-+0.0027 on MINDsmall-dev (95\% CI +0.0018 to +0.0034), +0.0019 on a
-MINDlarge-dev re-verification (95\% CI +0.0015 to +0.0023, ADR-010's
-Addendum). The real result: \textbf{0.6192 vs.\ 886468's 0.6195, a
--0.0003 difference} --- essentially flat, not the win either local check
-predicted. No pipeline defect found (line count, malformed-permutation,
-and all 32 \texttt{N89741}-affected-impression checks all clean). Most
-likely a genuine population difference --- MIND's dev/test splits are
-disjoint calendar weeks (ADR-001) --- so the edge was built around
-MINDlarge-dev-specific properties, not a population-independent effect.
+flat.} Local validation predicted a CI-clear win at every stage
+(+0.0027 MINDsmall-dev, +0.0019 MINDlarge-dev re-verification, ADR-010's
+Addendum), but the real result was \textbf{0.6192 vs.\ 886468's 0.6195
+(-0.0003)} --- flat, not the predicted win. No pipeline defect found
+(line count, malformed-permutation, all 32 \texttt{N89741} cases clean);
+most likely a genuine population difference, since MIND's dev/test splits
+are disjoint calendar weeks (ADR-001) and this edge was built around
+MINDlarge-dev-specific properties.
 
 \textbf{Second EB-NeRD submission --- contrastive vector, real test set.}
-Both submissions round to the same Score (0.5404) --- checked before
-trusting it: the two \texttt{predictions.txt} differ in checksum, and
-99.48\% of impressions rank differently for the same ID, confirming
-independent runs, not a duplicate upload. The per-submission detail view
-(grouped by date, ``50\% of the testset'') resolves the tie:
-\vspace{-2pt}
-
-{\tiny
-\renewcommand{\arraystretch}{0.85}
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lccccccccc@{}}
-\toprule
- & 06-01 & 06-02 & 06-03 & 06-04 & 06-05 & 06-06 & 06-07 & 06-08 & \textbf{MEAN} \\
-\midrule
-MiniLM AUC & 0.5374 & 0.5422 & 0.5755 & 0.5444 & 0.5296 & 0.5330 & 0.5316 & 0.5240 & \textbf{0.5397} \\
-Contrastive AUC & 0.5597 & 0.5533 & 0.5504 & 0.5226 & 0.5314 & 0.5489 & 0.5231 & 0.5323 & \textbf{0.5402} \\
-\bottomrule
-\end{tabular}\par}
-\vspace{-3pt}
-
-Contrastive leads 5/8 days and the mean, but thinly (+0.0005, sign flips
-three times day-to-day). MRR/nDCG@5/nDCG@10 means agree in direction
-(0.3553 vs.\ 0.3452; 0.3898 vs.\ 0.3825; 0.4695 vs.\ 0.4615), but this AUC
-margin is far smaller than the \textbf{$\sim$0.0023 CI-clear gap}
-ADR-008's Addendum measured locally (0.5453 vs.\ 0.5430) --- real but
-small, not a dramatically larger win.
+Both submissions round to the same Score (0.5404) --- checked, not
+assumed identical: different checksums, 99.48\% of impressions rank
+differently for the same ID, confirming independent runs. Codabench's
+per-submission detail view (grouped by date, ``50\% of the testset'')
+resolves the tie: contrastive leads 5/8 days and the mean AUC (0.5402
+vs.\ 0.5397, +0.0005, sign flips three times day-to-day) --- real but far
+smaller than the \textbf{$\sim$0.0023 CI-clear gap} ADR-008's Addendum
+measured locally (0.5453 vs.\ 0.5430).
 
 \textbf{Third MIND submission --- NRMS-lite (Candidate J), a real win.}
 A trainable title/history self-attention architecture (Wu et al.\ 2019,
@@ -258,6 +233,11 @@ Trail: MINDsmall-dev 0.6391 $\to$ MINDlarge-dev 0.6579 (margin
 \emph{widened}, unique among all candidates) $\to$ real leaderboard
 \textbf{0.6462} (\textbf{+0.0267} over the original submission ---
 compressed from the dev screen, but a real win, unlike the combiner above).
+A narrow-impact scoring-catalog bug (initially estimated 32/2,370,727
+impressions, later measured directly at 2,087/2,370,727, 0.088\%) was found
+and fixed post-submission; a corrected resubmission scored an identical
+\textbf{0.6462}, confirming the bug never put the result in question
+(ADR-012).
 
 \subsection*{3.6 MIND candidate search: ten approaches, and what worked}
 
@@ -287,6 +267,60 @@ I-pop & I-long + raw popularity feature & 0.513, inconclusive \\
 \textbf{J} & \textbf{Trainable title+history encoders} & \textbf{0.658 local win; 0.6462 real win} \\
 \bottomrule
 \end{tabular}\par}
+
+\subsection*{3.7 EB-NeRD candidate search: Candidate K (GBDT learning-to-rank)}
+
+EB-NeRD's deployed score (0.5404) sits \emph{below} the challenge's own
+popularity baseline (0.5970): in-view candidates are drawn from the same
+front page at the same moment (median age 3.7h, 58\% under 6h), leaving
+content similarity little to discriminate on. Unlike MIND's ten-way search
+(\S3.6), EB-NeRD's search is a single candidate, K --- a LightGBM
+learning-to-rank model over 65 engineered behavioural/temporal features
+--- chosen because the RecSys Challenge 2024 organizers' own report states
+most real competitors used GBDT ensembles, not neural architectures; a
+better-embeddings option and an NRMS-style option (as Candidate J did for
+MIND) were both rejected on that evidence before building K (ADR-013).
+
+\begin{sloppypar}
+\textbf{A real per-impression bug was found and fixed mid-session.}
+Short-term (recency-decayed) features were computed once per \emph{user}
+against a shared reference time, not once per \emph{impression} ---
+effectively static. Fixed (\texttt{compute\_short\_term\_features},
+referenced to each impression's own timestamp); a second, independently
+found leak-safety gap in the same path (no upper bound excluding a
+future-dated history click) was closed at the same time. Local
+\texttt{ebnerd\_small} AUC moved from \textbf{0.7514--0.7528 to
+0.7581--0.7597}, CI-clear (ADR-013's 2026-08-27 Addendum).
+\end{sloppypar}
+
+\textbf{Trained at real \texttt{ebnerd\_large} scale on Ada} (IIIT-H's
+SLURM cluster): 12{,}063{,}890 train / 12{,}566{,}385 validation
+impressions, the latter scored in full via a streaming path. Result: local
+validation AUC \textbf{0.7590 (95\% CI 0.7588--0.7593)} --- essentially
+unmoved by $\sim$10.7x more training data, a real null result on scale for
+this feature set (ADR-013's 2026-08-29 Addendum).
+
+\textbf{Real Codabench result: 0.7542} (\S3.5) --- \textbf{+0.2138} over
+the previous deployed EB-NeRD submission, \textbf{+0.1572} over the
+challenge's popularity baseline. Compression from local
+\texttt{ebnerd\_large} validation was small (0.7590 $\to$ 0.7542,
+$-$0.0048) --- the first EB-NeRD/MIND candidate here whose CI-clear local
+win transferred largely intact, rather than evaporating (MIND's
+cohort-gated combiner) or thinning to near-nothing (EB-NeRD's contrastive
+vector), plausibly because its edge is structural, leak-safe item-level
+signal rather than a validation-population-specific pattern (ADR-013's
+2026-08-30 Addendum).
+
+Feature importance at real scale: freshness (led by \texttt{article\_age\_h})
+is \textbf{33.3\%} of gain; long-term interest 14.1\%; \textbf{short-term
+interest only 0.8\%} (down from an already-small 1.9\% pre-fix at
+small scale). The BlackPearl-derived long/short-term hypothesis this
+candidate was built to test is therefore \textbf{falsified}: what wins is
+freshness \emph{relative to other candidates in the same list} and
+\texttt{context\_embed\_sim} (what the user is reading right now), not
+modelled user interest. Withholding position features \emph{improved} AUC
+by a CI-clear +0.0011 --- the shipped arm (\texttt{K\_rank\_nopos}) omits
+them and needs no such caveat.
 
 \section{Anti-Gaming and Leakage (Q9)}
 
@@ -349,50 +383,67 @@ $\rightarrow$ ebnerd\_testset (13.5M, 5.7x further)} hit a third,
 structurally identical failure: a converter materializing a full
 \texttt{list[dict]} before writing projected to $\sim$16GB, invisible at
 the smaller scale --- fixed by a generator consuming one row at a time.
+\textbf{\texttt{ebnerd\_small} $\rightarrow$ real \texttt{ebnerd\_large}
+training on Ada} ($\sim$52x further train impressions) hit a fourth,
+real SLURM-confirmed OOM: an un-split 65-feature train matrix
+($\sim$11.5GB) was never freed, and a column-sliced copy needed by one arm
+coexisted with it ($\sim$22.7GB from four arrays alone). Fixed by freeing
+the matrix once training finished, capping the training sample
+4M$\to$2.5M impressions, and raising \texttt{--mem-per-cpu} 4G$\to$8G
+(four further non-modelling Ada incidents the same session in ADR-013's
+2026-08-29 Addendum).
 
-Projecting one more 10x from the largest verified scale (MINDlarge:
-255{,}990 users/72{,}023 articles; EB-NeRD: 13.5M impressions) is
-inference, not measurement. (1) Retrieval time scales roughly linearly
-with users --- 10x alone projects to $\sim$98 min (BM25) / $\sim$104 min
-(embeddings), feasible locally. (2) Brute-force cosine is
-$O(\text{users}\times\text{articles})$ --- if the corpus also grows 10x,
-that's 100x compute: $\sim$10.4 min $\to$ roughly \textbf{17 hours},
-forcing a revisit of ADR-008's ``FAISS unjustified'' call. (3) Every bug
-so far shared one shape --- a per-row-object or full-materialization
-pattern past an unexercised scale; nothing guarantees another path is
-safe at 10x further.
+Projecting one more 10x from the largest verified scale is inference, not
+measurement: (1) retrieval time scales roughly linearly with users, so
+10x users alone stays locally feasible ($\sim$100 min); (2) brute-force
+cosine is $O(\text{users}\times\text{articles})$, so a 10x corpus
+alongside 10x users is 100x compute ($\sim$10.4 min $\to \sim$17 hours),
+forcing a revisit of ADR-008's ``FAISS unjustified'' call; (3) every real
+bug so far shared one shape --- a per-row-object or full-materialization
+pattern past an unexercised scale --- and nothing guarantees another path
+is safe at a further 10x.
 
 \section{Limitations and Open Questions}
-\enlargethispage{8\baselineskip}
+\enlargethispage{3\baselineskip}
 
 \begin{sloppypar}
 \begin{itemize}
+\item \textbf{EB-NeRD's real result (0.7542, \S3.7) did not reach this
+  project's internally-discussed 0.80 target --- stated plainly.} The
+  target referenced a leakage-dependent figure: the RecSys Challenge 2024
+  winner scored 88.64 in the organizers' own ablation arm, but
+  \textbf{76.99} once those same features were found to leak future
+  information and removed (an 11.65-point drop; arXiv:2409.20483). 76.99
+  is the honest ceiling this project can defensibly compare against;
+  0.7542 sits \textbf{0.0157 below it}, on
+  features that passed the same leakage audit every candidate here uses.
 \item \textbf{True (zero-history) cold-start is a shared ceiling}, not
-  solved by either method --- MIND's cold-cohort recall@200 is nearly
-  identical (BM25 1.78\% vs.\ embed 1.81\%).
-\item \textbf{EB-NeRD's cold cohort is structurally empty} in both
-  \texttt{demo} and \texttt{small} (min history length = 5, by
-  construction), so no warm/cold comparison exists for EB-NeRD;
-  \texttt{ebnerd\_large} is unverified, and recall@K (\S3.1) was never run
-  at MINDlarge scale.
-\item \textbf{The Q9 leakage-boundary test is real but partial} --- passes
-  for EB-NeRD, skip-marked for MIND (no per-click timestamps; \S4). The
-  Q9 ablation's magnitude is specific to an untuned 50/50 blend --- a
-  real, CI-clear lower bound, not the maximum a calibrated leaky model
-  could extract.
-\item \textbf{Two choices rest on a proxy check, not a gold standard}: the
-  encoder uses a category-based discrimination proxy, not a curated
-  near-duplicate set (ADR-008); the hand-built Danish+English stopword
-  list is unvalidated against an NLP resource (ADR-005).
+  solved by either method (MIND cold-cohort recall@200: BM25 1.78\% vs.\
+  embed 1.81\%); EB-NeRD's cold cohort is structurally empty in both
+  \texttt{demo}/\texttt{small} (min history length = 5, \texttt{large}
+  unverified), and recall@K (\S3.1) was never run at MINDlarge scale.
+\item \textbf{The Q9 leakage-boundary test is real but partial} (passes
+  EB-NeRD, skip-marked MIND, no per-click timestamps; \S4); its ablation
+  magnitude is a lower bound, not a maximum, from an untuned 50/50 blend.
+  Two other choices rest on a proxy, not a gold standard: the encoder's
+  discrimination check (ADR-008) and the stopword list (ADR-005).
 \item \textbf{The EB-NeRD recall-vs-AUC disagreement isn't fully
   explained} (\S3.2): BM25 wins whole-corpus recall 1.6--2.3x, yet
-  embeddings edge the curated candidate-list AUC --- plausibly the
-  diffuse mean-pooled query, not isolated.
+  embeddings edge the curated candidate-list AUC --- plausibly a diffuse
+  mean-pooled query, not isolated by experiment.
 \item \textbf{Local wins compress at real scale, but don't always
   vanish}: MIND's combiner and EB-NeRD's contrastive vector compressed to
   flat; Candidate J widened at MINDlarge-dev, then compressed at the real
-  leaderboard but stayed substantial (+0.0267 over baseline, \S3.5/3.6)
-  --- architecture plausibly affects compression (inference).
+  leaderboard but stayed substantial (+0.0267 over baseline, \S3.5/3.6);
+  \textbf{Candidate K compressed least of all} (0.7590 local $\to$ 0.7542
+  real, $-$0.0048, \S3.7) --- architecture/signal type plausibly affects
+  compression (inference, $N=4$). Relatedly, the BlackPearl long/short-term
+  hypothesis (A1, ADR-013) is \textbf{falsified}: short-term interest fell
+  to 0.8\% of Candidate K's gain \emph{after} the recency fix made it more
+  correctly computed, not less important.
+\item \textbf{A numpy/CPython 3.14 mismatch produced provably wrong array
+  results (ADR-013)}, fixed by rebuilding on Python 3.11 --- unclear if
+  any earlier number predates the fix.
 \end{itemize}
 \end{sloppypar}
 

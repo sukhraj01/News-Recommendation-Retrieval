@@ -17,7 +17,11 @@ harness, over MIND and EB-NeRD under a unified schema and temporal-split
 protocol (ADR-001, ADR-002), so the two methods and two datasets are
 compared on identical footing rather than via method-specific pipelines.
 Both methods were pushed through to real Codabench leaderboard submissions
-on both competitions (§3.5).
+on both competitions (§3.5). Beyond that required baseline, each dataset's
+weakest link was then chased with a dedicated follow-on candidate — a
+trainable NRMS-lite encoder for MIND (§3.6) and a LightGBM learning-to-rank
+model over engineered behavioural/temporal features for EB-NeRD (§3.7) —
+both of which became this project's real leaderboard wins.
 
 ## 2. Choices We Made
 
@@ -164,8 +168,16 @@ impressions, no local ground truth) required Kaggle.
 | MIND (competitions/13967) | Embed (MiniLM) | 0.6195 | 886468 | 2026-08-12 13:01 |
 | MIND (competitions/13967) | Cohort-gated combiner (§ADR-010 Addendum) | 0.6192 | 896696 | 2026-08-22 |
 | MIND (competitions/13967) | **NRMS-lite, Candidate J (§ADR-012)** | **0.6462** | 901961 | 2026-08-26 06:58 |
+| MIND (competitions/13967) | NRMS-lite, Candidate J, corrected catalog (§ADR-012) | 0.6462 (identical) | not separately recorded\*\* | 2026-08-26 |
 | EB-NeRD (competitions/2469) | Embed (MiniLM) | 0.5404 | 888045 | 2026-08-13 23:08 |
 | EB-NeRD (competitions/2469) | Contrastive vector (§ADR-008 Addendum) | 0.5404 | 896072 | 2026-08-21 13:01 |
+| EB-NeRD (competitions/2469) | **GBDT ranker, Candidate K (§3.7/ADR-013)** | **0.7542** | 907863 | 2026-08-29 23:01 |
+
+\*\*The corrected-catalog resubmission's score was confirmed by the engineer directly on the
+Codabench leaderboard but, unlike every other submission in this table, no distinct submission
+ID or screenshot was captured for it (`submissions/mind_large_test_nrms_lite_corrected/` holds
+only the prediction files, not a screenshot) — recorded here as a real, minor gap in this
+project's own screenshotting discipline, not smoothed over (ADR-012).
 
 Both submissions used the embedding method — the clear winner on local
 dev-set AUC for both datasets (§3.2). EB-NeRD's first leaderboard score
@@ -220,10 +232,17 @@ narrow-impact bug (32 of 2,370,727 impressions, 0.0013% — the scoring
 catalog initially included train+dev articles rather than test's own
 only, misapplying MIND's documented `N89741` missing-candidate handling)
 was found via this project's standard spot-check discipline and fixed;
-practical impact was assessed as negligible before deciding to submit
-the original prediction set rather than block on a rerun. A corrected
-verification run was still in progress at time of writing and is not
-expected to change this result materially. Full detail, including the
+practical impact was initially assessed as negligible (32/2,370,727,
+0.0013%) from checking only the one previously-documented example, before
+deciding to submit the original prediction set rather than block on a
+rerun. A corrected re-run was later diffed directly against the original,
+not re-estimated: the real measured impact was **2,087/2,370,727 (0.088%,
+~65x the initial estimate)** — a real correction to the "negligible" claim,
+not a confirmation of it. Given the larger real number, the engineer
+resubmitted the corrected prediction set as a fourth MIND entry; it scored
+**0.6462 — identical to the original submission**, empirically closing the
+loop that the catalog bug, while real and worth fixing at the root, never
+put the submitted result in question. Full detail, including the
 literature-motivated hypothesis this candidate tested (a trainable text/
 history encoder plus pretrained embeddings, missing from every prior MIND
 attempt) and the real HPC/infrastructure work involved, is in ADR-012.
@@ -305,6 +324,75 @@ The result: the only candidate in this list whose local win *widened*
 rather than compressed moving to larger/real scale, and the only one
 whose real leaderboard result was a substantial win rather than flat.
 
+### 3.7 EB-NeRD candidate search: Candidate K (GBDT learning-to-rank)
+
+EB-NeRD's deployed leaderboard score (0.5404, §3.5) sits *below* the
+challenge's own popularity baseline (0.5970) — content-similarity retrieval
+plateaus because in-view candidates are drawn from the same front page at
+the same moment, so they are already topically adjacent and recently
+published, leaving little for cosine similarity to discriminate on
+(measured: median candidate age 3.7h, 58% under 6h). Unlike MIND's search
+(§3.6, ten scored variants), EB-NeRD's search is a single candidate —
+Candidate K, a LightGBM learning-to-rank model over 65 engineered
+behavioural/temporal features — because the RecSys Challenge 2024
+organizers' own report states most real competitors used GBDT ensembles
+over engineered features, not neural architectures, and this project's own
+Option-1 (better embeddings) and Option-2 (NRMS-style, as Candidate J did
+for MIND) alternatives were both rejected on evidence before building K
+(ADR-013's Design Space Exploration).
+
+**A real per-impression bug was found and fixed mid-session.** The
+short-term (recency-decayed) features were initially computed once per
+*user* against the whole split's reference time, not once per *impression*
+— effectively static, not capturing genuine short-term dynamics. Prompted
+by the engineer questioning whether recency was used properly, the fix
+(`compute_short_term_features`, referenced to each impression's own
+timestamp) was verified to change behavior on a synthetic case where it
+previously couldn't, and a second, independently-found leak-safety gap in
+the same code path (no upper bound excluding a future-dated history click)
+was closed before re-running. Local `ebnerd_small` validation moved from
+**0.7514–0.7528 (pre-fix) to 0.7581–0.7597 (post-fix)**, a CI-clear
+improvement — not because recency stopped mattering, but because the
+feature now actually measured it (ADR-013's 2026-08-27 Addendum).
+
+**Trained at real `ebnerd_large` scale on Ada** (IIIT-H's SLURM HPC
+cluster): 12,063,890 train / 12,566,385 validation impressions — the full
+validation set, scored via a streaming path, not a sample. Result: local
+validation AUC **0.7590 (95% CI 0.7588–0.7593)**, essentially unmoved from
+the `ebnerd_small` screen despite ~10.7x more training data — a real null
+result on scale for this feature set, consistent with the finding below
+that the model's edge is item-level (freshness, immediate context) rather
+than deepening per-user history modelling (ADR-013's 2026-08-29 Addendum).
+
+**Real Codabench result: submission 907863, Score 0.7542** (§3.5) —
+**+0.2138** over the previously deployed EB-NeRD submission and **+0.1572**
+over the challenge's own popularity baseline, the first time this
+project's EB-NeRD line has beaten either. The compression from local
+`ebnerd_large` validation (0.7590 → 0.7542, −0.0048) is small and honest —
+the first EB-NeRD/MIND candidate in this project whose CI-clear local win
+transferred to the real leaderboard largely intact, rather than evaporating
+(MIND's cohort-gated combiner, §3.5) or thinning to near-nothing (EB-NeRD's
+contrastive vector, §3.5). The most likely reason: this candidate's edge
+comes from structural, leak-safe item-level signal, not a subtle pattern
+specific to the validation population (ADR-013's 2026-08-30 Addendum).
+
+**What actually drove the result.** Feature-importance at real
+`ebnerd_large` scale: freshness features (led by `article_age_h`, the
+single top feature throughout) contribute **33.3%** of model gain;
+long-term interest 14.1%; **short-term interest only 0.8%** (down from an
+already-small 1.9% pre-large-scale, confirming the direction rather than
+reversing it). The BlackPearl-derived long/short-term hierarchical
+interest hypothesis this candidate was originally built to test is
+therefore **falsified**, with more confidence after the recency fix and at
+scale, not less: what wins is *which candidate is freshest relative to the
+others in the same in-view list* and *what the user is reading right now*
+(`context_embed_sim`, the single strongest of the newly-added context
+features), not modelled long/short-term user interest. Withholding
+`position_in_view`/`relative_position_in_view` *improved* AUC by a
+CI-clear +0.0011, so the result is not "learned Ekstra Bladet's own
+ranker" — the shipped arm (`K_rank_nopos`) withholds them and is quotable
+without that caveat.
+
 ## 4. Anti-Gaming and Leakage (Q9)
 
 Two separate Q9 obligations, both addressed directly rather than only
@@ -371,6 +459,23 @@ a 2x one — a pattern, not a one-off:
   failure mode: a converter that materialized a full `list[dict]` before
   writing anything projected to ~16GB, invisible at the smaller scale.
   Fixed by making the read path a generator, consumed one row at a time.
+- **`ebnerd_small` (232,887 train impressions) → real `ebnerd_large`
+  training on Ada (12,063,890 train impressions, ~52x further) hit a
+  real, SLURM-confirmed OOM** — a fourth occurrence of the same shape.
+  Root cause: the un-split 65-feature train matrix (`fit_X`/`stop_X`,
+  ~11.5GB) was never freed once training finished, and the arm withholding
+  two features (`K_rank_nopos`) required a column-sliced *copy* (numpy
+  always copies for fancy-indexed column selection) that coexisted with
+  it — ~22.7GB from four arrays alone, invisible at `ebnerd_small`'s
+  scale. Fixed three ways: the code now frees `fit_X`/`stop_X` once the
+  arm loop finishes (grep-confirmed they're never read again),
+  `--train-sample-impressions` was cut from 4,000,000 to 2,500,000, and
+  `--mem-per-cpu` was raised 4G→8G. Getting this run onto Ada also
+  surfaced four further real, non-modelling engineering incidents in the
+  same session (a missing `article_id` column in the blind test set, a
+  lightgbm+torch import segfault, a GPU-idle job-cancellation pattern
+  from a throttled download, and one `#SBATCH`-ordering bug caught before
+  it shipped) — see ADR-013's 2026-08-29 Addendum for the full account.
 
 **Projecting one more 10x from the largest scale currently verified**
 (MINDlarge: 255,990 users / 72,023 articles; EB-NeRD: 13.5M impressions)
@@ -391,6 +496,22 @@ a resolved one.
 
 ## 6. Limitations and Open Questions
 
+- **EB-NeRD's real result (0.7542, §3.7) did not reach this project's own
+  internally-discussed 0.80 target — stated plainly, not rounded up.**
+  That target itself was set with reference to a literature figure that
+  turned out to be leakage-dependent: the RecSys Challenge 2024
+  organizers' own report (arXiv:2409.20483) shows the winning team scored
+  89.24 as submitted (88.64 in their own ablation-arm-with-features), but
+  dropped to **76.99** once the organizers removed features later found
+  to leak future information — an 11.65-point collapse. That leakage-free
+  76.99 is the honest ceiling this project can defensibly compare
+  against, not the unablated 80+ figures; this project's own 0.7542 sits
+  **0.0157 below that honest ceiling**, closing most of the gap to a
+  real, leakage-audited top-tier result using only features that passed
+  the same per-feature leakage audit this project holds every candidate
+  to (ADR-013's opening Reference Points table and 2026-08-30 Addendum).
+  No published leakage-free score exists for 2nd place (BlackPearl, 88.15
+  as submitted) — the organizers only ablated the winner.
 - **True (zero-history) cold-start is a shared ceiling, not something
   either method solves.** MIND's cold-cohort recall@200 is nearly
   identical between methods (BM25 1.78% vs. embed 1.81%).
@@ -455,4 +576,31 @@ a resolved one.
   validation methodology: local wins reliably compress at real scale, but
   the *architecture* behind the win appears to matter for whether that
   compression reaches zero (ADR-010's 2026-08-22 addendum, ADR-012's
-  2026-08-25/26 addenda).
+  2026-08-25/26 addenda). **Candidate K (§3.7) is a fourth data point,
+  and the cleanest yet**: local `ebnerd_large` win 0.7590 → real 0.7542,
+  a −0.0048 compression, an order of magnitude smaller than any prior
+  case. Its edge comes from structural, leak-safe item-level signal
+  (freshness, immediate context) rather than a cohort-specific rule or a
+  marginal embedding-artifact edge — strengthening, not just repeating,
+  the inference that architecture/signal type affects how much a local
+  win survives real-test-set transfer (ADR-013's 2026-08-30 Addendum).
+- **The BlackPearl-derived long/short-term interest hypothesis (A1,
+  ADR-013) is falsified, not just unconfirmed.** Short-term interest
+  features contribute only 0.8% of Candidate K's model gain at real
+  `ebnerd_large` scale (down from an already-small 1.9% before a
+  per-impression recency bug was fixed) — the fix made short-term
+  features *more* correctly computed, not more important. Freshness
+  (33.3%) and immediate context (`context_embed_sim`) drive the result
+  instead. Reported because it contradicts the hypothesis the candidate
+  was built to test, not smoothed into a generic "features helped."
+- **A numpy/CPython version-mismatch defect was found and fixed
+  (ADR-013), and it is not known whether any earlier recorded number in
+  this project was computed under it.** The project virtualenv had numpy
+  1.26.4 source-built against CPython 3.14 (no released wheel for that
+  combination), and was measured producing provably wrong array results
+  (a stored boolean array disagreeing with a fresh recomputation of the
+  identical expression). Rebuilt on Python 3.11, which `pyproject.toml`
+  already declares; the full test suite passed afterward. This ADR does
+  not claim any prior number is wrong — only that it has not been
+  re-verified under a supported interpreter, which is itself worth
+  stating rather than leaving implicit.
