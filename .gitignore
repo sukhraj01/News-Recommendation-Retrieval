@@ -71,3 +71,34 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# --- Performance benchmarking (ADR-014) ---------------------------------
+# SLURM writes job logs (%x_%j.out / .err) into the directory the job was
+# submitted from. Those are transient and would accumulate in the repo root on
+# every run. The deliberately FETCHED Ada logs under
+# benchmarks/results/ada/ are deliberately NOT matched by these rules — they are
+# the primary record behind ADR-014's job ids and are kept as evidence.
+/*.out
+/*.err
+/benchmarks/*.out
+/benchmarks/*.err
+
+# Snapshot JSONs are written by the pre-commit hook on EVERY performance-
+# relevant commit, so they grow without bound. PERFORMANCE_LOG.md already
+# carries the human-readable before/after record, which is the deliverable.
+# The full-scale profile/ablation JSONs in benchmarks/results/ are NOT ignored:
+# they are small (164KB total), written rarely, and are the evidence ADR-014
+# cites directly — the analogue of experiments/results.json, not of the model
+# blobs that got experiments/ ignored wholesale.
+benchmarks/results/snapshots/
+
+# Large numeric/model artifacts, wherever they land. None are tracked today;
+# these are a guard for a fresh remote, where an accidental large commit is
+# permanent in history even after deletion.
+*.npy
+*.parquet
+*.pkl
+*.joblib
+*.h5
+*.onnx
+*.safetensors

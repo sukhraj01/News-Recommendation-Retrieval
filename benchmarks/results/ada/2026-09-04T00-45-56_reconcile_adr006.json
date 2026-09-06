@@ -1,0 +1,61 @@
+{
+  "benchmark": "reconcile_adr006_bm25_projection",
+  "timestamp": "2026-09-04T00:45:38",
+  "git_rev": "unknown",
+  "hardware_label": "NVIDIA GeForce RTX 2080 Ti",
+  "hardware": {
+    "platform": "Linux-5.15.0-187-generic-x86_64-with-glibc2.35",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "python": "3.11.16",
+    "cpu_model": "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+    "ram_gb": 125.8,
+    "physical_cores": 40,
+    "torch": "2.11.0+cu128",
+    "cuda_available": true,
+    "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+    "gpu_memory_gb": 11.3,
+    "mps_available": false,
+    "numpy": "1.26.4"
+  },
+  "corpus_articles": 72023,
+  "total_users_in_split": 255990,
+  "adr006_recorded": {
+    "ms_per_user": 2.31,
+    "projected_min": 9.8,
+    "source": "ADR-006 addendum 2026-08-11, 1,000-user sample"
+  },
+  "arms": {
+    "prefix_head_1000": {
+      "sampling": "prefix_head_1000",
+      "n": 1000,
+      "mean_ms": 4.1582,
+      "p50_ms": 3.9666,
+      "p90_ms": 6.63,
+      "projected_all_users_min_from_mean": 17.74,
+      "projected_all_users_min_from_p50": 16.92,
+      "history_len_mean": 31.79,
+      "history_len_p50": 21.0,
+      "query_tokens_mean": 828.5,
+      "query_tokens_p50": 547.5
+    },
+    "systematic_1000": {
+      "sampling": "systematic_1000",
+      "n": 1000,
+      "mean_ms": 3.6179,
+      "p50_ms": 3.3439,
+      "p90_ms": 6.2314,
+      "projected_all_users_min_from_mean": 15.44,
+      "projected_all_users_min_from_p50": 14.27,
+      "history_len_mean": 24.57,
+      "history_len_p50": 14.0,
+      "query_tokens_mean": 644.3,
+      "query_tokens_p50": 356.5
+    }
+  },
+  "finding": {
+    "prefix_vs_systematic_mean_ratio": 0.87,
+    "history_len_ratio": 0.773,
+    "query_tokens_ratio": 0.778
+  }
+}

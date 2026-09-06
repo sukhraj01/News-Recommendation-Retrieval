@@ -1,0 +1,65 @@
+==========================================
+SLURM_JOB_ID = 2687421
+SLURM_NODELIST = gnode078
+SLURM_JOB_GPUS = 0
+==========================================
+=== node: gnode078 | job: 2687421 | Fri Sep  4 12:25:24 AM IST 2026 ===
+NVIDIA GeForce RTX 2080 Ti, 11264 MiB, 580.173.02
+torch 2.11.0+cu128 | cuda_available=True
+gpu: NVIDIA GeForce RTX 2080 Ti
+
+=== [1/4] MIND profile — GPU (cuda) ===
+[mind] hardware: NVIDIA GeForce RTX 2080 Ti
+[mind] loading MIND large/dev …
+[mind] 72,023 articles | 1,771 impressions / 1,200 users (1.4758 imp/user vs. population 1.4706) | 5.9s
+[mind] setup done: bm25 3.99s | embed 1.26s | nrms 1.81s (cuda)
+[mind] warmup on 30 users …
+[mind] timing 1,170 users …
+[mind] cProfile over 200 users …
+
+| Stage | Calls | Mean (ms) | p50 | p90 | p99 | Total (s) | % of total | Throughput (call/s) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `1_query_tokenize` | 1,170 | 0.890 | 0.562 | 2.131 | 4.256 | 1.04 | 3.0% | 1,124 |
+| `2_bm25_score_all` | 1,170 | 7.218 | 6.589 | 12.463 | 16.915 | 8.45 | 24.5% | 139 |
+| `3_embed_query_build` | 1,170 | 0.196 | 0.171 | 0.303 | 0.507 | 0.23 | 0.7% | 5,106 |
+| `4_embed_score_all` | 1,170 | 2.870 | 2.915 | 3.037 | 3.183 | 3.36 | 9.7% | 348 |
+| `5_bm25_candidate_lookup` | 1,718 | 0.057 | 0.043 | 0.112 | 0.194 | 0.10 | 0.3% | 17,610 |
+| `6_embed_candidate_lookup` | 1,718 | 0.042 | 0.030 | 0.091 | 0.167 | 0.07 | 0.2% | 23,663 |
+| `7_hybrid_blend` | 1,718 | 0.119 | 0.129 | 0.136 | 0.163 | 0.20 | 0.6% | 8,384 |
+| `8_nrms_inference` | 1,718 | 7.152 | 7.384 | 7.553 | 8.002 | 12.29 | 35.7% | 140 |
+| `9_rank_tiebreak` | 1,718 | 0.218 | 0.237 | 0.254 | 0.285 | 0.37 | 1.1% | 4,595 |
+| `10_metrics` | 1,718 | 4.854 | 4.945 | 5.021 | 5.207 | 8.34 | 24.2% | 206 |
+
+end-to-end: 21.172 ms/impression (47.2 impressions/s), unattributed 1.92s of 36.37s
+peak RSS 1.95 GB
+written: /home2/sukhraj.singh/perf_bench/benchmarks/results/2026-09-04T00-26-56_mind_large_dev_profile.json
+
+=== [2/4] MIND profile — CPU (same node, same allocation) ===
+[mind] hardware: NVIDIA GeForce RTX 2080 Ti
+[mind] loading MIND large/dev …
+[mind] 72,023 articles | 1,771 impressions / 1,200 users (1.4758 imp/user vs. population 1.4706) | 3.4s
+[mind] setup done: bm25 3.97s | embed 0.08s | nrms 0.66s (cpu)
+[mind] warmup on 30 users …
+[mind] timing 1,170 users …
+
+| Stage | Calls | Mean (ms) | p50 | p90 | p99 | Total (s) | % of total | Throughput (call/s) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `1_query_tokenize` | 1,170 | 0.522 | 0.317 | 1.129 | 2.947 | 0.61 | 0.5% | 1,917 |
+| `2_bm25_score_all` | 1,170 | 4.865 | 4.417 | 8.421 | 14.277 | 5.69 | 4.5% | 206 |
+| `3_embed_query_build` | 1,170 | 0.151 | 0.130 | 0.251 | 0.469 | 0.18 | 0.1% | 6,633 |
+| `4_embed_score_all` | 1,170 | 3.545 | 3.226 | 4.702 | 7.532 | 4.15 | 3.3% | 282 |
+| `5_bm25_candidate_lookup` | 1,718 | 0.064 | 0.046 | 0.126 | 0.280 | 0.11 | 0.1% | 15,646 |
+| `6_embed_candidate_lookup` | 1,718 | 0.043 | 0.030 | 0.092 | 0.218 | 0.07 | 0.1% | 23,034 |
+| `7_hybrid_blend` | 1,718 | 0.107 | 0.125 | 0.134 | 0.161 | 0.18 | 0.1% | 9,376 |
+| `8_nrms_inference` | 1,718 | 64.243 | 84.318 | 117.945 | 124.632 | 110.37 | 86.6% | 16 |
+| `9_rank_tiebreak` | 1,718 | 0.211 | 0.205 | 0.230 | 0.304 | 0.36 | 0.3% | 4,730 |
+| `10_metrics` | 1,718 | 3.303 | 2.939 | 4.359 | 5.033 | 5.67 | 4.5% | 303 |
+
+end-to-end: 75.242 ms/impression (13.3 impressions/s), unattributed 1.86s of 129.27s
+peak RSS 1.98 GB
+written: /home2/sukhraj.singh/perf_bench/benchmarks/results/2026-09-04T00-29-26_mind_large_dev_profile.json
+
+=== [3/4] EB-NeRD profile (LightGBM) ===
+[ebnerd] hardware: NVIDIA GeForce RTX 2080 Ti
+[ebnerd] setup from ebnerd_small.zip …
+[ebnerd] setup: articles 2.1s | profiles 9.2s | popularity 1.3s | behaviours 1.3s

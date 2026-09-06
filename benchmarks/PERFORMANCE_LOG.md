@@ -63,3 +63,21 @@ Compared against `2026-09-03T23-56-45_snapshot.json` (`ccdebd2`):
 | `rank_and_auc` | 1.2953 | 1.1899 | -8.1% | · |
 
 **Verdict:** no regression
+
+### 2026-09-07T02:56:56 — `8d3e651` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: .gitignore benchmarks/README.md benchmarks/__init__.py benchmarks/ablations.py benchmarks/ada_perf_prep.sbatch benchmarks/ada_perf_profile.sbatch benchmarks/ada_perf_resume.sbatch benchmarks/ada_reconcile.sbatch benchmarks/loaders.py benchmarks/profile_ebnerd.py benchmarks/profile_mind.py benchmarks/reconcile_adr006.py benchmarks/results/2026-09-03T23-17-27_mind_large_dev_profile.json benchmarks/results/2026-09-03T23-17-51_mind_large_dev_profile.json benchmarks/results/2026-09-03T23-19-48_mind_large_dev_profile.json benchmarks/results/ada/2026-09-04T00-26-56_mind_large_dev_profile.json benchmarks/results/ada/2026-09-04T00-29-26_mind_large_dev_profile.json benchmarks/results/ada/2026-09-04T00-32-54_ebnerd_small_validation_profile.json benchmarks/results/ada/2026-09-04T00-40-09_performance_ablations.json benchmarks/results/ada/2026-09-04T00-40-39_performance_ablations.json benchmarks/results/ada/2026-09-04T00-43-04_performance_ablations.json benchmarks/results/ada/2026-09-04T00-45-56_reconcile_adr006.json benchmarks/results/ada/perf-profile_2687421.err benchmarks/results/ada/perf-profile_2687421.out benchmarks/results/ada/perf-resume_2687432.err benchmarks/results/ada/perf-resume_2687432.out benchmarks/snapshot.py benchmarks/timing.py 
+
+**End-to-end:** 10.7329 ms/impression (93.2 impressions/s) · peak RSS 0.36 GB
+
+| Stage | ms/impression | throughput (calls/s) |
+|---|---:|---:|
+| `query_tokenize` | 0.4394 | 1,665 |
+| `bm25_score_all` | 2.6559 | 276 |
+| `embed_query_build` | 0.2509 | 2,917 |
+| `embed_score_all` | 3.5336 | 207 |
+| `bm25_candidate_lookup` | 0.1231 | 8,124 |
+| `embed_candidate_lookup` | 0.0387 | 25,839 |
+| `rank_and_auc` | 2.4517 | 408 |
+
+_(no comparable prior snapshot — recorded as a baseline)_

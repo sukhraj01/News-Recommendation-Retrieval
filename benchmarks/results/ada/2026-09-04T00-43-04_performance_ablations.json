@@ -1,0 +1,93 @@
+{
+  "benchmark": "performance_ablations",
+  "timestamp": "2026-09-04T00:43:00",
+  "git_rev": "unknown",
+  "git_dirty": false,
+  "tag": "ada-cpu",
+  "hardware_label": "NVIDIA GeForce RTX 2080 Ti",
+  "hardware": {
+    "platform": "Linux-5.15.0-190-generic-x86_64-with-glibc2.35",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "python": "3.11.16",
+    "cpu_model": "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+    "ram_gb": 125.8,
+    "physical_cores": 40,
+    "torch": "2.11.0+cu128",
+    "cuda_available": true,
+    "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+    "gpu_memory_gb": 11.3,
+    "mps_available": false,
+    "numpy": "1.26.4"
+  },
+  "ablations": {
+    "lgbm": {
+      "ablation": "lgbm_feature_count",
+      "question": "LightGBM full 65 features vs. reduced top-K (by the deployed model's own gain)",
+      "n_validation_impressions": 25000,
+      "n_validation_candidate_rows": 297212,
+      "n_train_impressions_for_reduced_arm": 120000,
+      "arms": {
+        "full_60_features (deployed)": {
+          "n_features": 60,
+          "n_trees": 319,
+          "predict_ms_per_impression": 0.0616,
+          "predict_total_s": 1.5412,
+          "rows_per_s": 192850.0,
+          "mean_auc": 0.7499,
+          "trained": "deployed Candidate K model_K_rank.txt"
+        },
+        "reduced_20_features": {
+          "n_features": 20,
+          "n_trees": 319,
+          "predict_ms_per_impression": 0.0569,
+          "predict_total_s": 1.4236,
+          "rows_per_s": 208772.0,
+          "mean_auc": 0.7476,
+          "retrained_s": 21.5,
+          "features": [
+            "article_age_h",
+            "article_age_rank_in_imp",
+            "article_age_minus_imp_min",
+            "body_len",
+            "category_code",
+            "sentiment_score",
+            "n_candidates",
+            "lt_topic_affinity",
+            "title_len",
+            "age_vs_user_appetite",
+            "n_entities",
+            "lt_subcat_affinity",
+            "lt_cat_affinity",
+            "n_topics",
+            "is_premium",
+            "lt_embed_sim",
+            "hour_of_day",
+            "day_of_week",
+            "context_read_time",
+            "device_type"
+          ]
+        }
+      },
+      "delta": {
+        "predict_speedup_mean": 1.08,
+        "auc_delta": -0.0023,
+        "note": "AUC here is the unweighted mean of per-impression AUC on the sampled validation impressions \u2014 a like-for-like comparison between the two arms, NOT comparable to ADR-013's bootstrapped full-split figure"
+      },
+      "feature_engineering_context": {
+        "short_term_features": [
+          "st_cat_affinity",
+          "st_subcat_affinity",
+          "st_topic_affinity",
+          "st_embed_sim",
+          "st_cat_rank",
+          "st_cat_affinity_rank_in_imp"
+        ],
+        "short_term_in_top_k": [],
+        "gain_rank_of_best_short_term_feature": 27,
+        "note": "the per-impression COST of this block is measured directly by profile_ebnerd.py's 1a_short_term_features sub-stage"
+      }
+    }
+  },
+  "peak_rss_gb": 3.05
+}

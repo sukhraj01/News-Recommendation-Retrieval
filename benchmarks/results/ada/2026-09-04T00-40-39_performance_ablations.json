@@ -1,0 +1,67 @@
+{
+  "benchmark": "performance_ablations",
+  "timestamp": "2026-09-04T00:40:37",
+  "git_rev": "unknown",
+  "git_dirty": false,
+  "tag": "ada-cpu",
+  "hardware_label": "NVIDIA GeForce RTX 2080 Ti",
+  "hardware": {
+    "platform": "Linux-5.15.0-190-generic-x86_64-with-glibc2.35",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "python": "3.11.16",
+    "cpu_model": "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+    "ram_gb": 125.8,
+    "physical_cores": 40,
+    "torch": "2.11.0+cu128",
+    "cuda_available": true,
+    "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+    "gpu_memory_gb": 11.3,
+    "mps_available": false,
+    "numpy": "1.26.4"
+  },
+  "ablations": {
+    "nrms": {
+      "ablation": "nrms_candidate_cache",
+      "question": "NRMS with vs. without cached candidate/history news vectors",
+      "device": "cpu",
+      "n_impressions": 595,
+      "catalog_articles": 72023,
+      "arms": {
+        "uncached (deployed NRMSLiteScorer)": {
+          "n": 595,
+          "mean_ms": 9.8262,
+          "p50_ms": 8.6983,
+          "p90_ms": 14.0665,
+          "total_s": 5.8466,
+          "throughput_per_s": 101.77,
+          "cache_build_s": 0.0
+        },
+        "cached_news_vectors": {
+          "n": 595,
+          "mean_ms": 1.3993,
+          "p50_ms": 1.3315,
+          "p90_ms": 1.6426,
+          "total_s": 0.8326,
+          "throughput_per_s": 714.63,
+          "cache_build_s": 11.553
+        }
+      },
+      "delta": {
+        "speedup_mean": 7.02,
+        "speedup_p50": 6.53,
+        "delta_mean_ms": 8.4269
+      },
+      "equivalence_check": {
+        "max_abs_score_diff": 0.0,
+        "note": "same function, computed two ways \u2014 a nonzero diff here would invalidate the arm"
+      },
+      "cache_amortisation": {
+        "one_time_encode_s": 11.553,
+        "breakeven_impressions": 1371.0,
+        "note": "impressions needed before the one-time catalog encode pays for itself"
+      }
+    }
+  },
+  "peak_rss_gb": 1.75
+}

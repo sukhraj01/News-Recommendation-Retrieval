@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home2/sukhraj.singh/perf_bench/benchmarks/profile_ebnerd.py", line 368, in <module>
+    main()
+  File "/home2/sukhraj.singh/perf_bench/benchmarks/profile_ebnerd.py", line 268, in main
+    feature_idx = [FEATURE_NAMES.index(n) for n in model_features]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home2/sukhraj.singh/perf_bench/benchmarks/profile_ebnerd.py", line 268, in <listcomp>
+    feature_idx = [FEATURE_NAMES.index(n) for n in model_features]
+                   ^^^^^^^^^^^^^^^^^^^^^^
+ValueError: 'Column_0' is not in list

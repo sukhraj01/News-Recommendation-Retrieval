@@ -1,0 +1,598 @@
+{
+  "benchmark": "profile_mind",
+  "dataset": "mind",
+  "bundle": "large",
+  "split": "dev",
+  "timestamp": "2026-09-03T23:17:25",
+  "git_rev": "ccdebd2",
+  "git_dirty": true,
+  "tag": "smoke",
+  "hardware_label": "Mac15,12 / 8GB",
+  "hardware": {
+    "platform": "macOS-15.7.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.11.14",
+    "cpu_model": "Apple M3",
+    "hw_model": "Mac15,12",
+    "ram_gb": 8.0,
+    "physical_cores": 8,
+    "torch": "2.13.0",
+    "cuda_available": false,
+    "mps_available": true,
+    "numpy": "1.26.4"
+  },
+  "sample": {
+    "sampled_users": 60,
+    "sampled_impressions": 88,
+    "sampled_candidate_rows": 3189,
+    "sampled_impressions_per_user": 1.4667,
+    "population_users": 255990,
+    "population_impressions": 376471,
+    "population_impressions_per_user": 1.4706,
+    "population_candidate_rows": null,
+    "sample_seed": 0,
+    "sampling": "systematic-by-user"
+  },
+  "counts": {
+    "users": 50,
+    "impressions": 75,
+    "candidate_rows": 2698,
+    "history_articles": 1034
+  },
+  "corpus": {
+    "n_articles": 72023
+  },
+  "setup": {
+    "bm25_index_build_s": 2.2237960000056773,
+    "bm25_vocab_size": 63441,
+    "bm25_weights_nnz": 1933590,
+    "bm25_weights_mb": 23.5,
+    "embed_index_load_s": 0.07438324997201562,
+    "embed_from_cache": true,
+    "embed_matrix_mb": 110.6,
+    "embed_dim": 384,
+    "nrms_vocab_build_s": 0.1381190838292241,
+    "nrms_vocab_size": 22262,
+    "nrms_config": {
+      "embed_dim": 300,
+      "num_heads": 15,
+      "max_title_len": 20,
+      "max_history_len": 50,
+      "recorded_vocab_size": 26293,
+      "source": "experiments/candidate_j_nrms_lite_ada_mindlarge_2026-08-25/config.json"
+    },
+    "nrms_model_init_s": 0.8748081249650568,
+    "nrms_params": 7478312,
+    "nrms_device": "mps"
+  },
+  "data_load_s": 1.96,
+  "wall_s": 6.933,
+  "stage_total_s": 6.846,
+  "unattributed_s": 0.087,
+  "per_impression_ms": {
+    "1_query_tokenize": 0.4396,
+    "2_bm25_score_all": 3.5426,
+    "3_embed_query_build": 0.2515,
+    "4_embed_score_all": 8.7814,
+    "5_bm25_candidate_lookup": 0.3098,
+    "6_embed_candidate_lookup": 0.1448,
+    "7_hybrid_blend": 0.0797,
+    "8_nrms_inference": 74.8884,
+    "9_rank_tiebreak": 0.2556,
+    "10_metrics": 2.5876
+  },
+  "end_to_end_impressions_per_s": 10.8,
+  "end_to_end_ms_per_impression": 92.436,
+  "stages": [
+    {
+      "stage": "1_query_tokenize",
+      "n_calls": 50,
+      "total_s": 0.03297233465127647,
+      "mean_ms": 0.6594466930255294,
+      "p50_ms": 0.5513338837772608,
+      "p90_ms": 1.3423203956335783,
+      "p99_ms": 2.4488337035290875,
+      "max_ms": 2.976624993607402,
+      "throughput_per_s": 1516.422798955922,
+      "pct_of_total": 0.4816242229948349
+    },
+    {
+      "stage": "2_bm25_score_all",
+      "n_calls": 50,
+      "total_s": 0.26569312787614763,
+      "mean_ms": 5.313862557522953,
+      "p50_ms": 4.158125026151538,
+      "p90_ms": 9.997904323972762,
+      "p99_ms": 18.117623657453795,
+      "max_ms": 20.705374889075756,
+      "throughput_per_s": 188.1870276423085,
+      "pct_of_total": 3.8809580098527534
+    },
+    {
+      "stage": "3_embed_query_build",
+      "n_calls": 50,
+      "total_s": 0.018863542936742306,
+      "mean_ms": 0.3772708587348461,
+      "p50_ms": 0.2701045013964176,
+      "p90_ms": 0.8171587949618698,
+      "p99_ms": 1.4912582491524515,
+      "max_ms": 1.5345418360084295,
+      "throughput_per_s": 2650.6155374773352,
+      "pct_of_total": 0.27553824458974135
+    },
+    {
+      "stage": "4_embed_score_all",
+      "n_calls": 50,
+      "total_s": 0.6586050419136882,
+      "mean_ms": 13.172100838273764,
+      "p50_ms": 5.365542019717395,
+      "p90_ms": 38.52678390685469,
+      "p99_ms": 60.27965774061153,
+      "max_ms": 72.17704085633159,
+      "throughput_per_s": 75.91803405378822,
+      "pct_of_total": 9.620190530241414
+    },
+    {
+      "stage": "5_bm25_candidate_lookup",
+      "n_calls": 75,
+      "total_s": 0.023232622537761927,
+      "mean_ms": 0.30976830050349236,
+      "p50_ms": 0.08295802399516106,
+      "p90_ms": 0.7818333804607401,
+      "p99_ms": 3.054854581132545,
+      "max_ms": 5.039749899879098,
+      "throughput_per_s": 3228.2192799412214,
+      "pct_of_total": 0.3393570366255123
+    },
+    {
+      "stage": "6_embed_candidate_lookup",
+      "n_calls": 75,
+      "total_s": 0.010861336020752788,
+      "mean_ms": 0.14481781361003718,
+      "p50_ms": 0.050416914746165276,
+      "p90_ms": 0.33198329620063327,
+      "p99_ms": 0.9686079341918231,
+      "max_ms": 0.9804170113056898,
+      "throughput_per_s": 6905.227851960134,
+      "pct_of_total": 0.15865065598193426
+    },
+    {
+      "stage": "7_hybrid_blend",
+      "n_calls": 75,
+      "total_s": 0.005973787279799581,
+      "mean_ms": 0.07965049706399441,
+      "p50_ms": 0.0352498609572649,
+      "p90_ms": 0.08888277225196363,
+      "p99_ms": 1.253304858691992,
+      "max_ms": 1.4809169806540012,
+      "throughput_per_s": 12554.84945933934,
+      "pct_of_total": 0.08725862719152398
+    },
+    {
+      "stage": "8_nrms_inference",
+      "n_calls": 75,
+      "total_s": 5.616633624536917,
+      "mean_ms": 74.8884483271589,
+      "p50_ms": 49.78220793418586,
+      "p90_ms": 170.75014137662953,
+      "p99_ms": 226.0495309345425,
+      "max_ms": 239.34791702777147,
+      "throughput_per_s": 13.35319428213259,
+      "pct_of_total": 82.0417126622707
+    },
+    {
+      "stage": "9_rank_tiebreak",
+      "n_calls": 75,
+      "total_s": 0.019168668193742633,
+      "mean_ms": 0.2555822425832351,
+      "p50_ms": 0.13954215683043003,
+      "p90_ms": 0.38671703077852804,
+      "p99_ms": 2.1530427969992196,
+      "max_ms": 2.6456660125404596,
+      "throughput_per_s": 3912.6348915822327,
+      "pct_of_total": 0.27999518451750566
+    },
+    {
+      "stage": "10_metrics",
+      "n_calls": 75,
+      "total_s": 0.19406658015213907,
+      "mean_ms": 2.587554402028521,
+      "p50_ms": 1.9489580299705267,
+      "p90_ms": 3.681083722040059,
+      "p99_ms": 14.500223957002186,
+      "max_ms": 17.69495802000165,
+      "throughput_per_s": 386.4653045424077,
+      "pct_of_total": 2.8347148257340766
+    }
+  ],
+  "reconciliation": {
+    "reference": {
+      "bm25_index_build_s": 1.7,
+      "bm25_full_retrieval_min": 9.8,
+      "embed_encode_s": 264.4,
+      "embed_full_retrieval_min": 10.4,
+      "encoder_throughput_articles_s": 373.6,
+      "source": "PROJECT_STATE.md 'Part 2 \u2014 Benchmark before trusting anything at MINDlarge scale'"
+    },
+    "measured_bm25_index_build_s": 2.224,
+    "projected_full_split": {
+      "bm25_query_plus_score_min": 25.49,
+      "bm25_score_only_min": 22.67,
+      "embed_score_only_min": 56.2,
+      "basis": "50 sampled users x 255,990 population users"
+    },
+    "projected_end_to_end_all_stages_min": 572.74
+  },
+  "peak_rss_gb": 0.62,
+  "cprofile": {
+    "n_users_profiled": 20,
+    "n_impressions_profiled": 31,
+    "note": "cProfile inflates absolute times; use for relative attribution only",
+    "top_by_cumtime": [
+      {
+        "function": "profile_mind.py:221(run_batch)",
+        "ncalls": 1,
+        "tottime_s": 0.2461,
+        "cumtime_s": 2.0636
+      },
+      {
+        "function": "_contextlib.py:120(decorate_context)",
+        "ncalls": 31,
+        "tottime_s": 0.0014,
+        "cumtime_s": 1.4357
+      },
+      {
+        "function": "nrms_training.py:242(score)",
+        "ncalls": 31,
+        "tottime_s": 0.0094,
+        "cumtime_s": 1.4329
+      },
+      {
+        "function": "module.py:1774(_wrapped_call_impl)",
+        "ncalls": 620,
+        "tottime_s": 0.0021,
+        "cumtime_s": 1.314
+      },
+      {
+        "function": "module.py:1782(_call_impl)",
+        "ncalls": 620,
+        "tottime_s": 0.0049,
+        "cumtime_s": 1.3138
+      },
+      {
+        "function": "nrms.py:174(forward)",
+        "ncalls": 31,
+        "tottime_s": 0.0011,
+        "cumtime_s": 1.313
+      },
+      {
+        "function": "nrms.py:128(forward)",
+        "ncalls": 62,
+        "tottime_s": 0.3141,
+        "cumtime_s": 1.0119
+      },
+      {
+        "function": "nrms.py:99(forward)",
+        "ncalls": 93,
+        "tottime_s": 0.0644,
+        "cumtime_s": 0.4597
+      },
+      {
+        "function": "~:0(<built-in method torch.bmm>)",
+        "ncalls": 217,
+        "tottime_s": 0.3224,
+        "cumtime_s": 0.3224
+      },
+      {
+        "function": "activation.py:1255(forward)",
+        "ncalls": 93,
+        "tottime_s": 0.0031,
+        "cumtime_s": 0.3014
+      },
+      {
+        "function": "functional.py:6637(multi_head_attention_forward)",
+        "ncalls": 93,
+        "tottime_s": 0.0068,
+        "cumtime_s": 0.2934
+      },
+      {
+        "function": "functional.py:2170(softmax)",
+        "ncalls": 186,
+        "tottime_s": 0.0004,
+        "cumtime_s": 0.2272
+      },
+      {
+        "function": "~:0(<method 'softmax' of 'torch._C.TensorBase' objects>)",
+        "ncalls": 186,
+        "tottime_s": 0.2267,
+        "cumtime_s": 0.2267
+      },
+      {
+        "function": "nrms.py:151(forward)",
+        "ncalls": 31,
+        "tottime_s": 0.0661,
+        "cumtime_s": 0.2203
+      },
+      {
+        "function": "nrms.py:64(_unmask_one_row)",
+        "ncalls": 186,
+        "tottime_s": 0.1582,
+        "cumtime_s": 0.1643
+      },
+      {
+        "function": "score.py:26(score_all)",
+        "ncalls": 20,
+        "tottime_s": 0.0062,
+        "cumtime_s": 0.158
+      },
+      {
+        "function": "ranking_metrics.py:80(safe_auc)",
+        "ncalls": 31,
+        "tottime_s": 0.0003,
+        "cumtime_s": 0.1464
+      },
+      {
+        "function": "_param_validation.py:187(wrapper)",
+        "ncalls": 155,
+        "tottime_s": 0.0018,
+        "cumtime_s": 0.1457
+      },
+      {
+        "function": "_ranking.py:499(roc_auc_score)",
+        "ncalls": 31,
+        "tottime_s": 0.0009,
+        "cumtime_s": 0.1289
+      },
+      {
+        "function": "_base.py:919(__matmul__)",
+        "ncalls": 20,
+        "tottime_s": 0.0001,
+        "cumtime_s": 0.1076
+      },
+      {
+        "function": "_base.py:788(_matmul_dispatch)",
+        "ncalls": 20,
+        "tottime_s": 0.0001,
+        "cumtime_s": 0.1074
+      },
+      {
+        "function": "_compressed.py:415(_matmul_sparse)",
+        "ncalls": 20,
+        "tottime_s": 0.0004,
+        "cumtime_s": 0.1072
+      },
+      {
+        "function": "~:0(<built-in method torch.tensor>)",
+        "ncalls": 93,
+        "tottime_s": 0.0759,
+        "cumtime_s": 0.0759
+      },
+      {
+        "function": "validation.py:733(check_array)",
+        "ncalls": 496,
+        "tottime_s": 0.004,
+        "cumtime_s": 0.0659
+      },
+      {
+        "function": "~:0(<built-in method torch._C._nn.linear>)",
+        "ncalls": 372,
+        "tottime_s": 0.0651,
+        "cumtime_s": 0.0651
+      },
+      {
+        "function": "~:0(<built-in method scipy.sparse._sparsetools.csr_matmat>)",
+        "ncalls": 20,
+        "tottime_s": 0.0583,
+        "cumtime_s": 0.0583
+      },
+      {
+        "function": "multiclass.py:249(type_of_target)",
+        "ncalls": 124,
+        "tottime_s": 0.0024,
+        "cumtime_s": 0.0554
+      },
+      {
+        "function": "_base.py:23(_average_binary_score)",
+        "ncalls": 31,
+        "tottime_s": 0.0005,
+        "cumtime_s": 0.0512
+      },
+      {
+        "function": "~:0(<method 'get' of 'dict' objects>)",
+        "ncalls": 32414,
+        "tottime_s": 0.0473,
+        "cumtime_s": 0.0473
+      },
+      {
+        "function": "validation.py:44(_nw_into_df_or_series)",
+        "ncalls": 496,
+        "tottime_s": 0.0012,
+        "cumtime_s": 0.0465
+      }
+    ],
+    "top_by_tottime": [
+      {
+        "function": "~:0(<built-in method torch.bmm>)",
+        "ncalls": 217,
+        "tottime_s": 0.3224,
+        "cumtime_s": 0.3224
+      },
+      {
+        "function": "nrms.py:128(forward)",
+        "ncalls": 62,
+        "tottime_s": 0.3141,
+        "cumtime_s": 1.0119
+      },
+      {
+        "function": "profile_mind.py:221(run_batch)",
+        "ncalls": 1,
+        "tottime_s": 0.2461,
+        "cumtime_s": 2.0636
+      },
+      {
+        "function": "~:0(<method 'softmax' of 'torch._C.TensorBase' objects>)",
+        "ncalls": 186,
+        "tottime_s": 0.2267,
+        "cumtime_s": 0.2267
+      },
+      {
+        "function": "nrms.py:64(_unmask_one_row)",
+        "ncalls": 186,
+        "tottime_s": 0.1582,
+        "cumtime_s": 0.1643
+      },
+      {
+        "function": "~:0(<built-in method torch.tensor>)",
+        "ncalls": 93,
+        "tottime_s": 0.0759,
+        "cumtime_s": 0.0759
+      },
+      {
+        "function": "nrms.py:151(forward)",
+        "ncalls": 31,
+        "tottime_s": 0.0661,
+        "cumtime_s": 0.2203
+      },
+      {
+        "function": "~:0(<built-in method torch._C._nn.linear>)",
+        "ncalls": 372,
+        "tottime_s": 0.0651,
+        "cumtime_s": 0.0651
+      },
+      {
+        "function": "nrms.py:99(forward)",
+        "ncalls": 93,
+        "tottime_s": 0.0644,
+        "cumtime_s": 0.4597
+      },
+      {
+        "function": "~:0(<built-in method scipy.sparse._sparsetools.csr_matmat>)",
+        "ncalls": 20,
+        "tottime_s": 0.0583,
+        "cumtime_s": 0.0583
+      },
+      {
+        "function": "~:0(<method 'get' of 'dict' objects>)",
+        "ncalls": 32414,
+        "tottime_s": 0.0473,
+        "cumtime_s": 0.0473
+      },
+      {
+        "function": "~:0(<built-in method scipy.sparse._sparsetools.csr_matmat_maxnnz>)",
+        "ncalls": 20,
+        "tottime_s": 0.0436,
+        "cumtime_s": 0.0436
+      },
+      {
+        "function": "~:0(<method 'cpu' of 'torch._C.TensorBase' objects>)",
+        "ncalls": 31,
+        "tottime_s": 0.0269,
+        "cumtime_s": 0.0269
+      },
+      {
+        "function": "~:0(<built-in method torch.embedding>)",
+        "ncalls": 62,
+        "tottime_s": 0.0181,
+        "cumtime_s": 0.0181
+      },
+      {
+        "function": "~:0(<built-in method torch.baddbmm>)",
+        "ncalls": 93,
+        "tottime_s": 0.015,
+        "cumtime_s": 0.015
+      },
+      {
+        "function": "nrms_training.py:242(score)",
+        "ncalls": 31,
+        "tottime_s": 0.0094,
+        "cumtime_s": 1.4329
+      },
+      {
+        "function": "score.py:81(<genexpr>)",
+        "ncalls": 1994,
+        "tottime_s": 0.0079,
+        "cumtime_s": 0.0079
+      },
+      {
+        "function": "inspect.py:1790(_shadowed_dict)",
+        "ncalls": 5952,
+        "tottime_s": 0.0072,
+        "cumtime_s": 0.0086
+      },
+      {
+        "function": "inspect.py:1804(getattr_static)",
+        "ncalls": 1984,
+        "tottime_s": 0.007,
+        "cumtime_s": 0.0238
+      },
+      {
+        "function": "functional.py:6637(multi_head_attention_forward)",
+        "ncalls": 93,
+        "tottime_s": 0.0068,
+        "cumtime_s": 0.2934
+      },
+      {
+        "function": "score.py:26(score_all)",
+        "ncalls": 20,
+        "tottime_s": 0.0062,
+        "cumtime_s": 0.158
+      },
+      {
+        "function": "frame.py:9068(groupby)",
+        "ncalls": 21,
+        "tottime_s": 0.006,
+        "cumtime_s": 0.0114
+      },
+      {
+        "function": "_sputils.py:264(get_index_dtype)",
+        "ncalls": 151,
+        "tottime_s": 0.0057,
+        "cumtime_s": 0.0073
+      },
+      {
+        "function": "module.py:1782(_call_impl)",
+        "ncalls": 620,
+        "tottime_s": 0.0049,
+        "cumtime_s": 1.3138
+      },
+      {
+        "function": "inspect.py:2331(_signature_from_function)",
+        "ncalls": 186,
+        "tottime_s": 0.0049,
+        "cumtime_s": 0.0137
+      },
+      {
+        "function": "~:0(<method 'any' of 'torch._C.TensorBase' objects>)",
+        "ncalls": 372,
+        "tottime_s": 0.0043,
+        "cumtime_s": 0.0043
+      },
+      {
+        "function": "embed.py:165(<listcomp>)",
+        "ncalls": 20,
+        "tottime_s": 0.0042,
+        "cumtime_s": 0.0042
+      },
+      {
+        "function": "validation.py:733(check_array)",
+        "ncalls": 496,
+        "tottime_s": 0.004,
+        "cumtime_s": 0.0659
+      },
+      {
+        "function": "inspect.py:2669(__init__)",
+        "ncalls": 1147,
+        "tottime_s": 0.0035,
+        "cumtime_s": 0.0062
+      },
+      {
+        "function": "~:0(<built-in method builtins.isinstance>)",
+        "ncalls": 21036,
+        "tottime_s": 0.0034,
+        "cumtime_s": 0.0063
+      }
+    ],
+    "pstats_text": "         243540 function calls (241927 primitive calls) in 2.064 seconds\n\n   Ordered by: cumulative time\n   List reduced from 639 to 30 due to restriction <30>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.246    0.246    2.064    2.064 /Users/test01/Desktop/assignment-1-news-retrieval/benchmarks/profile_mind.py:221(run_batch)\n       31    0.001    0.000    1.436    0.046 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/torch/utils/_contextlib.py:120(decorate_context)\n       31    0.009    0.000    1.433    0.046 /Users/test01/Desktop/assignment-1-news-retrieval/src/retrieval/nrms_training.py:242(score)\n   620/31    0.002    0.000    1.314    0.042 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/torch/nn/modules/module.py:1774(_wrapped_call_impl)\n   620/31    0.005    0.000    1.314    0.042 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/torch/nn/modules/module.py:1782(_call_impl)\n       31    0.001    0.000    1.313    0.042 /Users/test01/Desktop/assignment-1-news-retrieval/src/retrieval/nrms.py:174(forward)\n       62    0.314    0.005    1.012    0.016 /Users/test01/Desktop/assignment-1-news-retrieval/src/retrieval/nrms.py:128(forward)\n       93    0.064    0.001    0.460    0.005 /Users/test01/Desktop/assignment-1-news-retrieval/src/retrieval/nrms.py:99(forward)\n      217    0.322    0.001    0.322    0.001 {built-in method torch.bmm}\n       93    0.003    0.000    0.301    0.003 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/torch/nn/modules/activation.py:1255(forward)\n       93    0.007    0.000    0.293    0.003 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/torch/nn/functional.py:6637(multi_head_attention_forward)\n      186    0.000    0.000    0.227    0.001 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/torch/nn/functional.py:2170(softmax)\n      186    0.227    0.001    0.227    0.001 {method 'softmax' of 'torch._C.TensorBase' objects}\n       31    0.066    0.002    0.220    0.007 /Users/test01/Desktop/assignment-1-news-retrieval/src/retrieval/nrms.py:151(forward)\n      186    0.158    0.001    0.164    0.001 /Users/test01/Desktop/assignment-1-news-retrieval/src/retrieval/nrms.py:64(_unmask_one_row)\n       20    0.006    0.000    0.158    0.008 /Users/test01/Desktop/assignment-1-news-retrieval/src/retrieval/score.py:26(score_all)\n       31    0.000    0.000    0.146    0.005 /Users/test01/Desktop/assignment-1-news-retrieval/src/evaluation/ranking_metrics.py:80(safe_auc)\n   155/31    0.002    0.000    0.146    0.005 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/sklearn/utils/_param_validation.py:187(wrapper)\n       31    0.001    0.000    0.129    0.004 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/sklearn/metrics/_ranking.py:499(roc_auc_score)\n       20    0.000    0.000    0.108    0.005 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/scipy/sparse/_base.py:919(__matmul__)\n       20    0.000    0.000    0.107    0.005 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/scipy/sparse/_base.py:788(_matmul_dispatch)\n       20    0.000    0.000    0.107    0.005 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/scipy/sparse/_compressed.py:415(_matmul_sparse)\n       93    0.076    0.001    0.076    0.001 {built-in method torch.tensor}\n      496    0.004    0.000    0.066    0.000 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/sklearn/utils/validation.py:733(check_array)\n      372    0.065    0.000    0.065    0.000 {built-in method torch._C._nn.linear}\n       20    0.058    0.003    0.058    0.003 {built-in method scipy.sparse._sparsetools.csr_matmat}\n      124    0.002    0.000    0.055    0.000 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/sklearn/utils/multiclass.py:249(type_of_target)\n       31    0.000    0.000    0.051    0.002 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/sklearn/metrics/_base.py:23(_average_binary_score)\n    32414    0.047    0.000    0.047    0.000 {method 'get' of 'dict' objects}\n      496    0.001    0.000    0.047    0.000 /Users/test01/Library/Caches/pypoetry/virtualenvs/assignment-1-news-retrieval-8xVdNnmu-py3.11/lib/python3.11/site-packages/sklearn/utils/validation.py:44(_nw_into_df_or_series)\n\n\n"
+  }
+}

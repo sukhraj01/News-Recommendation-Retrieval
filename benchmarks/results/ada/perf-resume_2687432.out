@@ -1,0 +1,302 @@
+==========================================
+SLURM_JOB_ID = 2687432
+SLURM_NODELIST = gnode078
+SLURM_JOB_GPUS = 0
+==========================================
+=== node: gnode078 | job: 2687432 | Fri Sep  4 12:32:08 AM IST 2026 ===
+NVIDIA GeForce RTX 2080 Ti, 11264 MiB, 580.173.02
+
+=== [3/4] EB-NeRD profile (LightGBM) ===
+[ebnerd] hardware: NVIDIA GeForce RTX 2080 Ti
+[ebnerd] setup from ebnerd_small.zip …
+[ebnerd] setup: articles 0.7s | profiles 9.1s | popularity 1.4s | behaviours 1.0s
+[ebnerd] model model_K_rank.txt: 319 trees, 60 features (mapped via config.json), best_iter=-1
+[ebnerd] NOTE: this booster uses 60 of today's 65 features — it predates ADR-013's correction. Absent: ['context_category_match', 'context_topic_overlap', 'context_embed_sim', 'session_position', 'session_start_gap_h']
+[ebnerd] 25,000 of 244,647 impressions
+[ebnerd] warmup on 5,000 impressions …
+[ebnerd] timing 20,000 impressions …
+[ebnerd] cProfile over 5,000 impressions …
+
+| Stage | Calls | Mean (ms) | p50 | p90 | p99 | Total (s) | % of total | Throughput (call/s) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `1_feature_frame_build` | 4 | 2378.448 | 2380.529 | 2397.448 | 2400.518 | 9.51 | 63.5% | 0 |
+| `1a_short_term_features` | 4 | 1774.960 | 1773.714 | 1798.537 | 1803.621 | 7.10 | 47.4% | 1 |
+| `2_lightgbm_predict` | 4 | 297.982 | 297.392 | 299.714 | 300.606 | 1.19 | 8.0% | 3 |
+| `3_rank_tiebreak` | 4 | 219.519 | 219.173 | 220.800 | 221.177 | 0.88 | 5.9% | 5 |
+| `4_metrics` | 4 | 852.175 | 850.958 | 857.386 | 859.192 | 3.41 | 22.7% | 1 |
+
+end-to-end: 0.7515 ms/impression (1330.6 impressions/s), 11.9 candidates/impression
+peak RSS 1.58 GB
+written: /home2/sukhraj.singh/perf_bench/benchmarks/results/2026-09-04T00-32-54_ebnerd_small_validation_profile.json
+
+=== [4a/4] Ablations: bm25 / ann / nrms (GPU) ===
+[ablation] bm25 sparse vs. naive rank_bm25 …
+[ablation] brute-force cosine vs. FAISS IVF …
+[ablation] NRMS candidate-vector caching …
+{
+  "bm25": {
+    "ablation": "bm25_scorer",
+    "question": "sparse weight-matrix scorer vs. rank_bm25.BM25Okapi.get_scores",
+    "corpus_articles": 72023,
+    "mean_query_tokens": 718.1,
+    "arms": {
+      "sparse_matrix (deployed)": {
+        "n": 387,
+        "mean_ms": 3.7508,
+        "p50_ms": 3.5468,
+        "p90_ms": 6.1256,
+        "total_s": 1.4515,
+        "throughput_per_s": 266.61,
+        "index_build_s": 3.947
+      },
+      "rank_bm25_get_scores (naive)": {
+        "n": 40,
+        "mean_ms": 9406.7219,
+        "p50_ms": 6420.7158,
+        "p90_ms": 26364.2049,
+        "total_s": 376.2689,
+        "throughput_per_s": 0.11,
+        "index_build_s": 1.901
+      }
+    },
+    "delta": {
+      "speedup_mean": 2507.92,
+      "speedup_p50": 1810.28,
+      "delta_mean_ms": 9402.9711
+    },
+    "equivalence_check": {
+      "max_abs_score_diff": 5.684341886080802e-14,
+      "identical": true,
+      "note": "re-verified here, not taken on trust from ADR-006's record"
+    },
+    "projected_full_split_min": {
+      "sparse": 16.0,
+      "naive": 40133.78,
+      "basis_users": 255990
+    }
+  },
+  "ann": {
+    "ablation": "ann_index",
+    "question": "brute-force cosine (deployed) vs. FAISS IVF approximate, and FAISS exact",
+    "corpus_articles": 72023,
+    "dim": 384,
+    "k": 100,
+    "ivf_params": {
+      "nlist": 256,
+      "nprobe": 8
+    },
+    "arms": {
+      "brute_force_numpy (deployed)": {
+        "n": 387,
+        "mean_ms": 5.508,
+        "p50_ms": 4.5128,
+        "p90_ms": 8.5367,
+        "total_s": 2.1316,
+        "throughput_per_s": 181.56,
+        "index_build_s": 0.0,
+        "note": "no index to build \u2014 a plain matvec"
+      },
+      "faiss_ivf_approximate": {
+        "n": 387,
+        "mean_ms": 0.7393,
+        "p50_ms": 0.6351,
+        "p90_ms": 1.1837,
+        "total_s": 0.2861,
+        "throughput_per_s": 1352.58,
+        "index_build_s": 1.34
+      },
+      "faiss_flat_exact": {
+        "n": 387,
+        "mean_ms": 46.881,
+        "p50_ms": 46.3228,
+        "p90_ms": 54.7986,
+        "total_s": 18.1429,
+        "throughput_per_s": 21.33,
+        "index_build_s": 0.079
+      }
+    },
+    "delta_ivf_vs_brute": {
+      "speedup_mean": 7.45,
+      "speedup_p50": 7.11,
+      "delta_mean_ms": 4.7687
+    },
+    "delta_flat_vs_brute": {
+      "speedup_mean": 0.12,
+      "speedup_p50": 0.1,
+      "delta_mean_ms": -41.373
+    },
+    "accuracy_cost": {
+      "recall@100_vs_brute_force": 0.6511,
+      "min_recall": 0.15,
+      "frac_queries_perfect": 0.031,
+      "note": "brute force is ground truth by construction; IVF's shortfall is the price of its speed"
+    }
+  },
+  "nrms": {
+    "ablation": "nrms_candidate_cache",
+    "question": "NRMS with vs. without cached candidate/history news vectors",
+    "device": "cuda",
+    "n_impressions": 595,
+    "catalog_articles": 72023,
+    "arms": {
+      "uncached (deployed NRMSLiteScorer)": {
+        "n": 595,
+        "mean_ms": 3.749,
+        "p50_ms": 3.7459,
+        "p90_ms": 3.9188,
+        "total_s": 2.2306,
+        "throughput_per_s": 266.74,
+        "cache_build_s": 0.0
+      },
+      "cached_news_vectors": {
+        "n": 595,
+        "mean_ms": 1.319,
+        "p50_ms": 1.304,
+        "p90_ms": 1.3663,
+        "total_s": 0.7848,
+        "throughput_per_s": 758.17,
+        "cache_build_s": 1.536
+      }
+    },
+    "delta": {
+      "speedup_mean": 2.84,
+      "speedup_p50": 2.87,
+      "delta_mean_ms": 2.43
+    },
+    "equivalence_check": {
+      "max_abs_score_diff": 4.470348358154297e-08,
+      "note": "same function, computed two ways \u2014 a nonzero diff here would invalidate the arm"
+    },
+    "cache_amortisation": {
+      "one_time_encode_s": 1.536,
+      "breakeven_impressions": 632.2,
+      "note": "impressions needed before the one-time catalog encode pays for itself"
+    }
+  }
+}
+
+written: /home2/sukhraj.singh/perf_bench/benchmarks/results/2026-09-04T00-40-09_performance_ablations.json
+
+=== [4b/4] Ablations: nrms on CPU (controlled pair) ===
+[ablation] NRMS candidate-vector caching …
+{
+  "nrms": {
+    "ablation": "nrms_candidate_cache",
+    "question": "NRMS with vs. without cached candidate/history news vectors",
+    "device": "cpu",
+    "n_impressions": 595,
+    "catalog_articles": 72023,
+    "arms": {
+      "uncached (deployed NRMSLiteScorer)": {
+        "n": 595,
+        "mean_ms": 9.8262,
+        "p50_ms": 8.6983,
+        "p90_ms": 14.0665,
+        "total_s": 5.8466,
+        "throughput_per_s": 101.77,
+        "cache_build_s": 0.0
+      },
+      "cached_news_vectors": {
+        "n": 595,
+        "mean_ms": 1.3993,
+        "p50_ms": 1.3315,
+        "p90_ms": 1.6426,
+        "total_s": 0.8326,
+        "throughput_per_s": 714.63,
+        "cache_build_s": 11.553
+      }
+    },
+    "delta": {
+      "speedup_mean": 7.02,
+      "speedup_p50": 6.53,
+      "delta_mean_ms": 8.4269
+    },
+    "equivalence_check": {
+      "max_abs_score_diff": 0.0,
+      "note": "same function, computed two ways \u2014 a nonzero diff here would invalidate the arm"
+    },
+    "cache_amortisation": {
+      "one_time_encode_s": 11.553,
+      "breakeven_impressions": 1371.0,
+      "note": "impressions needed before the one-time catalog encode pays for itself"
+    }
+  }
+}
+
+written: /home2/sukhraj.singh/perf_bench/benchmarks/results/2026-09-04T00-40-39_performance_ablations.json
+
+=== [4c/4] Ablations: LightGBM feature count ===
+[ablation] LightGBM feature count …
+{
+  "lgbm": {
+    "ablation": "lgbm_feature_count",
+    "question": "LightGBM full 65 features vs. reduced top-K (by the deployed model's own gain)",
+    "n_validation_impressions": 25000,
+    "n_validation_candidate_rows": 297212,
+    "n_train_impressions_for_reduced_arm": 120000,
+    "arms": {
+      "full_60_features (deployed)": {
+        "n_features": 60,
+        "n_trees": 319,
+        "predict_ms_per_impression": 0.0616,
+        "predict_total_s": 1.5412,
+        "rows_per_s": 192850.0,
+        "mean_auc": 0.7499,
+        "trained": "deployed Candidate K model_K_rank.txt"
+      },
+      "reduced_20_features": {
+        "n_features": 20,
+        "n_trees": 319,
+        "predict_ms_per_impression": 0.0569,
+        "predict_total_s": 1.4236,
+        "rows_per_s": 208772.0,
+        "mean_auc": 0.7476,
+        "retrained_s": 21.5,
+        "features": [
+          "article_age_h",
+          "article_age_rank_in_imp",
+          "article_age_minus_imp_min",
+          "body_len",
+          "category_code",
+          "sentiment_score",
+          "n_candidates",
+          "lt_topic_affinity",
+          "title_len",
+          "age_vs_user_appetite",
+          "n_entities",
+          "lt_subcat_affinity",
+          "lt_cat_affinity",
+          "n_topics",
+          "is_premium",
+          "lt_embed_sim",
+          "hour_of_day",
+          "day_of_week",
+          "context_read_time",
+          "device_type"
+        ]
+      }
+    },
+    "delta": {
+      "predict_speedup_mean": 1.08,
+      "auc_delta": -0.0023,
+      "note": "AUC here is the unweighted mean of per-impression AUC on the sampled validation impressions \u2014 a like-for-like comparison between the two arms, NOT comparable to ADR-013's bootstrapped full-split figure"
+    },
+    "feature_engineering_context": {
+      "short_term_features": [
+        "st_cat_affinity",
+        "st_subcat_affinity",
+        "st_topic_affinity",
+        "st_embed_sim",
+        "st_cat_rank",
+        "st_cat_affinity_rank_in_imp"
+      ],
+      "short_term_in_top_k": [],
+      "gain_rank_of_best_short_term_feature": 27,
+      "note": "the per-impression COST of this block is measured directly by profile_ebnerd.py's 1a_short_term_features sub-stage"
+    }
+  }
+}
+
+written: /home2/sukhraj.singh/perf_bench/benchmarks/results/2026-09-04T00-43-04_performance_ablations.json
+
+=== done Fri Sep  4 12:43:05 AM IST 2026 ===

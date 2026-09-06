@@ -1,0 +1,599 @@
+{
+  "benchmark": "profile_mind",
+  "dataset": "mind",
+  "bundle": "large",
+  "split": "dev",
+  "timestamp": "2026-09-04T00:26:47",
+  "git_rev": "unknown",
+  "git_dirty": false,
+  "tag": "ada-gpu",
+  "hardware_label": "NVIDIA GeForce RTX 2080 Ti",
+  "hardware": {
+    "platform": "Linux-5.15.0-190-generic-x86_64-with-glibc2.35",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "python": "3.11.16",
+    "cpu_model": "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+    "ram_gb": 125.8,
+    "physical_cores": 40,
+    "torch": "2.11.0+cu128",
+    "cuda_available": true,
+    "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+    "gpu_memory_gb": 11.3,
+    "mps_available": false,
+    "numpy": "1.26.4"
+  },
+  "sample": {
+    "sampled_users": 1200,
+    "sampled_impressions": 1771,
+    "sampled_candidate_rows": 66482,
+    "sampled_impressions_per_user": 1.4758,
+    "population_users": 255990,
+    "population_impressions": 376471,
+    "population_impressions_per_user": 1.4706,
+    "population_candidate_rows": null,
+    "sample_seed": 0,
+    "sampling": "systematic-by-user"
+  },
+  "counts": {
+    "users": 1170,
+    "impressions": 1718,
+    "candidate_rows": 64751,
+    "history_articles": 29100
+  },
+  "corpus": {
+    "n_articles": 72023
+  },
+  "setup": {
+    "bm25_index_build_s": 3.993554344866425,
+    "bm25_vocab_size": 63441,
+    "bm25_weights_nnz": 1933590,
+    "bm25_weights_mb": 23.5,
+    "embed_index_load_s": 1.2559889510739595,
+    "embed_from_cache": true,
+    "embed_matrix_mb": 110.6,
+    "embed_dim": 384,
+    "nrms_vocab_build_s": 0.3266061148606241,
+    "nrms_vocab_size": 22262,
+    "nrms_config": {
+      "embed_dim": 300,
+      "num_heads": 15,
+      "max_title_len": 20,
+      "max_history_len": 50,
+      "recorded_vocab_size": 26293,
+      "source": "experiments/candidate_j_nrms_lite_ada_mindlarge_2026-08-25/config.json"
+    },
+    "nrms_model_init_s": 1.8078357269987464,
+    "nrms_params": 7478312,
+    "nrms_device": "cuda"
+  },
+  "data_load_s": 5.93,
+  "wall_s": 36.374,
+  "stage_total_s": 34.45,
+  "unattributed_s": 1.924,
+  "per_impression_ms": {
+    "1_query_tokenize": 0.6061,
+    "2_bm25_score_all": 4.9157,
+    "3_embed_query_build": 0.1334,
+    "4_embed_score_all": 1.9548,
+    "5_bm25_candidate_lookup": 0.0568,
+    "6_embed_candidate_lookup": 0.0423,
+    "7_hybrid_blend": 0.1193,
+    "8_nrms_inference": 7.1521,
+    "9_rank_tiebreak": 0.2176,
+    "10_metrics": 4.8542
+  },
+  "end_to_end_impressions_per_s": 47.2,
+  "end_to_end_ms_per_impression": 21.172,
+  "stages": [
+    {
+      "stage": "1_query_tokenize",
+      "n_calls": 1170,
+      "total_s": 1.0413120237644762,
+      "mean_ms": 0.8900102767217745,
+      "p50_ms": 0.5624084733426571,
+      "p90_ms": 2.1314273122698073,
+      "p99_ms": 4.25610380247235,
+      "max_ms": 8.234845008701086,
+      "throughput_per_s": 1123.5825317471129,
+      "pct_of_total": 3.0227041035782127
+    },
+    {
+      "stage": "2_bm25_score_all",
+      "n_calls": 1170,
+      "total_s": 8.445150877116248,
+      "mean_ms": 7.21807767274893,
+      "p50_ms": 6.589436903595924,
+      "p90_ms": 12.462795502506207,
+      "p99_ms": 16.91479226108639,
+      "max_ms": 22.288257954642177,
+      "throughput_per_s": 138.54104172020644,
+      "pct_of_total": 24.51445064401769
+    },
+    {
+      "stage": "3_embed_query_build",
+      "n_calls": 1170,
+      "total_s": 0.2291272294241935,
+      "mean_ms": 0.195835238824097,
+      "p50_ms": 0.17141900025308132,
+      "p90_ms": 0.30336291529238224,
+      "p99_ms": 0.5065213330090045,
+      "max_ms": 1.116147032007575,
+      "throughput_per_s": 5106.333293254843,
+      "pct_of_total": 0.6651069043822593
+    },
+    {
+      "stage": "4_embed_score_all",
+      "n_calls": 1170,
+      "total_s": 3.3583235521800816,
+      "mean_ms": 2.8703620104103265,
+      "p50_ms": 2.9154199874028563,
+      "p90_ms": 3.036925056949258,
+      "p99_ms": 3.183430458884686,
+      "max_ms": 9.129676036536694,
+      "throughput_per_s": 348.3881114553377,
+      "pct_of_total": 9.748488590019484
+    },
+    {
+      "stage": "5_bm25_candidate_lookup",
+      "n_calls": 1718,
+      "total_s": 0.09755732165649533,
+      "mean_ms": 0.05678540259400194,
+      "p50_ms": 0.04266353789716959,
+      "p90_ms": 0.11199899017810822,
+      "p99_ms": 0.19375849049538366,
+      "max_ms": 0.5619470030069351,
+      "throughput_per_s": 17610.159553674217,
+      "pct_of_total": 0.2831878531846143
+    },
+    {
+      "stage": "6_embed_candidate_lookup",
+      "n_calls": 1718,
+      "total_s": 0.0726043195463717,
+      "mean_ms": 0.042260954334325786,
+      "p50_ms": 0.03026006743311882,
+      "p90_ms": 0.09059251751750706,
+      "p99_ms": 0.16673975856974693,
+      "max_ms": 0.3298309165984392,
+      "throughput_per_s": 23662.50397681545,
+      "pct_of_total": 0.21075467258789604
+    },
+    {
+      "stage": "7_hybrid_blend",
+      "n_calls": 1718,
+      "total_s": 0.20490206126123667,
+      "mean_ms": 0.11926778885985836,
+      "p50_ms": 0.1285284524783492,
+      "p90_ms": 0.13587756548076868,
+      "p99_ms": 0.16261801356449715,
+      "max_ms": 0.22891489788889885,
+      "throughput_per_s": 8384.493496186273,
+      "pct_of_total": 0.5947864686771934
+    },
+    {
+      "stage": "8_nrms_inference",
+      "n_calls": 1718,
+      "total_s": 12.28724986477755,
+      "mean_ms": 7.152066277518946,
+      "p50_ms": 7.384043536148965,
+      "p90_ms": 7.552958489395678,
+      "p99_ms": 8.001549979671836,
+      "max_ms": 11.863523861393332,
+      "throughput_per_s": 139.81973337457666,
+      "pct_of_total": 35.66723493087642
+    },
+    {
+      "stage": "9_rank_tiebreak",
+      "n_calls": 1718,
+      "total_s": 0.37392228399403393,
+      "mean_ms": 0.21764975785450172,
+      "p50_ms": 0.23687246721237898,
+      "p90_ms": 0.2544098999351263,
+      "p99_ms": 0.2854933682829141,
+      "max_ms": 0.7753821555525064,
+      "throughput_per_s": 4594.537617949005,
+      "pct_of_total": 1.085415702934153
+    },
+    {
+      "stage": "10_metrics",
+      "n_calls": 1718,
+      "total_s": 8.339534857543185,
+      "mean_ms": 4.854211209280084,
+      "p50_ms": 4.945165477693081,
+      "p90_ms": 5.020626145415008,
+      "p99_ms": 5.20710116252303,
+      "max_ms": 10.339856846258044,
+      "throughput_per_s": 206.0066933404629,
+      "pct_of_total": 24.207870129742076
+    }
+  ],
+  "reconciliation": {
+    "reference": {
+      "bm25_index_build_s": 1.7,
+      "bm25_full_retrieval_min": 9.8,
+      "embed_encode_s": 264.4,
+      "embed_full_retrieval_min": 10.4,
+      "encoder_throughput_articles_s": 373.6,
+      "source": "PROJECT_STATE.md 'Part 2 \u2014 Benchmark before trusting anything at MINDlarge scale'"
+    },
+    "measured_bm25_index_build_s": 3.994,
+    "projected_full_split": {
+      "bm25_query_plus_score_min": 34.59,
+      "bm25_score_only_min": 30.8,
+      "embed_score_only_min": 12.25,
+      "basis": "1,170 sampled users x 255,990 population users"
+    },
+    "projected_end_to_end_all_stages_min": 125.82
+  },
+  "peak_rss_gb": 1.95,
+  "cprofile": {
+    "n_users_profiled": 200,
+    "n_impressions_profiled": 325,
+    "note": "cProfile inflates absolute times; use for relative attribution only",
+    "top_by_cumtime": [
+      {
+        "function": "profile_mind.py:221(run_batch)",
+        "ncalls": 1,
+        "tottime_s": 0.6344,
+        "cumtime_s": 9.1616
+      },
+      {
+        "function": "ranking_metrics.py:80(safe_auc)",
+        "ncalls": 325,
+        "tottime_s": 0.0035,
+        "cumtime_s": 3.2135
+      },
+      {
+        "function": "_param_validation.py:187(wrapper)",
+        "ncalls": 1625,
+        "tottime_s": 0.0174,
+        "cumtime_s": 3.2023
+      },
+      {
+        "function": "_ranking.py:499(roc_auc_score)",
+        "ncalls": 325,
+        "tottime_s": 0.0074,
+        "cumtime_s": 3.0287
+      },
+      {
+        "function": "_contextlib.py:120(decorate_context)",
+        "ncalls": 325,
+        "tottime_s": 0.0078,
+        "cumtime_s": 2.5694
+      },
+      {
+        "function": "nrms_training.py:242(score)",
+        "ncalls": 325,
+        "tottime_s": 0.0755,
+        "cumtime_s": 2.5475
+      },
+      {
+        "function": "module.py:1775(_wrapped_call_impl)",
+        "ncalls": 6500,
+        "tottime_s": 0.0282,
+        "cumtime_s": 2.2602
+      },
+      {
+        "function": "module.py:1783(_call_impl)",
+        "ncalls": 6500,
+        "tottime_s": 0.0597,
+        "cumtime_s": 2.2582
+      },
+      {
+        "function": "nrms.py:174(forward)",
+        "ncalls": 325,
+        "tottime_s": 0.0137,
+        "cumtime_s": 2.2494
+      },
+      {
+        "function": "score.py:26(score_all)",
+        "ncalls": 200,
+        "tottime_s": 0.1736,
+        "cumtime_s": 1.7213
+      },
+      {
+        "function": "validation.py:733(check_array)",
+        "ncalls": 5200,
+        "tottime_s": 0.1153,
+        "cumtime_s": 1.6376
+      },
+      {
+        "function": "nrms.py:128(forward)",
+        "ncalls": 650,
+        "tottime_s": 0.0661,
+        "cumtime_s": 1.579
+      },
+      {
+        "function": "_base.py:23(_average_binary_score)",
+        "ncalls": 325,
+        "tottime_s": 0.004,
+        "cumtime_s": 1.5336
+      },
+      {
+        "function": "multiclass.py:249(type_of_target)",
+        "ncalls": 1300,
+        "tottime_s": 0.0457,
+        "cumtime_s": 1.2178
+      },
+      {
+        "function": "_ranking.py:466(_binary_roc_auc_score)",
+        "ncalls": 325,
+        "tottime_s": 0.0033,
+        "cumtime_s": 1.213
+      },
+      {
+        "function": "_base.py:919(__matmul__)",
+        "ncalls": 193,
+        "tottime_s": 0.0009,
+        "cumtime_s": 1.1937
+      },
+      {
+        "function": "_base.py:788(_matmul_dispatch)",
+        "ncalls": 193,
+        "tottime_s": 0.0016,
+        "cumtime_s": 1.1902
+      },
+      {
+        "function": "_compressed.py:415(_matmul_sparse)",
+        "ncalls": 193,
+        "tottime_s": 0.0066,
+        "cumtime_s": 1.1861
+      },
+      {
+        "function": "validation.py:44(_nw_into_df_or_series)",
+        "ncalls": 5200,
+        "tottime_s": 0.0161,
+        "cumtime_s": 1.1399
+      },
+      {
+        "function": "activation.py:1255(forward)",
+        "ncalls": 975,
+        "tottime_s": 0.0568,
+        "cumtime_s": 1.0521
+      },
+      {
+        "function": "_ranking.py:1208(roc_curve)",
+        "ncalls": 325,
+        "tottime_s": 0.0211,
+        "cumtime_s": 0.9072
+      },
+      {
+        "function": "functional.py:6244(multi_head_attention_forward)",
+        "ncalls": 975,
+        "tottime_s": 0.1296,
+        "cumtime_s": 0.8811
+      },
+      {
+        "function": "_label.py:465(label_binarize)",
+        "ncalls": 325,
+        "tottime_s": 0.028,
+        "cumtime_s": 0.8684
+      },
+      {
+        "function": "validation.py:76(inner_f)",
+        "ncalls": 325,
+        "tottime_s": 0.0016,
+        "cumtime_s": 0.8329
+      },
+      {
+        "function": "_ranking.py:924(confusion_matrix_at_thresholds)",
+        "ncalls": 325,
+        "tottime_s": 0.0207,
+        "cumtime_s": 0.8287
+      },
+      {
+        "function": "~:0(<built-in method scipy.sparse._sparsetools.csr_matmat>)",
+        "ncalls": 193,
+        "tottime_s": 0.806,
+        "cumtime_s": 0.806
+      },
+      {
+        "function": "nrms.py:99(forward)",
+        "ncalls": 975,
+        "tottime_s": 0.0853,
+        "cumtime_s": 0.6829
+      },
+      {
+        "function": "_utils.py:1599(_hasattr_static)",
+        "ncalls": 20800,
+        "tottime_s": 0.0246,
+        "cumtime_s": 0.6316
+      },
+      {
+        "function": "dependencies.py:58(is_into_dataframe)",
+        "ncalls": 5200,
+        "tottime_s": 0.022,
+        "cumtime_s": 0.6074
+      },
+      {
+        "function": "inspect.py:1804(getattr_static)",
+        "ncalls": 20800,
+        "tottime_s": 0.0864,
+        "cumtime_s": 0.607
+      }
+    ],
+    "top_by_tottime": [
+      {
+        "function": "~:0(<built-in method scipy.sparse._sparsetools.csr_matmat>)",
+        "ncalls": 193,
+        "tottime_s": 0.806,
+        "cumtime_s": 0.806
+      },
+      {
+        "function": "profile_mind.py:221(run_batch)",
+        "ncalls": 1,
+        "tottime_s": 0.6344,
+        "cumtime_s": 9.1616
+      },
+      {
+        "function": "~:0(<built-in method torch._C._nn.linear>)",
+        "ncalls": 3900,
+        "tottime_s": 0.3993,
+        "cumtime_s": 0.3993
+      },
+      {
+        "function": "~:0(<built-in method scipy.sparse._sparsetools.csr_matmat_maxnnz>)",
+        "ncalls": 193,
+        "tottime_s": 0.3097,
+        "cumtime_s": 0.3097
+      },
+      {
+        "function": "inspect.py:1790(_shadowed_dict)",
+        "ncalls": 62400,
+        "tottime_s": 0.2186,
+        "cumtime_s": 0.2642
+      },
+      {
+        "function": "score.py:26(score_all)",
+        "ncalls": 200,
+        "tottime_s": 0.1736,
+        "cumtime_s": 1.7213
+      },
+      {
+        "function": "~:0(<method 'get' of 'dict' objects>)",
+        "ncalls": 424299,
+        "tottime_s": 0.1553,
+        "cumtime_s": 0.1553
+      },
+      {
+        "function": "functional.py:6244(multi_head_attention_forward)",
+        "ncalls": 975,
+        "tottime_s": 0.1296,
+        "cumtime_s": 0.8811
+      },
+      {
+        "function": "~:0(<method 'any' of 'torch._C.TensorBase' objects>)",
+        "ncalls": 3900,
+        "tottime_s": 0.1272,
+        "cumtime_s": 0.1272
+      },
+      {
+        "function": "~:0(<method 'findall' of 're.Pattern' objects>)",
+        "ncalls": 5418,
+        "tottime_s": 0.1236,
+        "cumtime_s": 0.1236
+      },
+      {
+        "function": "validation.py:733(check_array)",
+        "ncalls": 5200,
+        "tottime_s": 0.1153,
+        "cumtime_s": 1.6376
+      },
+      {
+        "function": "~:0(<built-in method torch.bmm>)",
+        "ncalls": 2275,
+        "tottime_s": 0.111,
+        "cumtime_s": 0.111
+      },
+      {
+        "function": "~:0(<built-in method torch.tensor>)",
+        "ncalls": 975,
+        "tottime_s": 0.1107,
+        "cumtime_s": 0.1107
+      },
+      {
+        "function": "nrms.py:64(_unmask_one_row)",
+        "ncalls": 1950,
+        "tottime_s": 0.1057,
+        "cumtime_s": 0.2628
+      },
+      {
+        "function": "inspect.py:1762(_static_getmro)",
+        "ncalls": 104000,
+        "tottime_s": 0.1037,
+        "cumtime_s": 0.1037
+      },
+      {
+        "function": "~:0(<built-in method builtins.isinstance>)",
+        "ncalls": 221442,
+        "tottime_s": 0.0956,
+        "cumtime_s": 0.1553
+      },
+      {
+        "function": "inspect.py:1774(_check_class)",
+        "ncalls": 20800,
+        "tottime_s": 0.0899,
+        "cumtime_s": 0.2778
+      },
+      {
+        "function": "inspect.py:1804(getattr_static)",
+        "ncalls": 20800,
+        "tottime_s": 0.0864,
+        "cumtime_s": 0.607
+      },
+      {
+        "function": "nrms.py:99(forward)",
+        "ncalls": 975,
+        "tottime_s": 0.0853,
+        "cumtime_s": 0.6829
+      },
+      {
+        "function": "~:0(<method 'contiguous' of 'torch._C.TensorBase' objects>)",
+        "ncalls": 1950,
+        "tottime_s": 0.0789,
+        "cumtime_s": 0.0789
+      },
+      {
+        "function": "~:0(<method 'all' of 'torch._C.TensorBase' objects>)",
+        "ncalls": 1950,
+        "tottime_s": 0.0776,
+        "cumtime_s": 0.0776
+      },
+      {
+        "function": "~:0(<built-in method torch.baddbmm>)",
+        "ncalls": 975,
+        "tottime_s": 0.0776,
+        "cumtime_s": 0.0776
+      },
+      {
+        "function": "~:0(<method 'reduce' of 'numpy.ufunc' objects>)",
+        "ncalls": 9165,
+        "tottime_s": 0.0773,
+        "cumtime_s": 0.0773
+      },
+      {
+        "function": "nrms_training.py:242(score)",
+        "ncalls": 325,
+        "tottime_s": 0.0755,
+        "cumtime_s": 2.5475
+      },
+      {
+        "function": "inspect.py:2331(_signature_from_function)",
+        "ncalls": 1950,
+        "tottime_s": 0.0719,
+        "cumtime_s": 0.2189
+      },
+      {
+        "function": "inspect.py:1765(_check_instance)",
+        "ncalls": 20800,
+        "tottime_s": 0.0676,
+        "cumtime_s": 0.0726
+      },
+      {
+        "function": "~:0(<built-in method numpy.array>)",
+        "ncalls": 15069,
+        "tottime_s": 0.0673,
+        "cumtime_s": 0.0886
+      },
+      {
+        "function": "nrms.py:128(forward)",
+        "ncalls": 650,
+        "tottime_s": 0.0661,
+        "cumtime_s": 1.579
+      },
+      {
+        "function": "~:0(<method 'transpose' of 'torch._C.TensorBase' objects>)",
+        "ncalls": 7800,
+        "tottime_s": 0.0638,
+        "cumtime_s": 0.0638
+      },
+      {
+        "function": "module.py:1783(_call_impl)",
+        "ncalls": 6500,
+        "tottime_s": 0.0597,
+        "cumtime_s": 2.2582
+      }
+    ],
+    "pstats_text": "         2638196 function calls (2621343 primitive calls) in 9.162 seconds\n\n   Ordered by: cumulative time\n   List reduced from 639 to 30 due to restriction <30>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.634    0.634    9.162    9.162 /home2/sukhraj.singh/perf_bench/benchmarks/profile_mind.py:221(run_batch)\n      325    0.003    0.000    3.213    0.010 /home2/sukhraj.singh/perf_bench/src/evaluation/ranking_metrics.py:80(safe_auc)\n 1625/325    0.017    0.000    3.202    0.010 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/utils/_param_validation.py:187(wrapper)\n      325    0.007    0.000    3.029    0.009 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/metrics/_ranking.py:499(roc_auc_score)\n      325    0.008    0.000    2.569    0.008 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/torch/utils/_contextlib.py:120(decorate_context)\n      325    0.076    0.000    2.547    0.008 /home2/sukhraj.singh/perf_bench/src/retrieval/nrms_training.py:242(score)\n 6500/325    0.028    0.000    2.260    0.007 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/torch/nn/modules/module.py:1775(_wrapped_call_impl)\n 6500/325    0.060    0.000    2.258    0.007 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/torch/nn/modules/module.py:1783(_call_impl)\n      325    0.014    0.000    2.249    0.007 /home2/sukhraj.singh/perf_bench/src/retrieval/nrms.py:174(forward)\n      200    0.174    0.001    1.721    0.009 /home2/sukhraj.singh/perf_bench/src/retrieval/score.py:26(score_all)\n     5200    0.115    0.000    1.638    0.000 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/utils/validation.py:733(check_array)\n      650    0.066    0.000    1.579    0.002 /home2/sukhraj.singh/perf_bench/src/retrieval/nrms.py:128(forward)\n      325    0.004    0.000    1.534    0.005 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/metrics/_base.py:23(_average_binary_score)\n     1300    0.046    0.000    1.218    0.001 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/utils/multiclass.py:249(type_of_target)\n      325    0.003    0.000    1.213    0.004 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/metrics/_ranking.py:466(_binary_roc_auc_score)\n      193    0.001    0.000    1.194    0.006 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/scipy/sparse/_base.py:919(__matmul__)\n      193    0.002    0.000    1.190    0.006 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/scipy/sparse/_base.py:788(_matmul_dispatch)\n      193    0.007    0.000    1.186    0.006 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/scipy/sparse/_compressed.py:415(_matmul_sparse)\n     5200    0.016    0.000    1.140    0.000 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/utils/validation.py:44(_nw_into_df_or_series)\n      975    0.057    0.000    1.052    0.001 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/torch/nn/modules/activation.py:1255(forward)\n      325    0.021    0.000    0.907    0.003 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/metrics/_ranking.py:1208(roc_curve)\n      975    0.130    0.000    0.881    0.001 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/torch/nn/functional.py:6244(multi_head_attention_forward)\n      325    0.028    0.000    0.868    0.003 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/preprocessing/_label.py:465(label_binarize)\n      325    0.002    0.000    0.833    0.003 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/utils/validation.py:76(inner_f)\n      325    0.021    0.000    0.829    0.003 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/sklearn/metrics/_ranking.py:924(confusion_matrix_at_thresholds)\n      193    0.806    0.004    0.806    0.004 {built-in method scipy.sparse._sparsetools.csr_matmat}\n      975    0.085    0.000    0.683    0.001 /home2/sukhraj.singh/perf_bench/src/retrieval/nrms.py:99(forward)\n    20800    0.025    0.000    0.632    0.000 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/narwhals/_utils.py:1599(_hasattr_static)\n     5200    0.022    0.000    0.607    0.000 /home2/sukhraj.singh/venvs/perf_bench/lib/python3.11/site-packages/narwhals/stable/v2/dependencies.py:58(is_into_dataframe)\n    20800    0.086    0.000    0.607    0.000 /home2/sukhraj.singh/.local/share/uv/python/cpython-3.11.16-linux-x86_64-gnu/lib/python3.11/inspect.py:1804(getattr_static)\n\n\n"
+  }
+}
