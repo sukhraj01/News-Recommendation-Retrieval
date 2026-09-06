@@ -1098,3 +1098,39 @@ precedent used).
 - See ADR-005's own 2026-08-21 addendum for Candidate C (recency-weighted
   history), tested separately since it's a query/user-representation
   concern, not a semantic-retrieval-design one.
+
+---
+
+## Addendum — 2026-09-04: FAISS re-tested at MINDlarge scale; rejection upheld on accuracy
+
+This ADR rejected FAISS on a latency argument (brute force measured 0.99 ms/query
+at 42,416 docs, so an ANN index was unjustified). ADR-014 re-tested that at
+**72,023 docs** and added the measurement this ADR never made — what the
+approximation actually costs in retrieval quality.
+
+| Arm | Latency/query | Index build | recall@100 vs exact |
+|---|---:|---:|---:|
+| brute-force numpy (deployed) | **5.51 ms** | 0s (no index) | 1.000 (ground truth) |
+| FAISS IVF (nlist 256, nprobe 8) | **0.74 ms** | 1.34s | **0.6511** |
+| FAISS Flat (exact) | **46.88 ms** | 0.08s | 1.000 |
+
+**Rejection upheld, and now on stronger grounds than before.** IVF is 7.45x
+faster but agrees with exact search on only **65.1%** of the top-100 — min
+recall **0.15**, and only **3.1%** of queries return a perfect top-100. Trading
+a third of retrieval quality to save 4.8 ms on a stage that is 10.7% of the
+serving path (M3) is not a trade worth making.
+
+**A genuinely counterintuitive second result: FAISS Flat is 8.5x SLOWER than a
+plain numpy matvec** (46.88 ms vs 5.51 ms) for identical exact results. At
+72,023 x 384 with L2-normalised rows, `index.vectors @ query` is already the
+right implementation; FAISS's exact index adds a dependency and loses. This
+strengthens rather than merely confirms the original call.
+
+**Reproduces from this ADR:** full retrieval projected **12.25 min** (Ada) against
+the recorded ~10.4 min — 18% high, same order, consistent. Embedding matrix
+110.6 MB, 384-dim, 72,023 rows.
+
+**Revisit trigger added:** the FAISS rejection is validated at 72,023 docs.
+Brute-force cost scales linearly with catalog size, so at ~10x (MINDlarge test,
+`ebnerd_large`) this must be re-measured, not assumed. See
+`decisions/ADR-014-performance-benchmarking-methodology.md`.

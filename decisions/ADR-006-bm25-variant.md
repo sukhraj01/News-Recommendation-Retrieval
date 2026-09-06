@@ -501,3 +501,49 @@ Note: MINDlarge_dev's own article catalog (72,023) is the correct benchmarking t
 ## Related
 
 Companion finding: `_explode_impressions`'s vectorization for the *data pipeline* (not this scoring path) required three rounds of real algorithmic fixes to survive MINDlarge's row counts at all (see `src/datasets/mind.py`'s docstring and PROJECT_STATE.md's session notes) — a reminder that "benchmark before trusting a decision" applies per-component, not just once per phase; BM25's own scoring path (this ADR) turned out fine on the first real check, unlike the parsing path.
+
+---
+
+## Addendum — 2026-09-04: the 9.8 min projection does not reproduce
+
+Per-stage profiling (ADR-014) re-measured this ADR's scoring path at
+MINDlarge-dev scale on two machines. Two of the three recorded figures
+reproduce; one does not, and it is recorded here rather than silently corrected,
+per CLAUDE.md's Decision Reversal clause.
+
+| Figure | This ADR recorded | ADR-014 measured | Status |
+|---|---|---|---|
+| Sparse weight matrix | 23.5 MB | 23.5 MB | exact match |
+| Index build | 1.70s | 2.23s (M3) / 3.99s (Ada Xeon) | same order, not a bottleneck |
+| **Full retrieval, 255,990 users** | **~9.8 min** (2.31 ms/user) | **15.4–21.4 min** (3.62–4.33 ms/user) | **does not reproduce (~2x)** |
+
+**The obvious explanation was tested and refuted.** This ADR's addendum does not
+record how its 1,000-user sample was drawn. Since `score_all`'s cost scales with
+the number of distinct query terms — and therefore with history length — a
+prefix sample could plausibly have drawn a cheaper population than the split
+average. `benchmarks/reconcile_adr006.py` measured exactly that on Ada (job
+2687446: same corpus, same index, same `score_all`, only the draw method varied):
+
+| Sample | history len mean / p50 | query tokens mean | `score_all` mean |
+|---|---:|---:|---:|
+| `head(1000)` prefix | 31.8 / 21 | 828.5 | **4.158 ms** |
+| systematic 1,000 | 24.6 / 14 | 644.3 | **3.618 ms** |
+
+The prefix is **slower** (ratio 0.87), so sampling bias cannot produce an
+*under*-estimate. Hypothesis dead.
+
+**The gap remains unexplained.** Untested candidates: the original may have timed
+`retrieve_top_k` (which has a no-vocabulary-overlap early return) rather than
+`score_all`; or run under a materially different machine/cache state.
+
+**What does NOT change: this ADR's actual decision.** BM25 stays local and the
+sparse rewrite stays. Both are reinforced, not weakened:
+
+- Even 21.4 min is far short of the >2hr threshold that would justify migration.
+- ADR-014's ablation re-measured the sparse-vs-naive gap directly and found
+  **2,507.9x** (3.75 ms vs 9,406.72 ms/query), with exactness re-verified rather
+  than trusted (max abs score diff **5.7e-14**). Projected full-split retrieval:
+  **16.0 min sparse vs 40,133.8 min — 27.9 days — naive.**
+
+For planning, use ADR-014's measured 15.4–21.4 min. See
+`decisions/ADR-014-performance-benchmarking-methodology.md`.
