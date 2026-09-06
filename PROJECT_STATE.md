@@ -81,7 +81,9 @@
 > stayed a clear win rather than evaporating like Candidate G's did).
 > Screenshots and full detail in ADR-012's 2026-08-26 addendum.
 
-**Last Updated:** August 30, 2026 (Candidate K / ADR-013 — EB-NeRD GBDT ranker, **RESOLVED as a real, confirmed Codabench win: submission 907863, Score 0.7542**, +0.2138 over the previous deployed EB-NeRD submission and +0.1572 over the challenge's own popularity baseline — the first time this project's EB-NeRD line has beaten either. Within 0.0157 of the honest leakage-free literature ceiling (0.7699); 0.80 was not reached. Full trail from local ebnerd_small through a real recency-computation fix, real ebnerd_large training on Ada, and the real leaderboard result is in ADR-013's three addenda. Previous session entry follows — the MIND candidate-search line, explicitly closed on Aug 22 per the engineer's own hard-stop instruction, was reopened after the engineer gained access to Ada (IIIT-H's SLURM HPC cluster) and carried all the way through to a real, confirmed Codabench leaderboard win. **Candidate J (NRMS-lite — trainable title + click-history encoders, Wu et al. 2019, GloVe-initialized): MINDsmall-dev 0.6391, MINDlarge-dev 0.6579 (win widened, not compressed), real Codabench 0.6462 (submission 901961) — a genuine +0.0267 improvement over the original 0.6195 baseline submission, first real leaderboard win this project's MIND search has ever produced.** Along the way: a real multi-hour HPC environment-setup saga (Python 3.6→3.11 via `uv`, a CUDA-version mismatch, node-local `/ssd_scratch` not being cluster-shared, throttled downloads fixed with resumable retry logic in two places), and a real prediction-generation bug (scoring catalog wrongly included train+dev, not test-only) caught by a spot-check and fixed at the root. Initial impact estimate (32/2,370,727, checked against only the one known example) was later corrected once measured directly: real diff is 2,087/2,370,727 (0.088%, ~65x the estimate) — small, but the engineer chose to resubmit the corrected set as a fourth MIND entry rather than let the narrower estimate stand. Full detail in ADR-012 (canonical, four addenda) and ADR-011's addendum (cross-reference). The Aug 22 closure and everything before it (Candidates A-I, I-long, I-pop, all real losses) remains an accurate historical record, not erased — see the Aug 22 entries below.
+**Last Updated:** September 4, 2026 (ADR-014 — pipeline performance profiling: bottleneck named per dataset, per-hardware tables, performance ablations, and a pre-commit benchmarking habit. Previous entry follows.)
+
+**Previously Updated:** August 30, 2026 (Candidate K / ADR-013 — EB-NeRD GBDT ranker, **RESOLVED as a real, confirmed Codabench win: submission 907863, Score 0.7542**, +0.2138 over the previous deployed EB-NeRD submission and +0.1572 over the challenge's own popularity baseline — the first time this project's EB-NeRD line has beaten either. Within 0.0157 of the honest leakage-free literature ceiling (0.7699); 0.80 was not reached. Full trail from local ebnerd_small through a real recency-computation fix, real ebnerd_large training on Ada, and the real leaderboard result is in ADR-013's three addenda. Previous session entry follows — the MIND candidate-search line, explicitly closed on Aug 22 per the engineer's own hard-stop instruction, was reopened after the engineer gained access to Ada (IIIT-H's SLURM HPC cluster) and carried all the way through to a real, confirmed Codabench leaderboard win. **Candidate J (NRMS-lite — trainable title + click-history encoders, Wu et al. 2019, GloVe-initialized): MINDsmall-dev 0.6391, MINDlarge-dev 0.6579 (win widened, not compressed), real Codabench 0.6462 (submission 901961) — a genuine +0.0267 improvement over the original 0.6195 baseline submission, first real leaderboard win this project's MIND search has ever produced.** Along the way: a real multi-hour HPC environment-setup saga (Python 3.6→3.11 via `uv`, a CUDA-version mismatch, node-local `/ssd_scratch` not being cluster-shared, throttled downloads fixed with resumable retry logic in two places), and a real prediction-generation bug (scoring catalog wrongly included train+dev, not test-only) caught by a spot-check and fixed at the root. Initial impact estimate (32/2,370,727, checked against only the one known example) was later corrected once measured directly: real diff is 2,087/2,370,727 (0.088%, ~65x the estimate) — small, but the engineer chose to resubmit the corrected set as a fourth MIND entry rather than let the narrower estimate stand. Full detail in ADR-012 (canonical, four addenda) and ADR-011's addendum (cross-reference). The Aug 22 closure and everything before it (Candidates A-I, I-long, I-pop, all real losses) remains an accurate historical record, not erased — see the Aug 22 entries below.
 
 **Current Phase:** MIND + EB-NeRD Codabench submissions (Q5) and the design note (Q7 deliverable #2) were complete as of Aug 14, but the design note's MIND section (§3.5/§6) is now stale — it describes the candidate search as having found no local/real win, which Candidate J's real 0.6462 leaderboard result contradicts. **Updating the design note to reflect Candidate J is the one clearly remaining task from this whole line of work.** Both MIND submissions are now three: 886468 @ 0.6195, 896696 @ 0.6192, 901961 @ 0.6462 (new best). See ADR-012 (full) and ADR-011's addendum (cross-reference) for detail.
 
@@ -2391,3 +2393,131 @@ commit finishes.
 | Pipeline & Retrieval Complete | August 26, 2026 | ✅ Done |
 | Leaderboard Submission | August 26, 2026 | ✅ Done — 3 MIND submissions (best: 901961 @ 0.6462), 2 EB-NeRD submissions |
 | Final Assignment Submission | August 27, 2026 | **Deadline — tomorrow. See Deliverables Checklist (Q7) above; design note §3.5/§6 still needs updating for Candidate J.** |
+
+---
+
+## Session Notes — 2026-09-03/04: Pipeline Performance Profiling (ADR-014)
+
+**New requirement from class:** comprehensive latency/throughput profiling, ablations
+measured on *performance* rather than accuracy, per-hardware benchmarks, and an
+ongoing pre-commit habit. Delivered as ADR-014 plus a `benchmarks/` directory that
+mirrors how `experiments/` already captures accuracy work.
+
+### The bottleneck, named
+
+**MIND: NRMS inference — 34.920 ms/impression, 79.9% of serving-path latency on the
+local M3** (7.5x the next stage; 90.7% on Ada's Xeon CPU). Confirmed independently by
+cProfile (73.0% of `run_batch`).
+
+**EB-NeRD: feature engineering, NOT model inference.** `build_feature_frame` is 63.5%
+of the serving path while LightGBM predict is 8.0%. Inside it,
+`compute_short_term_features` alone is **47.4% of the whole path** — and contributes
+**zero features to the top 20 by gain** (best member ranks #27). Largest cost/value
+mismatch found. Not a delete instruction: ADR-013 records fixing this block was part
+of the 0.7514 -> 0.7581 gain; the AUC cost of removal is unmeasured.
+
+**The two datasets do not share a bottleneck.** Assuming they did would have sent
+effort to the wrong place in one of them.
+
+### Hardware changes the answer (measured, not assumed)
+
+| | NRMS share of serving path |
+|---|---:|
+| Ada Xeon E5-2640 v4 (CPU) | 90.7% |
+| Local Apple M3 (CPU) | 79.9% |
+| Ada RTX 2080 Ti (GPU) | **47.1%** |
+
+Same code/data/sample. On the internally-controlled pair (one node, one venv, one
+allocation) GPU makes NRMS **8.98x faster** (64.243 -> 7.152 ms); `bm25_score_all`
+then becomes a real second bottleneck at 32.3%. Serving throughput: 22.9 imp/s (M3)
+/ 14.1 (Ada CPU) / **65.8 (Ada GPU)**.
+
+Two counterintuitive findings: **local MPS is 2.1x SLOWER than the same machine's CPU**
+for NRMS at batch=1 (dispatch overhead) even though `embed.py::_default_device` prefers
+it; and **several stages are slower on the cluster** (`bm25_score_all` 0.60x, `metrics`
+0.40x) because the 2016-era Xeon is a weaker single-thread part than the M3. "Move it to
+the HPC cluster" only helps where the GPU does the work.
+
+### Performance ablations (new axis)
+
+| Ablation | Deployed | Alternative | Speedup | Accuracy cost |
+|---|---|---|---:|---|
+| BM25 scorer | sparse 3.75 ms | `rank_bm25` 9,406.72 ms | **2,507.9x** | none (5.7e-14) |
+| ANN | brute numpy 5.51 ms | FAISS IVF 0.74 ms | 7.45x | **recall@100 0.6511** |
+| ANN | brute numpy 5.51 ms | FAISS Flat 46.88 ms | **0.12x** | none |
+| NRMS cache (CPU) | 9.826 ms | 1.399 ms | **7.02x** | none (exactly 0.0) |
+| NRMS cache (GPU) | 3.749 ms | 1.319 ms | 2.84x | none |
+| LightGBM | 60 feat 0.0616 ms | 20 feat 0.0569 ms | 1.08x | AUC -0.0023 |
+
+FAISS rejected again, now on accuracy not speed. FAISS Flat being **8.5x slower than a
+plain numpy matvec** is the most counterintuitive result. The **NRMS candidate-vector
+cache is a free 7.02x on CPU** with numerically identical output and no retraining —
+the highest-value unimplemented change this profiling found.
+
+### One recorded figure does NOT reproduce
+
+**ADR-006's ~9.8 min BM25 full-retrieval projection (2.31 ms/user) does not
+reproduce**; measured 3.62-4.33 ms/user -> **15.4-21.4 min** on two machines. The
+obvious explanation (unrecorded sample-draw method) was **tested and refuted** — a
+prefix sample is *slower* than systematic (4.158 vs 3.618 ms, ratio 0.87), so it
+cannot produce an under-estimate. Gap unexplained; recorded as an ADR-006 addendum
+rather than a silent edit. ADR-006's actual decision is unaffected (21 min is still
+far under the >2hr migration threshold). ADR-008's ~10.4 min **does** reproduce
+(12.25 min measured, 18% high).
+
+### The ongoing habit
+
+`benchmarks/snapshot.py` (~1.5s tripwire, `--compare` exits nonzero on regression),
+`benchmarks/PERFORMANCE_LOG.md` (auto-appended), `.githooks/pre-commit` (fires only on
+performance-relevant paths; `make hooks` to install; `SKIP_PERF_SNAPSHOT=1` to bypass),
+`make bench-baseline` / `bench-snapshot` / `bench`.
+
+A defect found and fixed while building it: two *identical* runs disagreed by -44.5% on
+a 0.02 ms stage, so a pure percentage gate would fire on pure noise. Regression now
+requires **both** >15% relative **and** >0.25 ms/impression absolute.
+
+### Ada notes (new, reusable)
+
+Ada is reachable passwordless as `sukhraj.singh@ada.iiit.ac.in`. **Standing rule: never
+`scancel` a job on that account that this tooling did not submit.** Jobs submitted this
+session: 2687384/2687386/2687388 (prep), 2687421 (profile), 2687432 (resume), 2687446
+(reconcile).
+
+Four real environment failures, all now encoded in `benchmarks/ada_*.sbatch`:
+- `uv pip install torch` **fails on the login node** (CUDA wheels are mmap'd during
+  extraction; per-user memory cap -> `Cannot allocate memory (os error 12)`). Must run
+  in a job. `torch` cannot even be **imported** on the login node for the same reason —
+  verify a venv from inside a job, never from the login shell.
+- `--extra-index-url` is **not sufficient**: the resolver preferred PyPI and picked
+  torch 2.14.0 -> CUDA-13 wheels, the documented trap where install succeeds and
+  `cuda_available` is silently False. `--index-url` required; prep now hard-fails if
+  `torch.version.cuda` is not 12.x.
+- `-p u22-cpu` is **unavailable to the `research` account** (`sacctmgr` shows one
+  association: research/medium). Use `u22` with no `--gres=gpu`.
+- **`quota` exits nonzero even when it prints fine**, so a bare `quota` under
+  `set -euo pipefail` marked job 2687388 FAILED *after all real work succeeded*.
+
+**Version parity is imperfect and unavoidable:** cu128's newest cp311 torch is 2.11.0
+vs local 2.13.0, and the nodes cap at CUDA 12.8. Cross-machine comparison is confounded;
+the GPU-vs-CPU conclusion uses the within-node controlled pair instead.
+
+### Measurement hygiene (learned the hard way)
+
+Running two MINDlarge-scale jobs concurrently on the 8GB machine moved `bm25_score_all`
+from **4.33 to 10.9 ms/user** — a 2.5x distortion on identical code and data. The
+existing machine-stability note is now a hard requirement for benchmarking, not a
+suggestion. Results from the contaminated run were discarded.
+
+### Gaps, stated not papered over
+
+- **Kaggle T4 not measured** — no API credentials on this machine. PROJECT_STATE's
+  existing T4 macro figures are not per-stage and are not presented as such.
+- **NRMS timings use randomly-initialised weights** (real recorded architecture; no
+  trained Candidate J checkpoint exists locally). Valid for latency, no accuracy claim.
+- **EB-NeRD used the 60-feature 2026-08-26 booster**, which predates ADR-013's
+  correction; the 65-feature `ebnerd_large` model that scored 0.7542 stayed on Ada.
+  Inference cost is near-flat in feature count (1.08x), so the conclusion holds.
+- **Local EB-NeRD profile and local ablations not yet run** (engineer asked that local
+  CPU load stop mid-session). Ada covers both; the local rows can be filled with
+  `make bench` when the machine is free.
+
