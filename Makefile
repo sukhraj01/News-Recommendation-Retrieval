@@ -1,4 +1,4 @@
-.PHONY: help install test test-unit test-integration test-reproducibility format lint data fixtures clean-data clean
+.PHONY: help install test test-unit test-integration test-reproducibility format lint data fixtures clean-data clean bench bench-snapshot bench-baseline hooks
 
 help:
 	@echo "Assignment 1: Lexical & Semantic Retrieval"
@@ -13,6 +13,10 @@ help:
 	@echo "  make test-reproducibility Reproducibility tests"
 	@echo "  make format               Format code"
 	@echo "  make lint                 Lint code"
+	@echo "  make bench-baseline       Record a latency/throughput snapshot (before a change)"
+	@echo "  make bench-snapshot       Snapshot + compare vs. last (after a change; fails on regression)"
+	@echo "  make bench                Full per-stage profiles + performance ablations (slow)"
+	@echo "  make hooks                Install the pre-commit performance gate"
 	@echo "  make clean-data           Remove the built feature store"
 	@echo "  make clean                Remove build artifacts"
 
@@ -51,6 +55,27 @@ format:
 
 lint:
 	poetry run flake8 src/ tests/ --max-line-length=100
+
+# --- performance benchmarking (ADR-014) ---------------------------------
+# bench-baseline / bench-snapshot are the routine pair: run the first before a
+# change to a performance-relevant path, the second after. bench-snapshot exits
+# nonzero on a regression, which is what makes the habit enforceable.
+bench-baseline:
+	poetry run python benchmarks/snapshot.py --note "baseline"
+
+bench-snapshot:
+	poetry run python benchmarks/snapshot.py --compare --note "after change"
+
+# The authoritative measurement, at real scale. Minutes, not seconds — this is
+# the one ADR-014's tables come from, not the snapshot above.
+bench:
+	poetry run python benchmarks/profile_mind.py --device cpu --tag "make-bench"
+	poetry run python benchmarks/profile_ebnerd.py --tag "make-bench"
+	poetry run python benchmarks/ablations.py --which all --tag "make-bench"
+
+hooks:
+	git config core.hooksPath .githooks
+	@echo "pre-commit performance gate installed (bypass with SKIP_PERF_SNAPSHOT=1)"
 
 clean-data:
 	rm -rf data/processed data/interim

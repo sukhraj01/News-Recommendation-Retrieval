@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Performance snapshot gate (ADR-014).
+#
+# Runs benchmarks/snapshot.py when — and only when — this commit touches a
+# performance-relevant path. Most commits touch none and pass instantly; a
+# hook that ran on every docs edit would be trained away within a week.
+#
+# Blocks the commit if a stage regressed past snapshot.py's threshold. To
+# commit a deliberate, understood slowdown:
+#
+#     SKIP_PERF_SNAPSHOT=1 git commit ...
+#
+# Install once with:  make hooks
+set -euo pipefail
+
+if [ "${SKIP_PERF_SNAPSHOT:-0}" = "1" ]; then
+    echo "[pre-commit] perf snapshot skipped (SKIP_PERF_SNAPSHOT=1)"
+    exit 0
+fi
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$STAGED" ] && exit 0
+
+# shellcheck disable=SC2086
+if poetry run python benchmarks/snapshot.py --compare \
+        --note "pre-commit: $(git diff --cached --name-only | tr '\n' ' ')" \
+        --check-paths $STAGED; then
+    # The snapshot appends to PERFORMANCE_LOG.md, a TRACKED file, while the
+    # commit is being built. Without this the log entry would land in the
+    # working tree but not the commit it describes, so every performance-
+    # relevant commit would be followed by a stray "update log" diff. Staging
+    # it here keeps the record and the change it records in one commit.
+    # (The per-run JSON under benchmarks/results/snapshots/ is gitignored, so
+    # this is the only file that needs picking up.)
+    if [ -f benchmarks/PERFORMANCE_LOG.md ]; then
+        git add benchmarks/PERFORMANCE_LOG.md
+    fi
+else
+    cat >&2 <<'MSG'
+
+[pre-commit] BLOCKED: a pipeline stage regressed past the threshold.
+
+  - If the slowdown is unintended, fix it and re-commit.
+  - If it is a deliberate, understood trade-off, record WHY in the commit
+    message (and in ADR-014 if it changes the bottleneck), then:
+        SKIP_PERF_SNAPSHOT=1 git commit ...
+
+MSG
+    exit 1
+fi
