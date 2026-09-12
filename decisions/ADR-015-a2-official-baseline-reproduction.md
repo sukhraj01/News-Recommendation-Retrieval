@@ -233,6 +233,67 @@ Two honest caveats: our 0.5613 is below the paper's 0.6103, which is measured on
 (193,617 training samples) per `args_nrms.py`'s own default `datasplit`; and the K
 comparison is marginal, not paired.
 
+**EB-NeRD treatment finished (job 2694991, 29 m 58 s, 5 epochs).** Training trace, which is
+worth reading in full because the freshness weight does not behave monotonically:
+
+| Epoch | loss | early-stop val AUC | lr | freshness weight |
+|---|---:|---:|---:|---:|
+| **1 (restored)** | 1.4128 | **0.608583** | 1e-4 | **−0.0660** |
+| 2 | 1.3467 | 0.593709 | 1e-4 | +0.0036 |
+| 3 | 1.3101 | 0.584285 | 1e-4 | +0.0678 |
+| 4 | 1.2658 | 0.580050 | **2e-5** | +0.0859 |
+| 5 | 1.2538 | 0.575717 | 2e-5 | +0.1022 |
+
+- **The shipped model is epoch 1**, restored by the official `save_best_only` +
+  `load_weights` path. Its freshness weight is **negative (−0.066)**, and since the feature
+  is `log1p(age in hours)`, negative means **older candidates score lower — fresher wins**.
+  That agrees with ADR-013's finding that `article_age_h` dominates EB-NeRD.
+- **The weight's sign flips after epoch 1** and grows positive while val AUC falls
+  monotonically — drift as the encoders overfit, not a contradictory finding. Any claim
+  about freshness must cite the restored epoch, not the final one. (An earlier reading of
+  this run's log *tail* recorded the positive values and drew the opposite conclusion; the
+  full trace corrects it.)
+- `ReduceLROnPlateau` fired as configured at epoch 4 (1e-4 → 2e-5).
+- The treatment's best early-stop AUC (0.6086) is **+0.0120 above the control's** (0.5966),
+  and its validation monitor AUC is 0.5677 vs 0.5613. The paired bootstrap over identical
+  impressions is the test that decides whether that gain is real.
+- Age guard on the real data: median candidate age 3.02 h, log-age varies within 99.997% of
+  samples — the units bug could not recur silently.
+
+## EB-NeRD A/B result — the first complete Q3 answer (2026-09-12)
+
+**Control** = reproduced official NRMS. **Treatment** = control + freshness late fusion,
+one change, everything else held fixed (same seed, data, epochs, hyperparameters).
+**Test** = paired bootstrap over the identical 244,647 validation impressions / 15,342
+users, resampling users.
+
+| Metric | Control | Treatment | Paired Δ (treat − ctrl) | 95% CI | Verdict |
+|---|---:|---:|---:|---|---|
+| **AUC** (primary) | 0.5613 | 0.5677 | **+0.0064** | +0.0053, +0.0075 | **CI excludes zero** |
+| MRR | 0.3512 | 0.3555 | +0.0043 | +0.0032, +0.0054 | CI excludes zero |
+| nDCG@5 | 0.3904 | 0.3957 | +0.0053 | +0.0042, +0.0065 | CI excludes zero |
+| nDCG@10 | 0.4680 | 0.4725 | +0.0044 | +0.0035, +0.0054 | CI excludes zero |
+| diversity@10 (guardrail) | 0.7894 | 0.7900 | +0.0006 | +0.0004, +0.0008 | improved |
+| novelty@10 (guardrail) | 17.2076 | 17.2356 | +0.0280 | +0.0269, +0.0292 | improved |
+| coverage@10 (guardrail) | 0.2021 | 0.1987 | −0.0035 | point only (ADR-007) | slight dip |
+
+**Q3 is satisfied on EB-NeRD**: the baseline is reproduced, improved by one principled
+change, isolated by ablation, and the claimed gain ships a paired 95% CI that excludes zero.
+**No guardrail regressed** — diversity and novelty both improved CI-clear.
+
+Four things the headline must not hide:
+1. **The gain is small in absolute terms** (+0.0064 AUC). It is *tightly* estimated, not
+   large: the CI is narrow because n is 244,647 impressions, not because the effect is big.
+2. **The improved baseline is still far below Candidate K** (0.5677 vs **0.7588** on the
+   identical split). Beating the official baseline does not make this the better model, and
+   the report must say so. A1's GBDT remains the strongest EB-NeRD system this project has.
+3. **Coverage@10 fell** (0.2021 → 0.1987, −1.7% relative). It carries no CI by ADR-007's
+   reasoning (a set-union statistic is biased under with-replacement resampling), so it is
+   reported as a point difference and flagged, not waved through. A freshness-weighted
+   ranker concentrating on recent articles is a plausible mechanism worth stating.
+4. **The freshness direction comes from the restored epoch**, where the weight is −0.066
+   (fresher wins). Later epochs' positive weights were discarded by early stopping.
+
 **EB-NeRD control OOM'd first, and what that exposed (job 2694505, 2026-09-12).** The control
 completed epoch 1 (early-stop val AUC 0.5960, 201 s/epoch, 1,019 samples/s) and then died in
 epoch 2's early-stop scoring with `torch.OutOfMemoryError` — 1.38 GiB requested, 1.18 GiB
