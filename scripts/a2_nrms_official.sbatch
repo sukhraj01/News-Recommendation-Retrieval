@@ -47,7 +47,24 @@ echo "node=$(hostname) job=$SLURM_JOB_ID start=$(date -Is)"
 # explicit torch.cuda assert below be the authoritative, legible check instead.
 nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader \
     || echo "WARN: nvidia-smi failed on $(hostname) — see the torch CUDA check below"
-python -c 'import torch; assert torch.cuda.is_available(), "no GPU"; print("torch", torch.__version__, torch.cuda.get_device_name(0))'
+# A real capability + kernel check, not just is_available(). On gnode012's GTX
+# 1080 Ti (sm_61) is_available() returns True, the job passes this gate, and
+# then dies 90s later with "no kernel image is available for execution on the
+# device" -- this torch build supports sm_75+. Fail in seconds instead, and
+# prove a kernel actually runs.
+python - <<'PY'
+import sys, torch
+if not torch.cuda.is_available():
+    sys.exit("FATAL: torch sees no GPU")
+cc = torch.cuda.get_device_capability()
+name = torch.cuda.get_device_name(0)
+print(f"torch {torch.__version__} on {name} (sm_{cc[0]}{cc[1]})", flush=True)
+if cc < (7, 5):
+    sys.exit(f"FATAL: {name} is sm_{cc[0]}{cc[1]}; this torch build needs sm_75+. "
+             "Resubmit excluding this node.")
+x = torch.randn(256, 256, device="cuda")
+print("cuda matmul OK:", float((x @ x).sum()), flush=True)
+PY
 
 DATASET=$1; ARM=$2; NAME=$3; shift 3
 case "$DATASET" in

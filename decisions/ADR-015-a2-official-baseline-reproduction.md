@@ -269,6 +269,24 @@ GPU non-determinism (reduction order), not an effect of the fix: the CPU smoke r
 reproduce bit-for-bit. **So the reproducibility claim in the report must be "bitwise on CPU,
 run-to-run stable to ~8 decimals on GPU", not "bitwise everywhere".**
 
+**A second hardware failure, different cause: an incompatible GPU (2694988, 2694989).**
+Excluding gnode033 sent the EB-NeRD treatment to **gnode012**, which carries a **GTX 1080 Ti
+(sm_61)**. This torch build supports sm_75+, so the job ran for 90 s and then died with
+`CUDA error: no kernel image is available for execution on the device`. The chained MIND
+treatment (the ~37 h job) then started on the same node and was cancelled 2 minutes in.
+
+**Why the existing guard missed it.** The script asserted `torch.cuda.is_available()`, which
+returns **True** on an sm_61 card — the device is visible, only its kernels are missing. The
+guard now (a) prints the device and its compute capability, (b) fails if it is below sm_75,
+and (c) executes a real CUDA matmul, so an unusable GPU is caught in seconds with a legible
+message rather than mid-training.
+
+**Scheduling fix: constrain, don't blacklist.** Ada's `u22` nodes advertise a **`2080ti`
+feature**; the nodes that failed (gnode012's 1080 Ti, gnode033's broken driver) come from the
+featureless pool, while every successful run (MIND control, EB-NeRD control, both on
+gnode075) used a 2080 Ti. Submissions now use `--constraint=2080ti`, which selects hardware
+by capability instead of excluding bad nodes one failure at a time.
+
 **Three jobs died instantly on one broken node (2694963, 2694964, 2694986, 2026-09-12).**
 Every failure landed on **gnode033**, whose driver is broken:
 
