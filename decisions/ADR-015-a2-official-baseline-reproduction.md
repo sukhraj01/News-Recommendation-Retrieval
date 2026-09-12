@@ -204,7 +204,36 @@ attempted rescue found nothing on `/ssd_scratch` because nothing was ever writte
 glob was fixed in the unused Option A script anyway, since it would bite if a TF env ever
 becomes available.
 
-**EB-NeRD control OOM'd, and what it exposed (job 2694505, 2026-09-12).** The control
+**EB-NeRD control finished (job 2694962, 26 m 43 s, 5 epochs).** Evaluated over all 244,647
+`ebnerd_small` validation impressions / 15,342 users, 0 skipped:
+
+| Metric | Reproduced official NRMS | 95% CI | Candidate K (65-feat, same split) | Published NRMS (EB-NeRD *test*) |
+|---|---:|---|---:|---:|
+| AUC | **0.5613** | 0.5597–0.5629 | **0.7588** | 0.6103 |
+| MRR | 0.3512 | 0.3496–0.3528 | 0.5295 | 0.3975 |
+| nDCG@5 | 0.3904 | 0.3884–0.3922 | 0.5939 | 0.4445 |
+| nDCG@10 | 0.4680 | 0.4663–0.4696 | 0.6306 | 0.5124 |
+| diversity@10 | 0.7894 | 0.7879–0.7910 | — | — |
+| novelty@10 | 17.2076 | 17.1927–17.2219 | — | — |
+| coverage@10 | 0.2021 | point est. (ADR-007) | — | — |
+
+Early stopping behaved as the official recipe intends: val AUC peaked at **epoch 3**
+(0.5966) and declined to 0.5885 by epoch 5, and the epoch-3 weights were restored
+(`ModelCheckpoint(save_best_only)` + `load_weights`).
+
+**The headline for EB-NeRD is the opposite of MIND's, and it is a real finding.** The
+faithful official baseline scores 0.5613 while Candidate K's GBDT scores **0.7588 on the
+identical split** — a ~0.20 AUC gap in A1's favour. That is the RecSys 2024 pattern this
+project already documented (ADR-013: every top team used a GBDT over engineered features,
+not a neural news encoder). So on MIND the reproduction *beat* our A1 model, and on EB-NeRD
+our A1 model beats the reproduction by a wide margin.
+
+Two honest caveats: our 0.5613 is below the paper's 0.6103, which is measured on the blind
+*test* split after training on the full `ebnerd_large`, whereas this run used `ebnerd_small`
+(193,617 training samples) per `args_nrms.py`'s own default `datasplit`; and the K
+comparison is marginal, not paired.
+
+**EB-NeRD control OOM'd first, and what that exposed (job 2694505, 2026-09-12).** The control
 completed epoch 1 (early-stop val AUC 0.5960, 201 s/epoch, 1,019 samples/s) and then died in
 epoch 2's early-stop scoring with `torch.OutOfMemoryError` — 1.38 GiB requested, 1.18 GiB
 free on the 11 GB 2080 Ti.
@@ -239,6 +268,32 @@ val AUC differs between the failed and resubmitted runs in the ninth decimal
 GPU non-determinism (reduction order), not an effect of the fix: the CPU smoke runs
 reproduce bit-for-bit. **So the reproducibility claim in the report must be "bitwise on CPU,
 run-to-run stable to ~8 decimals on GPU", not "bitwise everywhere".**
+
+**Three jobs died instantly on one broken node (2694963, 2694964, 2694986, 2026-09-12).**
+Every failure landed on **gnode033**, whose driver is broken:
+
+```
+Failed to initialize NVML: Driver/library version mismatch
+NVML library version: 580.178
+```
+
+`nvidia-smi` exits 18 there, and `set -euo pipefail` ends the script on that line — hence
+00:00:00 elapsed, exit 18, empty stderr, and `SLURM_JOB_GPUS = 0`. Every job that landed on
+gnode075 (MIND control, EB-NeRD control) ran fine.
+
+**Correction of record.** The first diagnosis here blamed a CPU-cap race: two `-c 8` jobs
+starting together against the QoS `low` cap of 10. That was wrong, and it was written from
+`sacct`'s `Reason=QOSMaxCpuPerUserLimit` (a stale *pending* reason) before the job's own log
+was read. The log names the real cause. Keeping the wrong version visible here is the point:
+the `Reason` column described why the job had waited, not why it died.
+
+**Fixes:**
+- `--exclude=gnode033` at submit time, since the node is broken rather than busy.
+- `nvidia-smi` made non-fatal in the script, so a bad node reports a clear warning and lets
+  the explicit `torch.cuda.is_available()` assert be the thing that fails.
+- `--dependency=afterany:<jobid>` chaining is kept, though it was adopted for the wrong
+  reason: it still guarantees only one job is eligible at a time, which suits the 1-GPU cap.
+  `afterany`, not `afterok`, so a failed arm does not block the next one.
 
 **MIND treatment timing (projected, then submitted).** On identical 461-example local runs,
 the treatment's 80-token input cost 3.2× the control's 30 tokens (52.1 s vs 16.3 s). Applying

@@ -23,6 +23,15 @@
 #
 # Usage: sbatch scripts/a2_nrms_official.sbatch <mind|ebnerd> <control|treatment> <run-name> [runner args...]
 #   e.g. sbatch scripts/a2_nrms_official.sbatch mind treatment mind_treatment --abstract-size 50
+#
+# Exclude known-broken nodes and CHAIN submissions:
+#   A=$(sbatch --parsable --exclude=gnode033 ... ebnerd treatment ebnerd_treatment)
+#   sbatch --exclude=gnode033 --dependency=afterany:$A ... mind treatment ... --abstract-size 50
+# gnode033 killed 2694963/2694964/2694986 at 00:00:00 elapsed: its driver is mismatched
+# ("Failed to initialize NVML: Driver/library version mismatch"), nvidia-smi exits 18, and
+# set -e ends the script there. sacct's Reason column said QOSMaxCpuPerUserLimit, which was
+# the stale pending reason, not the cause -- read the job's own log first.
+# The afterany chain also keeps one job eligible at a time under the 1-GPU cap.
 set -euo pipefail
 export OPENBLAS_NUM_THREADS=8 OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 NUMEXPR_NUM_THREADS=8
 # Job 2694505 OOM'd with 1.88GB "reserved but unallocated" on an 11GB 2080 Ti;
@@ -33,7 +42,11 @@ P=$HOME/a2
 source "$HOME/venvs/perf_bench/bin/activate"
 cd "$P/repo"
 echo "node=$(hostname) job=$SLURM_JOB_ID start=$(date -Is)"
-nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+# Non-fatal: on a node with a mismatched driver (gnode033, 2026-09-12) nvidia-smi
+# exits 18 and `set -e` would kill the job here with an empty stderr. Let the
+# explicit torch.cuda assert below be the authoritative, legible check instead.
+nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader \
+    || echo "WARN: nvidia-smi failed on $(hostname) — see the torch CUDA check below"
 python -c 'import torch; assert torch.cuda.is_available(), "no GPU"; print("torch", torch.__version__, torch.cuda.get_device_name(0))'
 
 DATASET=$1; ARM=$2; NAME=$3; shift 3
