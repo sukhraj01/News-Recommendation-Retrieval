@@ -374,7 +374,17 @@ the `Reason` column described why the job had waited, not why it died.
   reason: it still guarantees only one job is eligible at a time, which suits the 1-GPU cap.
   `afterany`, not `afterok`, so a failed arm does not block the next one.
 
-**MIND treatment timing (projected, then submitted).** On identical 461-example local runs,
+**MIND treatment throughput, measured (job 2694992, 2026-09-12).** The first step-progress
+line gives **300 samples/s at width 80**, against the control's **893 samples/s at width 30**
+(3,383,656 samples / 3,787 s) — a **2.98× slowdown**, against the 3.2× predicted from the
+local CPU smoke, so the projection method held. Training ETA is **179 min/epoch**; the
+control's epochs cost 79 min total (63 training + ~16 evaluating), and the treatment's
+evaluation is also slower at 80 tokens, giving **~3.6 h/epoch and ~36–37 h for 10 epochs**.
+That fits the 72 h wall limit with ~2× margin, and lands early on **2026-09-14**, well inside
+the 2026-09-20 deadline. The step logging added after job 2694501 is what made this
+checkable 13 minutes in rather than 3 hours in.
+
+**MIND treatment timing (projected before submission).** On identical 461-example local runs,
 the treatment's 80-token input cost 3.2× the control's 30 tokens (52.1 s vs 16.3 s). Applying
 that ratio gives ~3.7 h per epoch and ~37 h for 10 epochs, inside the 72 h limit with ~2×
 margin. Submitted behind the EB-NeRD jobs. With the 1-GPU cap, the expected MIND treatment
