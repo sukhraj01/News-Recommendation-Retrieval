@@ -117,12 +117,25 @@ EARLY_STOPPING_ROUNDS = 75
 # it gets its own ablation arm rather than a footnote. See ADR-013.
 POSITION_FEATURES = ("position_in_view", "relative_position_in_view")
 
+# A2 Q9: "report metrics with and without features unavailable at serving time".
+# These two are a DIFFERENT category from ADR-009's `total_inviews` /
+# `total_pageviews` / `total_read_time`, which are forbidden outright and never
+# read. These are admitted-but-flagged: they describe the page the user was on
+# when the in-view list was logged, EB-NeRD ships them in the test set, and they
+# are not future information about the candidate — but a page's total read time
+# is only fully known once the user leaves it, so a strict production loop would
+# not have the final value at request time. ADR-013 called this "the weakest
+# such claim in this table" and left it unquantified. This arm quantifies it.
+SERVING_UNAVAILABLE_FEATURES = ("context_read_time", "context_scroll_percentage")
+
 # (arm name, LightGBM objective, extra params, features withheld from this arm)
 ARMS: tuple[tuple[str, str, dict, tuple[str, ...]], ...] = (
     ("K_rank", "lambdarank", {"metric": "ndcg", "ndcg_eval_at": [5], "label_gain": [0, 1]}, ()),
     ("K_cls", "binary", {"metric": "auc"}, ()),
     ("K_rank_nopos", "lambdarank", {"metric": "ndcg", "ndcg_eval_at": [5], "label_gain": [0, 1]},
      POSITION_FEATURES),
+    ("K_rank_noctx", "lambdarank", {"metric": "ndcg", "ndcg_eval_at": [5], "label_gain": [0, 1]},
+     SERVING_UNAVAILABLE_FEATURES),
 )
 
 
@@ -551,6 +564,19 @@ def main() -> None:
     # The position-bias question: how much of K_rank's edge survives without it?
     d, lo, hi = paired_metric_diff_ci(merged, "auc_K_rank", "auc_K_rank_nopos", N_BOOTSTRAP, SEED)
     paired["K_rank_vs_K_rank_nopos"] = {"auc_diff": d, "ci_low": lo, "ci_high": hi}
+
+    # A2 Q9: the cost of dropping the two serving-time-unavailable features,
+    # measured on the identical impressions by the same paired test rather than
+    # inferred from two marginal CIs. Positive = keeping them helps.
+    if "auc_K_rank_noctx" in merged:
+        d, lo, hi = paired_metric_diff_ci(
+            merged, "auc_K_rank", "auc_K_rank_noctx", N_BOOTSTRAP, SEED)
+        paired["K_rank_vs_K_rank_noctx"] = {
+            "auc_diff": d, "ci_low": lo, "ci_high": hi,
+            "withheld": list(SERVING_UNAVAILABLE_FEATURES),
+            "reading": ("positive means the flagged features help; their contribution is "
+                        "the price of a claim that is weakest at serving time (ADR-013)"),
+        }
 
     importance = {
         arm: dict(

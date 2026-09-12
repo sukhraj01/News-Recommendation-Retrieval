@@ -927,6 +927,56 @@ Still open:
 
 ---
 
+# Addendum (2026-09-12, later) — A2 Q9: what the serving-time-unavailable features are worth
+
+A2 Q9 requires metrics **with and without features unavailable at serving time**. This ADR
+flagged `context_read_time` / `context_scroll_percentage` as "the weakest such claim in this
+table" — EB-NeRD ships them in the test set and they are not future information about the
+candidate, but a page's total read time is only fully known once the user *leaves* the page,
+so a strict production loop would not have the final value at request time. The flag was
+never quantified. A fourth arm, **`K_rank_noctx`**, now quantifies it.
+
+This is a different category from ADR-009's `total_inviews` / `total_pageviews` /
+`total_read_time`, which are forbidden outright and never read. These two are
+admitted-but-flagged, which is exactly the case Q9 asks to be measured rather than argued.
+
+| Arm | AUC | 95% CI | MRR | nDCG@5 | nDCG@10 | best_iter |
+|---|---:|---|---:|---:|---:|---:|
+| `K_rank` (**with**) | 0.7581 | 0.7564–0.7600 | 0.5299 | 0.5940 | 0.6309 | 563 |
+| `K_rank_noctx` (**without**) | 0.7570 | 0.7552–0.7588 | 0.5290 | 0.5927 | 0.6298 | 246 |
+
+**Paired bootstrap, identical impressions: +0.0011 AUC (95% CI +0.0008 to +0.0015).**
+
+Reading, stated so the number is not oversold in either direction:
+
+- The flagged features **do** help, CI-clear. The effect is real.
+- It is also **negligible against the model's margin**: without them the ranker still scores
+  0.7570, i.e. **+0.2140 over `embed_sim`** (CI-clear). The headline EB-NeRD result does not
+  rest on features that are shaky at serving time, which is the substantive Q9 answer.
+- **Contrast with the position ablation in this ADR**: withholding `position_in_view` /
+  `relative_position_in_view` *improves* AUC by 0.0007. So of the two flagged groups, one is
+  worth +0.0011 and the other is worth −0.0007. **Neither is load-bearing**; freshness is
+  (`article_age_h` remains the top feature by gain at 398,688).
+- `K_rank_noctx` early-stopped at **246 iterations against `K_rank`'s 563** — with two fewer
+  usable signals the model plateaus sooner, which is consistent with a small real
+  contribution rather than noise.
+
+**Reproducibility evidence, obtained for free.** Adding the fourth arm left the other arms
+**bit-identical** to the three-arm run: `K_rank` 0.758123 and `K_rank_nopos` 0.758808 in
+both, exactly equal. The arms are independent and the pipeline is deterministic under a
+fixed seed on CPU.
+
+**Scope limit.** Measured on `ebnerd_small` validation (244,647 impressions), not on the
+`ebnerd_large` test set that produced the 0.7542 Codabench score. The same ablation at that
+scale is not run: the bundle is ~4.6 GB, EB-NeRD's S3 is ~18 KB/s from Ada, and Ada's `$HOME`
+has ~4.9 GB free (ADR-015). Recorded as a bounded claim, not extrapolated.
+
+Run cost: 510 s wall, peak RSS 1.79 GB, four arms. (The earlier three-arm run took 1,074 s;
+the difference is OS page-cache warmth from that run, not a speedup — `article_table_s`
+rounds to 0 here.) Artifacts: `experiments/candidate_k_gbdt_ebnerd_small_2026-09-12_q9/`.
+
+---
+
 # Addendum (2026-09-12) — Candidate K retrained at 65 features, and stored durably
 
 **Why.** A2's Q4/Q5 need Candidate K's scores, and no trained K survived: Ada's `$HOME` no

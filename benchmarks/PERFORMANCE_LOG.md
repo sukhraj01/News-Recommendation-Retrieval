@@ -181,3 +181,23 @@ Compared against `2026-09-12T12-40-20_snapshot.json` (`5e5d1fb`):
 | `rank_and_auc` | 1.547 | 1.1137 | -28.0% | 🟢 |
 
 **Verdict:** no regression
+
+### 2026-09-12T21:52:05 — `7fa8bce` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: PROJECT_STATE.md decisions/ADR-013-ebnerd-gbdt-ranker.md results/a2_q9/README.md results/a2_q9/q9_ablation_config.json results/a2_q9/q9_ablation_results.json scripts/run_ebnerd_gbdt_experiment.py 
+
+**End-to-end:** 3.6537 ms/impression (273.7 impressions/s) · peak RSS 0.55 GB
+
+Compared against `2026-09-12T17-40-36_snapshot.json` (`e5aed04`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.15 | 0.1424 | -5.1% | · |
+| `bm25_score_all` | 1.049 | 1.0577 | +0.8% | · |
+| `embed_query_build` | 0.0322 | 0.0318 | -1.2% | · |
+| `embed_score_all` | 0.9133 | 1.0383 | +13.7% | · |
+| `bm25_candidate_lookup` | 0.0167 | 0.017 | +1.8% | · |
+| `embed_candidate_lookup` | 0.0125 | 0.013 | +4.0% | · |
+| `rank_and_auc` | 1.1137 | 1.135 | +1.9% | · |
+
+**Verdict:** no regression
