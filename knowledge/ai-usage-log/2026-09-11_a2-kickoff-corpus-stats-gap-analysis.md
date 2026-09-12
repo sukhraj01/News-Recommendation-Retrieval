@@ -71,6 +71,13 @@
       **2694506 (EB-NeRD treatment)**. The MIND treatment was held until the control's
       epoch time was known (3-day wall limit), then submitted as **2694529** once epoch 1
       measured 63 min of training and gave a monitor AUC of 0.6692.
+    - MIND control (2694501) COMPLETED: 13 h 13 m, evaluated AUC **0.6831** (CI
+      0.6821–0.6839) over all 376,471 dev impressions, vs Candidate J's 0.6579.
+    - EB-NeRD control (2694505) FAILED with a CUDA OOM in epoch 2's early-stop scoring.
+      Claude cancelled its own doomed treatment (2694506) and then its own MIND treatment
+      (2694529, 2 min in) to reorder the queue behind the fixed fast arms. Fixes:
+      `--es-batch` 128, width-aware news chunking, expandable segments. Resubmitted as
+      **2694962 / 2694963 / 2694964**.
       Each full job was submitted only after sha256 checks of its inputs and code matched
       the local copies.
   - **Two AI-introduced bugs, both caught by the local smoke tests before any EB-NeRD GPU

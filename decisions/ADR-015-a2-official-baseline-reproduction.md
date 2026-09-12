@@ -142,7 +142,8 @@ scale-invariant and can split on negative values.
 
 | 2694505 | **Option B, EB-NeRD control** (official config, 5 epochs, ebnerd_small train → validation) | Submitted after sha256 matched local for the token npz, runner, and data module. Queued behind 2694501 (`QOSMaxCpuPerUserLimit`, 1-GPU cap). |
 | 2694506 | **Option B, EB-NeRD treatment** (control + freshness late fusion; everything else fixed) | Same hash-checked runner (`0e04f442…`). Queued behind 2694505. |
-| 2694529 | **Option B, MIND treatment** (title 30 + abstract 50; everything else fixed) | Same runner (`0e04f442…`). Submitted after the control's epoch-1 timing made the 10-epoch projection (~37 h) fit the 72 h limit. Queued behind 2694506. |
+| 2694529 | **Option B, MIND treatment** (title 30 + abstract 50; everything else fixed) | Same runner (`0e04f442…`). Submitted after the control's epoch-1 timing made the 10-epoch projection (~37 h) fit the 72 h limit. Queued behind 2694506. **CANCELLED 2 min in** — cancelling 2694506 had started it ahead of the fast EB-NeRD pair, and it carried the pre-fix chunking. |
+| 2694962 / 2694963 / 2694964 | **Resubmission after the OOM fixes**: EB-NeRD control, EB-NeRD treatment, MIND treatment (in that order, so the ~30-min arms finish before the ~37-h one) | Runner `a7bb6264…`, sha256-verified on Ada. Smoke-verified numerically neutral before resubmission. |
 
 **MIND control, epoch 1 (measured 2026-09-12):**
 - Train time 3,787 s (63 min) on the 2080 Ti for 3,383,656 examples. The same example count
