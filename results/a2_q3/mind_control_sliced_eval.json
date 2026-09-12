@@ -1,0 +1,279 @@
+{
+ "tiebreak_prefix": "mind:dev:",
+ "guardrails": true,
+ "slices_enabled": true,
+ "head_frac": 0.2,
+ "control": {
+  "file": "/private/tmp/claude-502/-Users-test01-Desktop-assignment-1-news-retrieval/c56bacb8-c294-4250-8643-3e87fa88d70c/scratchpad/ada_results/mind_control/scores.parquet",
+  "auc": {
+   "value": 0.683061539432118,
+   "ci_low": 0.6821155858691005,
+   "ci_high": 0.6839452246661233,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "mrr": {
+   "value": 0.38026916116616366,
+   "ci_low": 0.37918322741786786,
+   "ci_high": 0.38138599442575466,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "ndcg5": {
+   "value": 0.36200276953565574,
+   "ci_low": 0.3608167378068272,
+   "ci_high": 0.36318549827650415,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "ndcg10": {
+   "value": 0.4279354293198612,
+   "ci_low": 0.4268832052716572,
+   "ci_high": 0.429027829496114,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "diversity10": {
+   "value": 0.8342513576268635,
+   "ci_low": 0.8336704556837737,
+   "ci_high": 0.8348451974539315,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "novelty10": {
+   "value": 17.62297486545681,
+   "ci_low": 17.61385184849564,
+   "ci_high": 17.63237364046238,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "coverage10": {
+   "value": 0.06271607680879719,
+   "ci_low": null,
+   "ci_high": null,
+   "note": "point estimate; set-union statistic, no bootstrap CI (ADR-007)"
+  },
+  "slices": {
+   "slice_pop": {
+    "head": {
+     "auc": {
+      "value": 0.7411265377029201,
+      "ci_low": 0.7397258349010304,
+      "ci_high": 0.7425790600790437,
+      "n_impressions": 143164,
+      "n_users": 122391,
+      "n_skipped": 0
+     },
+     "mrr": {
+      "value": 0.4607947463078196,
+      "ci_low": 0.4589126433247313,
+      "ci_high": 0.4627728459918918,
+      "n_impressions": 143164,
+      "n_users": 122391,
+      "n_skipped": 0
+     },
+     "ndcg5": {
+      "value": 0.443257333747539,
+      "ci_low": 0.4413027134267973,
+      "ci_high": 0.44535902712179737,
+      "n_impressions": 143164,
+      "n_users": 122391,
+      "n_skipped": 0
+     },
+     "ndcg10": {
+      "value": 0.4975648149222948,
+      "ci_low": 0.49582604759112225,
+      "ci_high": 0.49947122810750433,
+      "n_impressions": 143164,
+      "n_users": 122391,
+      "n_skipped": 0
+     },
+     "diversity10": {
+      "value": 0.8399871076926763,
+      "ci_low": 0.8390315683263535,
+      "ci_high": 0.8409407385160276,
+      "n_impressions": 143164,
+      "n_users": 122391,
+      "n_skipped": 0
+     },
+     "novelty10": {
+      "value": 15.691018461692527,
+      "ci_low": 15.679320323478695,
+      "ci_high": 15.703329445092868,
+      "n_impressions": 143164,
+      "n_users": 122391,
+      "n_skipped": 0
+     }
+    },
+    "tail": {
+     "auc": {
+      "value": 0.6474311579500317,
+      "ci_low": 0.6463106264756261,
+      "ci_high": 0.648596316378089,
+      "n_impressions": 233307,
+      "n_users": 174749,
+      "n_skipped": 0
+     },
+     "mrr": {
+      "value": 0.33085630655305726,
+      "ci_low": 0.3295695106281868,
+      "ci_high": 0.3321102966592457,
+      "n_impressions": 233307,
+      "n_users": 174749,
+      "n_skipped": 0
+     },
+     "ndcg5": {
+      "value": 0.3121425920406381,
+      "ci_low": 0.3107768206004211,
+      "ci_high": 0.3135022009416219,
+      "n_impressions": 233307,
+      "n_users": 174749,
+      "n_skipped": 0
+     },
+     "ndcg10": {
+      "value": 0.3852088014844907,
+      "ci_low": 0.3839911968468574,
+      "ci_high": 0.38640878373716325,
+      "n_impressions": 233307,
+      "n_users": 174749,
+      "n_skipped": 0
+     },
+     "diversity10": {
+      "value": 0.8307317336017719,
+      "ci_low": 0.8300593476053113,
+      "ci_high": 0.8314259514242002,
+      "n_impressions": 233307,
+      "n_users": 174749,
+      "n_skipped": 0
+     },
+     "novelty10": {
+      "value": 18.808479829253475,
+      "ci_low": 18.79824864656973,
+      "ci_high": 18.81936243384888,
+      "n_impressions": 233307,
+      "n_users": 174749,
+      "n_skipped": 0
+     }
+    }
+   },
+   "slice_cohort": {
+    "cold": {
+     "auc": {
+      "value": 0.6209359896810164,
+      "ci_low": 0.6182989339045855,
+      "ci_high": 0.6235686375630483,
+      "n_impressions": 52724,
+      "n_users": 40989,
+      "n_skipped": 0
+     },
+     "mrr": {
+      "value": 0.344599784650732,
+      "ci_low": 0.3416608685940561,
+      "ci_high": 0.34763571852148034,
+      "n_impressions": 52724,
+      "n_users": 40989,
+      "n_skipped": 0
+     },
+     "ndcg5": {
+      "value": 0.3396542155980467,
+      "ci_low": 0.33638034208347156,
+      "ci_high": 0.3428619155328648,
+      "n_impressions": 52724,
+      "n_users": 40989,
+      "n_skipped": 0
+     },
+     "ndcg10": {
+      "value": 0.4050106249751828,
+      "ci_low": 0.40199505698644344,
+      "ci_high": 0.4079502904910227,
+      "n_impressions": 52724,
+      "n_users": 40989,
+      "n_skipped": 0
+     },
+     "diversity10": {
+      "value": 0.8554025575533808,
+      "ci_low": 0.8541071070106198,
+      "ci_high": 0.8567052881204519,
+      "n_impressions": 52724,
+      "n_users": 40989,
+      "n_skipped": 0
+     },
+     "novelty10": {
+      "value": 17.77737373845168,
+      "ci_low": 17.750163961964954,
+      "ci_high": 17.804320597533838,
+      "n_impressions": 52724,
+      "n_users": 40989,
+      "n_skipped": 0
+     }
+    },
+    "warm": {
+     "auc": {
+      "value": 0.6931790308222376,
+      "ci_low": 0.692246925505672,
+      "ci_high": 0.6941395745199659,
+      "n_impressions": 323747,
+      "n_users": 215001,
+      "n_skipped": 0
+     },
+     "mrr": {
+      "value": 0.3860781175654497,
+      "ci_low": 0.38490560758927705,
+      "ci_high": 0.38734129598133704,
+      "n_impressions": 323747,
+      "n_users": 215001,
+      "n_skipped": 0
+     },
+     "ndcg5": {
+      "value": 0.3656423558725375,
+      "ci_low": 0.36441564978951857,
+      "ci_high": 0.366962209016084,
+      "n_impressions": 323747,
+      "n_users": 215001,
+      "n_skipped": 0
+     },
+     "ndcg10": {
+      "value": 0.4316688612412962,
+      "ci_low": 0.4305217162029068,
+      "ci_high": 0.4328776966385283,
+      "n_impressions": 323747,
+      "n_users": 215001,
+      "n_skipped": 0
+     },
+     "diversity10": {
+      "value": 0.8308067670517361,
+      "ci_low": 0.8301732076453261,
+      "ci_high": 0.8314693165406557,
+      "n_impressions": 323747,
+      "n_users": 215001,
+      "n_skipped": 0
+     },
+     "novelty10": {
+      "value": 17.597830150046995,
+      "ci_low": 17.587868763486682,
+      "ci_high": 17.60843149688306,
+      "n_impressions": 323747,
+      "n_users": 215001,
+      "n_skipped": 0
+     }
+    }
+   }
+  }
+ },
+ "slice_counts": {
+  "slice_pop": {
+   "tail": 233307,
+   "head": 143164
+  },
+  "slice_cohort": {
+   "warm": 323747,
+   "cold": 52724
+  }
+ }
+}

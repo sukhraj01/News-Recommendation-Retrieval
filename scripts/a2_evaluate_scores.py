@@ -139,6 +139,63 @@ def per_impression_metrics(df: pd.DataFrame, tiebreak_prefix: str = "", cands=No
     return out, top_lists
 
 
+COLD_THRESHOLD = 5  # A1's definition (run_bm25_experiment), reused unchanged
+
+
+def assign_slices(pi: pd.DataFrame, cands: dict, popularity: dict, head_frac: float,
+                  hist_len: dict | None, id_prefix: str) -> pd.DataFrame:
+    """Adds A2 Q5's two slice columns: `slice_pop` (head/tail) and `slice_cohort`
+    (warm/cold).
+
+    **head/tail** splits by *article* popularity, not by impression count: an
+    article is `head` if its TRAIN-split click count is in the top `head_frac`
+    of articles that were clicked in train at all. Train-only, so no dev clicks
+    leak into the slicing (Q9) — it reuses the same `build_train_popularity`
+    output novelty@10 uses. Articles never clicked in train share the smoothed
+    floor and therefore fall in `tail` by construction, which is the intended
+    reading: unseen-in-train is the extreme tail.
+
+    An impression is assigned by its **first clicked** candidate, so each
+    impression lands in exactly one bucket. Impressions with no positive are
+    labelled `none` and excluded from sliced metrics (they are already NaN for
+    AUC).
+
+    **warm/cold** reuses A1's threshold: history length < 5 is cold (ADR-005).
+    """
+    pop_head = None
+    if popularity:
+        clicked_vals = sorted((v for v in popularity.values()), reverse=True)
+        if clicked_vals:
+            cut_idx = max(1, int(len(clicked_vals) * head_frac)) - 1
+            cut = clicked_vals[min(cut_idx, len(clicked_vals) - 1)]
+            pop_head = cut
+
+    slice_pop, slice_cohort = [], []
+    for imp, uid in zip(pi["impression_id"], pi["user_id"]):
+        label = "none"
+        if cands is not None and pop_head is not None:
+            ids, labels = cands[int(imp)]
+            first = next((a for a, lab in zip(ids, labels) if lab == 1), None)
+            if first is not None:
+                label = "head" if popularity.get(first, 0.0) >= pop_head else "tail"
+        slice_pop.append(label)
+        if hist_len is None:
+            slice_cohort.append("unknown")
+        else:
+            n = hist_len.get(f"{id_prefix}{uid}", hist_len.get(str(uid)))
+            slice_cohort.append("unknown" if n is None
+                                else ("cold" if n < COLD_THRESHOLD else "warm"))
+    out = pi.copy()
+    out["slice_pop"], out["slice_cohort"] = slice_pop, slice_cohort
+    return out
+
+
+def load_history_lengths(path: str) -> dict:
+    """user_id -> history length, from A1's processed user_history parquet."""
+    h = pd.read_parquet(path, columns=["user_id", "article_ids"])
+    return {str(u): len(a) for u, a in zip(h["user_id"], h["article_ids"])}
+
+
 def arm_summary(pi: pd.DataFrame, top_lists: list, catalog_size: int | None) -> dict:
     res = {}
     for m in ACCURACY + GUARDRAILS:
@@ -163,6 +220,10 @@ def main() -> None:
     ap.add_argument("--source-zip")
     ap.add_argument("--articles")
     ap.add_argument("--train-impressions")
+    ap.add_argument("--history-parquet",
+                    help="A1 processed user_history.parquet; enables the warm/cold slice")
+    ap.add_argument("--head-frac", type=float, default=0.2,
+                    help="A2 Q5 head/tail: top fraction of train-clicked articles = head")
     a = ap.parse_args()
 
     tb = TIEBREAK_PREFIX.get(a.dataset, "")
@@ -175,10 +236,26 @@ def main() -> None:
         popularity = train_popularity(a.train_impressions, catalog_size)
         cands = raw_candidates(a.dataset, a.source_zip)
 
+    hist_len = load_history_lengths(a.history_parquet) if a.history_parquet else None
+    id_prefix = ID_PREFIX.get(a.dataset, "")
+
     ctrl = pd.read_parquet(a.control)
     pc_, top_c = per_impression_metrics(ctrl, tb, cands, category, popularity)
+    if guardrails_on:
+        pc_ = assign_slices(pc_, cands, popularity, a.head_frac, hist_len, id_prefix)
     report = {"tiebreak_prefix": tb, "guardrails": guardrails_on,
+              "slices_enabled": bool(guardrails_on),
+              "head_frac": a.head_frac,
               "control": {"file": a.control, **arm_summary(pc_, top_c, catalog_size)}}
+    if guardrails_on:
+        report["control"]["slices"] = {
+            dim: {lab: arm_summary(sub, [], None)
+                  for lab, sub in pc_.groupby(dim) if lab not in ("none", "unknown")}
+            for dim in ("slice_pop", "slice_cohort")
+        }
+        report["slice_counts"] = {
+            dim: pc_[dim].value_counts().to_dict() for dim in ("slice_pop", "slice_cohort")
+        }
 
     if a.treatment:
         treat = pd.read_parquet(a.treatment)
@@ -191,7 +268,15 @@ def main() -> None:
         if not all(list(x) == list(y) for x, y in zip(m["labels_c"], m["labels_t"])):
             sys.exit("FATAL: candidate labels differ between arms for the same impression")
         pt, top_t = per_impression_metrics(treat, tb, cands, category, popularity)
+        if guardrails_on:
+            pt = assign_slices(pt, cands, popularity, a.head_frac, hist_len, id_prefix)
         report["treatment"] = {"file": a.treatment, **arm_summary(pt, top_t, catalog_size)}
+        if guardrails_on:
+            report["treatment"]["slices"] = {
+                dim: {lab: arm_summary(sub, [], None)
+                      for lab, sub in pt.groupby(dim) if lab not in ("none", "unknown")}
+                for dim in ("slice_pop", "slice_cohort")
+            }
         both = pc_.merge(pt, on=["impression_id", "user_id"], suffixes=("_control", "_treatment"))
         paired = {}
         for mname in ACCURACY + GUARDRAILS:
@@ -207,6 +292,29 @@ def main() -> None:
                                     - report["control"]["coverage10"]["value"],
                                     "note": "point difference only (ADR-007)"}
         report["paired_treatment_minus_control"] = paired
+
+        # A2 Q5: the same paired test inside each slice. A gain that holds
+        # overall but reverses on the tail (or on cold users) is a different
+        # result from one that holds everywhere, and only the sliced test can
+        # tell them apart.
+        if guardrails_on:
+            sliced: dict = {}
+            for dim in ("slice_pop", "slice_cohort"):
+                col = f"{dim}_control" if f"{dim}_control" in both else dim
+                if col not in both:
+                    continue
+                for lab, sub in both.groupby(col):
+                    if lab in ("none", "unknown") or len(sub) < 50:
+                        continue
+                    entry = {}
+                    for mname in ACCURACY:
+                        point, lo, hi = paired_metric_diff_ci(
+                            sub, f"{mname}_treatment", f"{mname}_control")
+                        entry[mname] = {"diff": point, "ci_low": lo, "ci_high": hi,
+                                        "significant": bool(lo > 0 or hi < 0)}
+                    entry["n_impressions"] = int(len(sub))
+                    sliced[f"{dim}={lab}"] = entry
+            report["paired_by_slice"] = sliced
 
     Path(a.out).write_text(json.dumps(report, indent=1))
     for arm in ("control", "treatment"):

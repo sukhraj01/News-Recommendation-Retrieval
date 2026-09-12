@@ -33,3 +33,14 @@ Durable copies: `~/a2_model_artifacts/a2_q3_results/` and Ada `$HOME/a2/results/
 bbeaffaec19c15bd9896fda6ca8d248fd1ebbd22839bbdbf054348e0f256ef05  ebnerd_treatment_scores.parquet
 bf0a730fd4495f06f2b4f19c583d0ba7dd4f0a81c3a49403a9e026aad47c8339  mind_control_scores.parquet
 ```
+
+## Q5 slices (added 2026-09-12)
+
+| File | What |
+|---|---|
+| `ebnerd_ab_sliced_eval.json` | EB-NeRD A/B with head/tail + warm/cold slices and per-slice paired CIs |
+| `mind_control_sliced_eval.json` | MIND control, same slices |
+
+Definition and findings: ADR-007's 2026-09-12 addendum. Headline: EB-NeRD's freshness gain
+**reverses on head articles** (head Δ−0.0217 CI-clear loss vs tail Δ+0.0076 gain), so the
++0.0064 aggregate is a tail gain diluted by a head regression.

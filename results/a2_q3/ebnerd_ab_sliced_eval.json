@@ -1,0 +1,568 @@
+{
+ "tiebreak_prefix": "ebnerd:validation:",
+ "guardrails": true,
+ "slices_enabled": true,
+ "head_frac": 0.2,
+ "control": {
+  "file": "/private/tmp/claude-502/-Users-test01-Desktop-assignment-1-news-retrieval/c56bacb8-c294-4250-8643-3e87fa88d70c/scratchpad/ada_results/ebnerd_control/scores.parquet",
+  "auc": {
+   "value": 0.5612758053261008,
+   "ci_low": 0.5596763536678343,
+   "ci_high": 0.5629440343544687,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "mrr": {
+   "value": 0.3512061075232444,
+   "ci_low": 0.3496280189410672,
+   "ci_high": 0.3527692225071582,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "ndcg5": {
+   "value": 0.39035530259275647,
+   "ci_low": 0.38839954403180005,
+   "ci_high": 0.39222832593897006,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "ndcg10": {
+   "value": 0.4680192732709404,
+   "ci_low": 0.46633607627904494,
+   "ci_high": 0.4696358702384088,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "diversity10": {
+   "value": 0.7894170486391116,
+   "ci_low": 0.7878637002446455,
+   "ci_high": 0.7910344853276158,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "novelty10": {
+   "value": 17.207633833511128,
+   "ci_low": 17.192679277149715,
+   "ci_high": 17.221858792243374,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "coverage10": {
+   "value": 0.20214099720320186,
+   "ci_low": null,
+   "ci_high": null,
+   "note": "point estimate; set-union statistic, no bootstrap CI (ADR-007)"
+  },
+  "slices": {
+   "slice_pop": {
+    "head": {
+     "auc": {
+      "value": 0.6222052102139776,
+      "ci_low": 0.6157705643014012,
+      "ci_high": 0.6287518381926251,
+      "n_impressions": 9541,
+      "n_users": 4525,
+      "n_skipped": 0
+     },
+     "mrr": {
+      "value": 0.3597245565743313,
+      "ci_low": 0.3524643032697429,
+      "ci_high": 0.3669375168491432,
+      "n_impressions": 9541,
+      "n_users": 4525,
+      "n_skipped": 0
+     },
+     "ndcg5": {
+      "value": 0.38823148109947875,
+      "ci_low": 0.38006329319263,
+      "ci_high": 0.3967158266560687,
+      "n_impressions": 9541,
+      "n_users": 4525,
+      "n_skipped": 0
+     },
+     "ndcg10": {
+      "value": 0.461896207142639,
+      "ci_low": 0.45478437426990814,
+      "ci_high": 0.46900041217844746,
+      "n_impressions": 9541,
+      "n_users": 4525,
+      "n_skipped": 0
+     },
+     "diversity10": {
+      "value": 0.7707385668867694,
+      "ci_low": 0.7659624741898236,
+      "ci_high": 0.7753317741201542,
+      "n_impressions": 9541,
+      "n_users": 4525,
+      "n_skipped": 0
+     },
+     "novelty10": {
+      "value": 13.999555881294691,
+      "ci_low": 13.929686505511116,
+      "ci_high": 14.070098640618692,
+      "n_impressions": 9541,
+      "n_users": 4525,
+      "n_skipped": 0
+     }
+    },
+    "tail": {
+     "auc": {
+      "value": 0.5588031867964366,
+      "ci_low": 0.5571771720991063,
+      "ci_high": 0.5604306800473069,
+      "n_impressions": 235106,
+      "n_users": 15246,
+      "n_skipped": 0
+     },
+     "mrr": {
+      "value": 0.3508604144214247,
+      "ci_low": 0.34922553817338436,
+      "ci_high": 0.3524146700426629,
+      "n_impressions": 235106,
+      "n_users": 15246,
+      "n_skipped": 0
+     },
+     "ndcg5": {
+      "value": 0.3904414908689695,
+      "ci_low": 0.38854422943461214,
+      "ci_high": 0.39230570570607043,
+      "n_impressions": 235106,
+      "n_users": 15246,
+      "n_skipped": 0
+     },
+     "ndcg10": {
+      "value": 0.4682677576734232,
+      "ci_low": 0.4666171852977611,
+      "ci_high": 0.46989358476910237,
+      "n_impressions": 235106,
+      "n_users": 15246,
+      "n_skipped": 0
+     },
+     "diversity10": {
+      "value": 0.7901750530898662,
+      "ci_low": 0.7885736298421836,
+      "ci_high": 0.7917502409440085,
+      "n_impressions": 235106,
+      "n_users": 15246,
+      "n_skipped": 0
+     },
+     "novelty10": {
+      "value": 17.33782307471338,
+      "ci_low": 17.32540003397584,
+      "ci_high": 17.34961728864346,
+      "n_impressions": 235106,
+      "n_users": 15246,
+      "n_skipped": 0
+     }
+    }
+   },
+   "slice_cohort": {
+    "warm": {
+     "auc": {
+      "value": 0.5612758053261008,
+      "ci_low": 0.5596763536678343,
+      "ci_high": 0.5629440343544687,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     },
+     "mrr": {
+      "value": 0.3512061075232444,
+      "ci_low": 0.3496280189410672,
+      "ci_high": 0.3527692225071582,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     },
+     "ndcg5": {
+      "value": 0.39035530259275647,
+      "ci_low": 0.38839954403180005,
+      "ci_high": 0.39222832593897006,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     },
+     "ndcg10": {
+      "value": 0.4680192732709404,
+      "ci_low": 0.46633607627904494,
+      "ci_high": 0.4696358702384088,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     },
+     "diversity10": {
+      "value": 0.7894170486391116,
+      "ci_low": 0.7878637002446455,
+      "ci_high": 0.7910344853276158,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     },
+     "novelty10": {
+      "value": 17.207633833511128,
+      "ci_low": 17.192679277149715,
+      "ci_high": 17.221858792243374,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     }
+    }
+   }
+  }
+ },
+ "slice_counts": {
+  "slice_pop": {
+   "tail": 235106,
+   "head": 9541
+  },
+  "slice_cohort": {
+   "warm": 244647
+  }
+ },
+ "treatment": {
+  "file": "/private/tmp/claude-502/-Users-test01-Desktop-assignment-1-news-retrieval/c56bacb8-c294-4250-8643-3e87fa88d70c/scratchpad/ada_results/ebnerd_treatment/scores.parquet",
+  "auc": {
+   "value": 0.567692487287812,
+   "ci_low": 0.565904525206265,
+   "ci_high": 0.569574039350514,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "mrr": {
+   "value": 0.3555259704487736,
+   "ci_low": 0.35394769612140725,
+   "ci_high": 0.3571364860469243,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "ndcg5": {
+   "value": 0.39567347388706803,
+   "ci_low": 0.39374862879149336,
+   "ci_high": 0.39759618635165217,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "ndcg10": {
+   "value": 0.4724506670598113,
+   "ci_low": 0.4708394135216167,
+   "ci_high": 0.4740476820744669,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "diversity10": {
+   "value": 0.7900232735718151,
+   "ci_low": 0.7885058645716571,
+   "ci_high": 0.7916394694927076,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "novelty10": {
+   "value": 17.235631934004246,
+   "ci_low": 17.220905393667206,
+   "ci_high": 17.249455829775595,
+   "n_impressions": 244647,
+   "n_users": 15342,
+   "n_skipped": 0
+  },
+  "coverage10": {
+   "value": 0.1986691098466583,
+   "ci_low": null,
+   "ci_high": null,
+   "note": "point estimate; set-union statistic, no bootstrap CI (ADR-007)"
+  },
+  "slices": {
+   "slice_pop": {
+    "head": {
+     "auc": {
+      "value": 0.5983239699025759,
+      "ci_low": 0.5916463378686325,
+      "ci_high": 0.6049689270144153,
+      "n_impressions": 9587,
+      "n_users": 4543,
+      "n_skipped": 0
+     },
+     "mrr": {
+      "value": 0.3409546687740762,
+      "ci_low": 0.3342557293422307,
+      "ci_high": 0.34765431677038733,
+      "n_impressions": 9587,
+      "n_users": 4543,
+      "n_skipped": 0
+     },
+     "ndcg5": {
+      "value": 0.36409630773883844,
+      "ci_low": 0.35618176308104516,
+      "ci_high": 0.3720477398421711,
+      "n_impressions": 9587,
+      "n_users": 4543,
+      "n_skipped": 0
+     },
+     "ndcg10": {
+      "value": 0.44174314744544835,
+      "ci_low": 0.4351863936350073,
+      "ci_high": 0.44853740448575236,
+      "n_impressions": 9587,
+      "n_users": 4543,
+      "n_skipped": 0
+     },
+     "diversity10": {
+      "value": 0.7743986151882262,
+      "ci_low": 0.7697291431037789,
+      "ci_high": 0.7789657009914299,
+      "n_impressions": 9587,
+      "n_users": 4543,
+      "n_skipped": 0
+     },
+     "novelty10": {
+      "value": 14.09005197509549,
+      "ci_low": 14.019206379628594,
+      "ci_high": 14.164313139139582,
+      "n_impressions": 9587,
+      "n_users": 4543,
+      "n_skipped": 0
+     }
+    },
+    "tail": {
+     "auc": {
+      "value": 0.56644317211795,
+      "ci_low": 0.5645799334485645,
+      "ci_high": 0.5682250422714007,
+      "n_impressions": 235060,
+      "n_users": 15246,
+      "n_skipped": 0
+     },
+     "mrr": {
+      "value": 0.35612026581657463,
+      "ci_low": 0.35446763627046246,
+      "ci_high": 0.3577357886445069,
+      "n_impressions": 235060,
+      "n_users": 15246,
+      "n_skipped": 0
+     },
+     "ndcg5": {
+      "value": 0.39696135907324626,
+      "ci_low": 0.3949662578387538,
+      "ci_high": 0.3988343070340952,
+      "n_impressions": 235060,
+      "n_users": 15246,
+      "n_skipped": 0
+     },
+     "ndcg10": {
+      "value": 0.47370308342390094,
+      "ci_low": 0.47210801828326987,
+      "ci_high": 0.4752502404466797,
+      "n_impressions": 235060,
+      "n_users": 15246,
+      "n_skipped": 0
+     },
+     "diversity10": {
+      "value": 0.7906605304420755,
+      "ci_low": 0.7890263965896712,
+      "ci_high": 0.7921667394375832,
+      "n_impressions": 235060,
+      "n_users": 15246,
+      "n_skipped": 0
+     },
+     "novelty10": {
+      "value": 17.363925455088467,
+      "ci_low": 17.351929545625527,
+      "ci_high": 17.375548636515962,
+      "n_impressions": 235060,
+      "n_users": 15246,
+      "n_skipped": 0
+     }
+    }
+   },
+   "slice_cohort": {
+    "warm": {
+     "auc": {
+      "value": 0.567692487287812,
+      "ci_low": 0.565904525206265,
+      "ci_high": 0.569574039350514,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     },
+     "mrr": {
+      "value": 0.3555259704487736,
+      "ci_low": 0.35394769612140725,
+      "ci_high": 0.3571364860469243,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     },
+     "ndcg5": {
+      "value": 0.39567347388706803,
+      "ci_low": 0.39374862879149336,
+      "ci_high": 0.39759618635165217,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     },
+     "ndcg10": {
+      "value": 0.4724506670598113,
+      "ci_low": 0.4708394135216167,
+      "ci_high": 0.4740476820744669,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     },
+     "diversity10": {
+      "value": 0.7900232735718151,
+      "ci_low": 0.7885058645716571,
+      "ci_high": 0.7916394694927076,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     },
+     "novelty10": {
+      "value": 17.235631934004246,
+      "ci_low": 17.220905393667206,
+      "ci_high": 17.249455829775595,
+      "n_impressions": 244647,
+      "n_users": 15342,
+      "n_skipped": 0
+     }
+    }
+   }
+  }
+ },
+ "paired_treatment_minus_control": {
+  "auc": {
+   "diff": 0.006416681961711301,
+   "ci_low": 0.0053281091208622015,
+   "ci_high": 0.007543822923876006,
+   "significant": true
+  },
+  "mrr": {
+   "diff": 0.004319862925529161,
+   "ci_low": 0.003205588844088002,
+   "ci_high": 0.005439777029493916,
+   "significant": true
+  },
+  "ndcg5": {
+   "diff": 0.005318171294311447,
+   "ci_low": 0.004182476863593014,
+   "ci_high": 0.006519221911719424,
+   "significant": true
+  },
+  "ndcg10": {
+   "diff": 0.004431393788870974,
+   "ci_low": 0.0035062520060743646,
+   "ci_high": 0.005400686126611286,
+   "significant": true
+  },
+  "diversity10": {
+   "diff": 0.0006062249327034586,
+   "ci_low": 0.00039789096733365835,
+   "ci_high": 0.0008019683506860914,
+   "significant": true,
+   "regressed": false
+  },
+  "novelty10": {
+   "diff": 0.02799810049311091,
+   "ci_low": 0.026900881228072483,
+   "ci_high": 0.02921364270167075,
+   "significant": true,
+   "regressed": false
+  },
+  "coverage10": {
+   "diff": -0.0034718873565435515,
+   "note": "point difference only (ADR-007)"
+  }
+ },
+ "paired_by_slice": {
+  "slice_pop=head": {
+   "auc": {
+    "diff": -0.021680748231666214,
+    "ci_low": -0.025786840317460678,
+    "ci_high": -0.017750019855146747,
+    "significant": true
+   },
+   "mrr": {
+    "diff": -0.01776467641304047,
+    "ci_low": -0.02185302084245239,
+    "ci_high": -0.013699425022582347,
+    "significant": true
+   },
+   "ndcg5": {
+    "diff": -0.022806265762988276,
+    "ci_low": -0.027607171409189165,
+    "ci_high": -0.01841729279646061,
+    "significant": true
+   },
+   "ndcg10": {
+    "diff": -0.019235399755137994,
+    "ci_low": -0.02301261196831986,
+    "ci_high": -0.015520235675882376,
+    "significant": true
+   },
+   "n_impressions": 9541
+  },
+  "slice_pop=tail": {
+   "auc": {
+    "diff": 0.007556923305934715,
+    "ci_low": 0.006385837945244696,
+    "ci_high": 0.00868102056584573,
+    "significant": true
+   },
+   "mrr": {
+    "diff": 0.005216090966622511,
+    "ci_low": 0.004016424378561305,
+    "ci_high": 0.006435844624779932,
+    "significant": true
+   },
+   "ndcg5": {
+    "diff": 0.006459508622851384,
+    "ci_low": 0.0052440854468108755,
+    "ci_high": 0.007729900202685031,
+    "significant": true
+   },
+   "ndcg10": {
+    "diff": 0.0053918323876450125,
+    "ci_low": 0.00438485410323194,
+    "ci_high": 0.0063901697860033685,
+    "significant": true
+   },
+   "n_impressions": 235106
+  },
+  "slice_cohort=warm": {
+   "auc": {
+    "diff": 0.006416681961711301,
+    "ci_low": 0.0053281091208622015,
+    "ci_high": 0.007543822923876006,
+    "significant": true
+   },
+   "mrr": {
+    "diff": 0.004319862925529161,
+    "ci_low": 0.003205588844088002,
+    "ci_high": 0.005439777029493916,
+    "significant": true
+   },
+   "ndcg5": {
+    "diff": 0.005318171294311447,
+    "ci_low": 0.004182476863593014,
+    "ci_high": 0.006519221911719424,
+    "significant": true
+   },
+   "ndcg10": {
+    "diff": 0.004431393788870974,
+    "ci_low": 0.0035062520060743646,
+    "ci_high": 0.005400686126611286,
+    "significant": true
+   },
+   "n_impressions": 244647
+  }
+ }
+}

@@ -137,6 +137,53 @@ def test_guardrails_refuse_when_runner_labels_disagree_with_raw_zip(tmp_path):
     assert "do not match the raw zip" in (res.stderr + res.stdout)
 
 
+def _slice_inputs():
+    """cands: impression -> (ids, labels); popularity: train-click probabilities."""
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    _sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / "scripts"))
+    from a2_evaluate_scores import assign_slices  # noqa: E402
+
+    # A1 is the most-clicked article, A4 the least; A9 was never clicked in train.
+    popularity = {"a:A1": 0.4, "a:A2": 0.3, "a:A3": 0.2, "a:A4": 0.1}
+    cands = {
+        1: (["a:A1", "a:A9"], [1, 0]),   # clicked the most popular -> head
+        2: (["a:A4", "a:A9"], [1, 0]),   # clicked the least popular -> tail
+        3: (["a:A9", "a:A1"], [1, 0]),   # clicked an unseen-in-train article -> tail
+        4: (["a:A1", "a:A9"], [0, 0]),   # no positive -> none
+    }
+    pi = pd.DataFrame({"impression_id": [1, 2, 3, 4], "user_id": ["U1", "U2", "U3", "U4"]})
+    return assign_slices, pi, cands, popularity
+
+
+def test_head_tail_uses_first_clicked_article_and_train_popularity():
+    assign_slices, pi, cands, popularity = _slice_inputs()
+    out = assign_slices(pi, cands, popularity, head_frac=0.25, hist_len=None, id_prefix="a:")
+    assert list(out["slice_pop"]) == ["head", "tail", "tail", "none"]
+
+
+def test_unseen_in_train_articles_fall_in_tail_not_head():
+    """The smoothed floor must not promote an unclicked article into the head."""
+    assign_slices, pi, cands, popularity = _slice_inputs()
+    out = assign_slices(pi, cands, popularity, head_frac=0.99, hist_len=None, id_prefix="a:")
+    assert out.loc[out["impression_id"] == 3, "slice_pop"].item() == "tail"
+
+
+def test_head_frac_widens_the_head_set():
+    assign_slices, pi, cands, popularity = _slice_inputs()
+    narrow = assign_slices(pi, cands, popularity, 0.25, None, "a:")["slice_pop"].tolist()
+    wide = assign_slices(pi, cands, popularity, 1.0, None, "a:")["slice_pop"].tolist()
+    assert narrow[1] == "tail" and wide[1] == "head"  # impression 2 flips
+
+
+def test_warm_cold_uses_a1_threshold_and_prefixed_ids():
+    assign_slices, pi, cands, popularity = _slice_inputs()
+    hist = {"a:U1": 4, "a:U2": 5, "a:U3": 50}  # U4 absent -> unknown
+    out = assign_slices(pi, cands, popularity, 0.25, hist, "a:")
+    assert list(out["slice_cohort"]) == ["cold", "warm", "warm", "unknown"]
+
+
 @pytest.mark.parametrize("n", [60])
 def test_control_only_reports_all_metrics(tmp_path, n):
     res = _run(tmp_path, _scores(n), None)

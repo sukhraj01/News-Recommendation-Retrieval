@@ -455,7 +455,73 @@ different table if changed.
 
 ---
 
-## Affected Files
+## Addendum (2026-09-12) — A2 Q5: head-vs-tail slicing, and the slice that reversed a result
+
+A2 Q5 requires the full metric suite with bootstrap CIs **and at least two slices:
+cold-start vs warm, head vs tail**. This harness already had warm/cold (Q4.3). Head/tail is
+new, and it is implemented in `scripts/a2_evaluate_scores.py` rather than
+`run_ranking_eval.py` because A2's arms are scored offline and evaluated from dumped
+per-impression scores.
+
+## Definition (a judgement call, so stated plainly)
+
+- **head** = the clicked article's TRAIN-split click count is in the top **20%** of articles
+  clicked in train at all; **tail** = everything else. Train-only, reusing the same
+  `build_train_popularity` output novelty@10 uses, so no dev clicks leak into the slicing
+  (Q9). Articles never clicked in train share the smoothed floor and therefore land in
+  **tail** by construction — unseen-in-train is the extreme tail, which is the intended
+  reading for news.
+- An impression is assigned by its **first clicked** candidate, so each impression falls in
+  exactly one bucket. Impressions with no positive are excluded (already NaN for AUC).
+- **warm/cold** reuses ADR-005's threshold unchanged (history < 5).
+- Sliced paired tests require ≥50 impressions in the slice.
+- Four unit tests pin the cut, the unseen-in-train case, `head_frac` widening, and the
+  prefixed-id warm/cold join.
+
+## The finding: EB-NeRD's freshness gain reverses on head articles
+
+Paired treatment − control, EB-NeRD (ADR-015's A/B):
+
+| Slice | n impressions | control AUC | paired Δ AUC | 95% CI | |
+|---|---:|---:|---:|---|---|
+| **head** | 9,541 | 0.6222 | **−0.0217** | −0.0258, −0.0178 | significant **loss** |
+| **tail** | 235,106 | 0.5588 | **+0.0076** | +0.0064, +0.0087 | significant gain |
+| overall | 244,647 | 0.5613 | +0.0064 | +0.0053, +0.0075 | significant gain |
+
+**The +0.0064 headline is a tail gain diluted by a real head regression.** Reporting only
+the aggregate would have hidden a CI-clear loss on 3.9% of impressions. The mechanism is
+plausible and worth stating: a freshness-weighted ranker should help least where an article
+is popular enough to be clicked regardless of age. This is precisely the case Q5's slicing
+requirement exists to expose.
+
+## MIND control, sliced (job 2694501)
+
+| Slice | n | AUC | 95% CI | MRR | nDCG@10 |
+|---|---:|---:|---|---:|---:|
+| head | 143,164 | 0.7411 | 0.7397–0.7426 | 0.4608 | 0.4976 |
+| tail | 233,307 | 0.6474 | 0.6463–0.6486 | 0.3309 | 0.3852 |
+| warm | 323,747 | 0.6932 | 0.6922–0.6941 | 0.3861 | 0.4317 |
+| cold | 52,724 | 0.6209 | 0.6183–0.6236 | 0.3446 | 0.4050 |
+
+- **Head is easier on both datasets** (MIND 0.7411 vs 0.6474; EB-NeRD 0.6222 vs 0.5588).
+- **The reproduced baseline does not close the cold-start gap.** Its warm−cold spread is
+  0.0723, against A1's embedding baseline at 0.6431/0.5749 = 0.0682 on the same split. NRMS
+  lifts both cohorts by ~0.05 and leaves the gap marginally *wider* — the same conclusion
+  ADR-008 reached for embeddings: better models raise the whole curve rather than fixing
+  cold start. A history encoder cannot help a user with fewer than five history items.
+
+## Two structural notes
+
+- **Head is 38% of MIND impressions but only 3.9% of EB-NeRD's.** News churn explains it:
+  most EB-NeRD clicks land on articles never clicked during the 21-day train window, so they
+  are tail by construction. The same definition therefore describes a much rarer population
+  on EB-NeRD, and the two head numbers are not directly comparable across datasets.
+- **EB-NeRD's warm/cold slice is degenerate** — all 244,647 validation impressions are warm.
+  That is not a bug: ADR-002's addendum established `ebnerd_small` has zero users below the
+  threshold by construction of its active-user filter. It is reported as degenerate rather
+  than silently omitted.
+
+# Affected Files
 
 - `src/evaluation/ranking_metrics.py`
 - `src/evaluation/bootstrap.py`
