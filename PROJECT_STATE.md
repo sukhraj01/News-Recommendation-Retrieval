@@ -18,7 +18,7 @@ only once Q1–Q6 are solid.
 | Local env | ✅ Rebuilt: poetry py3.11 venv had vanished; 328 passed / 1 skipped |
 | Q3 Option A (official TF code on Ada) | ❌ **Timebox expired.** PyPI is ~0.09–0.37 MB/s from every reachable machine; the TF+CUDA env never finished (job 2694353 held a GPU idle ~4 h). See ADR-015 addendum. |
 | Q3 Option B (PyTorch port of the official configs) | 🟡 **Running.** `src/retrieval/nrms_official{,_data}.py`, 26 unit tests, local smoke tests pass |
-| MIND control, job 2694501 | 🟡 Running. Epoch 1: 63 min of training, dev monitor AUC 0.6692 (> J's 0.6579). 10 epochs done at ~14:30 Ada time on 2026-09-12 |
+| MIND control, job 2694501 | ✅ **Done** (13 h 13 m, 10 epochs). MINDlarge-dev, all 376,471 impressions: **AUC 0.6831** (CI 0.6821–0.6839), MRR 0.3803, nDCG@5 0.3620, nDCG@10 0.4279; guardrails diversity@10 0.8343, novelty@10 17.62, coverage@10 0.0627. Beats Candidate J (0.6579) by +0.0252 on the same split, marginal comparison not paired |
 | EB-NeRD control 2694505 / treatment 2694506 | ⏳ Queued (1-GPU cap on QoS `low`) |
 | MIND treatment (title + abstract 50), job 2694529 | ⏳ Queued last. Projected ~37 h for 10 epochs; result ~2026-09-14/15 |
 | Candidate K (for Q4/Q5) | ✅ **Retrained 2026-09-12 at 65 features**: K_rank_nopos 0.7588 (CI 0.7571–0.7606), reproducing ADR-013's post-correction band. Stored in 3 places (repo `experiments/`, `~/a2_model_artifacts/`, Ada `$HOME/a2/artifacts/`). `ebnerd_large` retrain deferred: S3 is ~18 KB/s from Ada and `$HOME` has ~4.9 GB free |

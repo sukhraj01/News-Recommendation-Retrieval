@@ -166,7 +166,13 @@ run() {  # mode name [extra args...]
     # Persist the small outputs; EB-NeRD weights (~1GB+, xlm-roberta vocab)
     # stay on scratch to protect the $HOME quota.
     mkdir -p "$P/results/$name"
-    cp "$out"/results.json "$out"/*_scores.parquet "$P/results/$name/" 2>/dev/null || true
+    # Copy by name: the runners write `scores.parquet`, which a `*_scores.parquet`
+    # glob does not match. On this path $out is node-local /ssd_scratch, so a
+    # missed copy would strand the one output every downstream metric needs.
+    cp "$out"/results.json "$P/results/$name/" 2>/dev/null || true
+    if ! cp "$out"/scores.parquet "$P/results/$name/"; then
+        echo "FATAL: $out/scores.parquet missing — nothing to evaluate"; exit 7
+    fi
     [ "$mode" = mind ] && cp "$out"/*.weights.h5 "$P/results/$name/" 2>/dev/null || true
 }
 

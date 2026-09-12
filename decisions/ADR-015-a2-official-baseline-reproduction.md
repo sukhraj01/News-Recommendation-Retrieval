@@ -153,6 +153,56 @@ scale-invariant and can split on negative values.
   selection on dev).
 - ~70–80 min per epoch including dev eval, so the 10 epochs should finish at ~14:30 Ada time.
 
+**MIND control finished (job 2694501, 2026-09-12, 13 h 13 m for 10 epochs).**
+
+Evaluated by `a2_evaluate_scores.py` over the dumped per-impression scores, all 376,471
+MINDlarge-dev impressions / 255,990 users, 0 skipped:
+
+| Metric | Reproduced official NRMS | 95% CI | Candidate J (A1 best) | Published NRMS (*test*) |
+|---|---:|---|---:|---:|
+| AUC | **0.6831** | 0.6821–0.6839 | 0.6579 | 0.6776 |
+| MRR | 0.3803 | 0.3792–0.3814 | 0.3581 | 0.3305 † |
+| nDCG@5 | 0.3620 | 0.3608–0.3632 | 0.3411 | 0.3594 |
+| nDCG@10 | 0.4279 | 0.4269–0.4290 | 0.4064 | 0.4163 |
+| diversity@10 | 0.8343 | 0.8337–0.8348 | — | — |
+| novelty@10 | 17.6230 | 17.6139–17.6324 | — | — |
+| coverage@10 | 0.0627 | point est. (ADR-007) | — | — |
+
+The AUC agrees to four decimals with the runner's independently computed monitoring AUC,
+i.e. two implementations (sklearn per impression vs the harness's vectorised
+Mann-Whitney form) on the same scores.
+
+**Two caveats, so these are not over-read:**
+- The comparison with J is **marginal, not paired**: J's per-impression scores were never
+  saved, so only its published CIs are available. The intervals do not overlap, and the gap
+  (+0.0252 AUC) is 25x the width of either, but a paired test would be the stronger claim
+  and cannot be run retrospectively.
+- **MRR is not comparable to the MIND paper's.** A1 established that the official
+  `evaluate.py` sums 1/rank over *all* clicked items, while this project's harness is
+  first-hit-only (PROJECT_STATE, Codabench converter validation). † is therefore marked as
+  a different statistic, not a worse score. The published figures are also on the blind
+  *test* split, not dev.
+
+Per-epoch dev AUC rose from 0.6692 (epoch 1) to 0.6836 (epoch 9), ending at 0.6831. The
+reported arm is the **final** epoch, not the best: the official `fit()` selects nothing on
+dev, and honouring that is what makes this a reproduction. The published 0.6776 is on the
+blind *test* split and so is not directly comparable, but the reproduction landing in that
+neighbourhood — and **+0.025 above Candidate J on the identical split** — is the evidence Q3
+needs that the control is trustworthy.
+
+These are monitoring numbers from the runner. The reported figures come from
+`a2_evaluate_scores.py` over the dumped per-impression scores.
+
+**A scare that was not a defect, recorded because the first reading was wrong.** The
+Option B sbatch was briefly believed to have lost the scores on node-local scratch, because
+the *Option A* script (`a2_official_nrms_train.sbatch`, never successfully run) copies
+results with a `*_scores.parquet` glob that does not match the runner's `scores.parquet`.
+The Option B script passes `--out-dir "$P/results/$NAME"`, so the runner wrote directly into
+shared `$HOME`: `scores.parquet` (92.6 MB) and `results.json` were there all along, and the
+attempted rescue found nothing on `/ssd_scratch` because nothing was ever written there. The
+glob was fixed in the unused Option A script anyway, since it would bite if a TF env ever
+becomes available.
+
 **MIND treatment timing (projected, then submitted).** On identical 461-example local runs,
 the treatment's 80-token input cost 3.2× the control's 30 tokens (52.1 s vs 16.3 s). Applying
 that ratio gives ~3.7 h per epoch and ~37 h for 10 epochs, inside the 72 h limit with ~2×
