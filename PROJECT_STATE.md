@@ -21,7 +21,8 @@ only once Q1–Q6 are solid.
 | MIND control, job 2694501 | 🟡 Running. Epoch 1: 63 min of training, dev monitor AUC 0.6692 (> J's 0.6579). 10 epochs done at ~14:30 Ada time on 2026-09-12 |
 | EB-NeRD control 2694505 / treatment 2694506 | ⏳ Queued (1-GPU cap on QoS `low`) |
 | MIND treatment (title + abstract 50), job 2694529 | ⏳ Queued last. Projected ~37 h for 10 epochs; result ~2026-09-14/15 |
-| Q2 true-retrieval-ceiling eval | ⬜ Not started (engineer's decision 4) |
+| Candidate K (for Q4/Q5) | ✅ **Retrained 2026-09-12 at 65 features**: K_rank_nopos 0.7588 (CI 0.7571–0.7606), reproducing ADR-013's post-correction band. Stored in 3 places (repo `experiments/`, `~/a2_model_artifacts/`, Ada `$HOME/a2/artifacts/`). `ebnerd_large` retrain deferred: S3 is ~18 KB/s from Ada and `$HOME` has ~4.9 GB free |
+| Q2 true-retrieval-ceiling eval | ⬜ Not started. **NRMS-only, decided 2026-09-12** — K's features are impression-conditional and undefined for retrieved-but-unshown candidates (ADR-015) |
 | Q1 session gap, Q4 p99/cost framing, Q5 head/tail slice, Q6 note | ⬜ Not started. Gap analysis in `knowledge/ai-usage-log/2026-09-11_*` |
 
 **Decisions this cycle (the engineer's):**

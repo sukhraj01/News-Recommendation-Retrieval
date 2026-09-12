@@ -924,3 +924,56 @@ Still open:
 - *Leveraging LightGBM Ranker for Efficient Large-Scale News Recommendation Systems* (FeatureSalad, 85.13 AUC) — [ACM 10.1145/3687151.3687156](https://dl.acm.org/doi/10.1145/3687151.3687156); code: [recsyspolimi/recsys-challenge-2024-ekstrabladet](https://github.com/recsyspolimi/recsys-challenge-2024-ekstrabladet)
 - *Large Scale Hierarchical User Interest Modeling for Click-through Rate Prediction* (BlackPearl, 88.15 AUC) — [ACM 10.1145/3687151.3687163](https://dl.acm.org/doi/10.1145/3687151.3687163) — **full text not retrievable (HTTP 403)**
 - Internal: ADR-007 (evaluation harness, train-only novelty), ADR-008 + addenda (embeddings), ADR-009 (leaky-feature ablation), ADR-010 (paired bootstrap, candidate-search discipline), ADR-012 (Candidate J)
+
+---
+
+# Addendum (2026-09-12) — Candidate K retrained at 65 features, and stored durably
+
+**Why.** A2's Q4/Q5 need Candidate K's scores, and no trained K survived: Ada's `$HOME` no
+longer holds the `ebnerd_large` booster (checked directly, 2026-09-11), and the only local
+model was the **pre-correction 60-feature** one from 2026-08-26 that ADR-014 profiled. So K
+was retrained locally on `ebnerd_small` with the current code.
+
+**Result — the corrected feature set reproduces this ADR's post-correction numbers.**
+65 features, including all five the correction added (`context_category_match`,
+`context_topic_overlap`, `context_embed_sim`, `session_position`, `session_start_gap_h`).
+
+| Arm | AUC | 95% CI | MRR | nDCG@5 | nDCG@10 |
+|---|---|---|---|---|---|
+| K_cls | 0.7597 | 0.7579–0.7615 | 0.5300 | 0.5939 | 0.6314 |
+| K_rank_nopos | 0.7588 | 0.7571–0.7606 | 0.5295 | 0.5939 | 0.6306 |
+| K_rank | 0.7581 | 0.7564–0.7600 | 0.5299 | 0.5940 | 0.6309 |
+| embed_sim | 0.5430 | 0.5415–0.5444 | 0.3437 | 0.3804 | 0.4591 |
+| random | 0.4993 | 0.4979–0.5006 | 0.3129 | 0.3447 | 0.4297 |
+| popularity | 0.4269 | 0.4252–0.4288 | 0.2596 | 0.2805 | 0.3804 |
+
+This lands in the 0.7581–0.7597 band this ADR recorded after the recency fix, and the three
+baselines reproduce their A1 values exactly (`embed_sim` 0.5430 matches ADR-008 addendum 2;
+`random` 0.4993; `popularity` 0.4269). The harness is the same instrument as before.
+
+**Position bias, re-measured.** `K_rank` vs `K_rank_nopos` is **−0.0007 (95% CI −0.0011 to
+−0.0003)**: withholding `position_in_view`/`relative_position_in_view` still *helps*,
+CI-clear, in the same direction as the original +0.0011 though smaller. `K_rank_nopos`
+therefore remains the quotable arm.
+
+**Feature gain still says freshness, not long/short-term interest.** `article_age_h` is the
+top feature by a wide margin, followed by `article_age_minus_imp_min` and
+`article_age_rank_in_imp`. Unchanged conclusion from this ADR's third finding.
+
+**Cost:** 1,073.7 s (17.9 min) wall, peak RSS 2.07 GB on the 8 GB M3 — comfortably local, no
+cluster needed.
+
+**Durability (the failure this addendum exists to prevent).** The `ebnerd_large` booster was
+lost because it existed only on Ada. This model is kept in **three** places:
+`experiments/candidate_k_gbdt_ebnerd_small_2026-09-12/` (gitignored but on local disk),
+`~/a2_model_artifacts/candidate_k_ebnerd_small_2026-09-12/`, and Ada
+`$HOME/a2/artifacts/candidate_k_ebnerd_small_2026-09-12/`, sha256-verified across copies.
+
+**Consequence for ADR-014.** Its stated caveat — that the EB-NeRD profile used the
+60-feature pre-correction booster — can now be closed: the 65-feature model exists locally.
+Re-profiling EB-NeRD against it is A2 Q4 work.
+
+**Not retrained: `ebnerd_large`.** That needs the ~4.6 GB bundle, and EB-NeRD's S3 runs at
+~18 KB/s from Ada while Ada's `$HOME` has ~4.9 GB free. It would mean downloading locally and
+pushing, plus staging on a compute node's `/ssd_scratch`. Deferred, and recorded here rather
+than silently skipped.

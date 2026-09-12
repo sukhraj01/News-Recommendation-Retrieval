@@ -141,3 +141,23 @@ Compared against `2026-09-12T12-33-17_snapshot.json` (`62aace6`):
 | `rank_and_auc` | 2.5818 | 1.9546 | -24.3% | 🟢 |
 
 **Verdict:** no regression
+
+### 2026-09-12T12:40:20 — `5e5d1fb` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** clean serial snapshot after A2 Option B commits (machine idle)
+
+**End-to-end:** 4.3556 ms/impression (229.6 impressions/s) · peak RSS 0.7 GB
+
+Compared against `2026-09-12T12-33-29_snapshot.json` (`62aace6`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.233 | 0.1578 | -32.3% | ~ |
+| `bm25_score_all` | 1.9667 | 1.132 | -42.4% | 🟢 |
+| `embed_query_build` | 0.0453 | 0.0309 | -31.8% | ~ |
+| `embed_score_all` | 6.0037 | 1.2136 | -79.8% | 🟢 |
+| `bm25_candidate_lookup` | 0.0255 | 0.0173 | -32.2% | ~ |
+| `embed_candidate_lookup` | 0.0273 | 0.0179 | -34.4% | ~ |
+| `rank_and_auc` | 1.9546 | 1.547 | -20.9% | 🟢 |
+
+**Verdict:** no regression
