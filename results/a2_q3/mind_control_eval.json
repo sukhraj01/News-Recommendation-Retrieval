@@ -1,0 +1,61 @@
+{
+ "tiebreak_prefix": "mind:dev:",
+ "guardrails": true,
+ "control": {
+  "file": "/private/tmp/claude-502/-Users-test01-Desktop-assignment-1-news-retrieval/c56bacb8-c294-4250-8643-3e87fa88d70c/scratchpad/ada_results/mind_control/scores.parquet",
+  "auc": {
+   "value": 0.683061539432118,
+   "ci_low": 0.6821155858691005,
+   "ci_high": 0.6839452246661233,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "mrr": {
+   "value": 0.38026916116616366,
+   "ci_low": 0.37918322741786786,
+   "ci_high": 0.38138599442575466,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "ndcg5": {
+   "value": 0.36200276953565574,
+   "ci_low": 0.3608167378068272,
+   "ci_high": 0.36318549827650415,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "ndcg10": {
+   "value": 0.4279354293198612,
+   "ci_low": 0.4268832052716572,
+   "ci_high": 0.429027829496114,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "diversity10": {
+   "value": 0.8342513576268635,
+   "ci_low": 0.8336704556837737,
+   "ci_high": 0.8348451974539315,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "novelty10": {
+   "value": 17.62297486545681,
+   "ci_low": 17.61385184849564,
+   "ci_high": 17.63237364046238,
+   "n_impressions": 376471,
+   "n_users": 255990,
+   "n_skipped": 0
+  },
+  "coverage10": {
+   "value": 0.06271607680879719,
+   "ci_low": null,
+   "ci_high": null,
+   "note": "point estimate; set-union statistic, no bootstrap CI (ADR-007)"
+  }
+ }
+}

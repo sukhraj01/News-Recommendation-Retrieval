@@ -1,0 +1,101 @@
+{
+ "args": {
+  "dataset": "mind",
+  "arm": "control",
+  "out_dir": "/home2/sukhraj.singh/a2/results/mind_control",
+  "seed": 42,
+  "epochs": null,
+  "batch_size": 32,
+  "lr": 0.0001,
+  "eval_batch": 512,
+  "max_train_impressions": null,
+  "max_eval_impressions": null,
+  "require_gpu": true,
+  "mind_train_zip": "/home2/sukhraj.singh/a2/raw/MINDlarge_train.zip",
+  "mind_dev_zip": "/home2/sukhraj.singh/a2/raw/MINDlarge_dev.zip",
+  "mind_utils_dir": "/home2/sukhraj.singh/a2/mind_utils",
+  "abstract_size": null,
+  "ebnerd_zip": null,
+  "ebnerd_tokens": null
+ },
+ "device": "cuda",
+ "torch": "2.11.0+cu128",
+ "epochs": [
+  {
+   "epoch": 1,
+   "loss": 1.255681757646674,
+   "n_examples": 3383656,
+   "train_s": 3787.153938770294,
+   "dev_mean_auc_monitor": 0.6692417389169005
+  },
+  {
+   "epoch": 2,
+   "loss": 1.199898995584501,
+   "n_examples": 3383656,
+   "train_s": 3780.3894233703613,
+   "dev_mean_auc_monitor": 0.6821689436115591
+  },
+  {
+   "epoch": 3,
+   "loss": 1.1819425809066597,
+   "n_examples": 3383656,
+   "train_s": 3786.060546875,
+   "dev_mean_auc_monitor": 0.6844230961584931
+  },
+  {
+   "epoch": 4,
+   "loss": 1.1705876355166018,
+   "n_examples": 3383656,
+   "train_s": 3779.288882255554,
+   "dev_mean_auc_monitor": 0.6816637931847717
+  },
+  {
+   "epoch": 5,
+   "loss": 1.1619971545235925,
+   "n_examples": 3383656,
+   "train_s": 3771.8583509922028,
+   "dev_mean_auc_monitor": 0.6816025637875602
+  },
+  {
+   "epoch": 6,
+   "loss": 1.1536486811554,
+   "n_examples": 3383656,
+   "train_s": 3778.318732023239,
+   "dev_mean_auc_monitor": 0.6792626669654364
+  },
+  {
+   "epoch": 7,
+   "loss": 1.147300575877918,
+   "n_examples": 3383656,
+   "train_s": 3776.7179934978485,
+   "dev_mean_auc_monitor": 0.6791404534845717
+  },
+  {
+   "epoch": 8,
+   "loss": 1.1404916221570807,
+   "n_examples": 3383656,
+   "train_s": 3783.2383239269257,
+   "dev_mean_auc_monitor": 0.684114286363129
+  },
+  {
+   "epoch": 9,
+   "loss": 1.1348615399640563,
+   "n_examples": 3383656,
+   "train_s": 3810.8148028850555,
+   "dev_mean_auc_monitor": 0.6836247463863927
+  },
+  {
+   "epoch": 10,
+   "loss": 1.128815212061145,
+   "n_examples": 3383656,
+   "train_s": 3848.8200397491455,
+   "dev_mean_auc_monitor": 0.683061539432118
+  }
+ ],
+ "load_s": 128.7127947807312,
+ "n_train_impressions": 2232748,
+ "n_eval_impressions": 376471,
+ "final_mean_auc_monitor": 0.683061539432118,
+ "n_params": 13310100,
+ "total_s": 47476.342151641846
+}

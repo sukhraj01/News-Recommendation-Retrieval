@@ -1,0 +1,81 @@
+{
+ "args": {
+  "dataset": "ebnerd",
+  "arm": "treatment",
+  "out_dir": "/home2/sukhraj.singh/a2/results/ebnerd_treatment",
+  "seed": 42,
+  "epochs": null,
+  "batch_size": 32,
+  "lr": 0.0001,
+  "eval_batch": 512,
+  "max_train_impressions": null,
+  "max_eval_impressions": null,
+  "require_gpu": true,
+  "log_every": 5000,
+  "es_batch": 128,
+  "mind_train_zip": null,
+  "mind_dev_zip": null,
+  "mind_utils_dir": null,
+  "abstract_size": null,
+  "ebnerd_zip": "/home2/sukhraj.singh/a2/raw/ebnerd_small.zip",
+  "ebnerd_tokens": "/home2/sukhraj.singh/a2/ebnerd_tokens/ebnerd_small_xlmr30.npz"
+ },
+ "device": "cuda",
+ "torch": "2.11.0+cu128",
+ "epochs": [
+  {
+   "epoch": 1,
+   "loss": 1.4127907902125465,
+   "val_auc": 0.6085830349039685,
+   "lr": 0.0001,
+   "train_s": 223.78678703308105,
+   "freshness_w": -0.06595655530691147
+  },
+  {
+   "epoch": 2,
+   "loss": 1.346677981059702,
+   "val_auc": 0.5937093093029404,
+   "lr": 0.0001,
+   "train_s": 236.04067969322205,
+   "freshness_w": 0.0036102458834648132
+  },
+  {
+   "epoch": 3,
+   "loss": 1.3101183614579532,
+   "val_auc": 0.5842853924926622,
+   "lr": 0.0001,
+   "train_s": 236.26511883735657,
+   "freshness_w": 0.06779312342405319
+  },
+  {
+   "epoch": 4,
+   "loss": 1.2657572106278017,
+   "val_auc": 0.5800501164323675,
+   "lr": 2e-05,
+   "train_s": 235.20693254470825,
+   "freshness_w": 0.08588296920061111
+  },
+  {
+   "epoch": 5,
+   "loss": 1.2538205079944877,
+   "val_auc": 0.5757171453162727,
+   "lr": 2e-05,
+   "train_s": 235.30057406425476,
+   "freshness_w": 0.10224094241857529
+  }
+ ],
+ "load_s": 31.089542865753174,
+ "age_check": {
+  "median_candidate_age_h": 3.0169444444444444,
+  "frac_samples_age_varies": 0.9999700551413183
+ },
+ "n_train_samples": 193617,
+ "n_early_stop_samples": 40146,
+ "n_eval_impressions": 244647,
+ "n_train_impressions": 232887,
+ "best_early_stop_val_auc": 0.6085830349039685,
+ "final_mean_auc_monitor": 0.567692487287812,
+ "n_params": 19621665,
+ "total_s": 1767.7416825294495,
+ "final_freshness_w": -0.06595655530691147
+}
