@@ -228,6 +228,18 @@ Three fixes, and one scheduling consequence:
   It was cancelled 2 minutes in and will be resubmitted behind the EB-NeRD pair, so the
   first complete A/B result arrives today rather than on the 14th.
 
+**Fix verified on the hardware that broke (2026-09-12).** The resubmitted control (2694962)
+cleared **epoch 2** — the exact early-stop block that killed 2694505 — with loss 1.3449 and
+val AUC 0.5958, and continued into epoch 3. Epoch timings are unchanged (201.9 s vs 201.5 s),
+so the smaller chunks cost no measurable throughput.
+
+**GPU determinism, stated because the smoke tests claim bitwise reproducibility.** Epoch 1's
+val AUC differs between the failed and resubmitted runs in the ninth decimal
+(0.5960318848 vs 0.5960318833) on identical code, data and seed. That is ordinary
+GPU non-determinism (reduction order), not an effect of the fix: the CPU smoke runs
+reproduce bit-for-bit. **So the reproducibility claim in the report must be "bitwise on CPU,
+run-to-run stable to ~8 decimals on GPU", not "bitwise everywhere".**
+
 **MIND treatment timing (projected, then submitted).** On identical 461-example local runs,
 the treatment's 80-token input cost 3.2× the control's 30 tokens (52.1 s vs 16.3 s). Applying
 that ratio gives ~3.7 h per epoch and ~37 h for 10 epochs, inside the 72 h limit with ~2×
