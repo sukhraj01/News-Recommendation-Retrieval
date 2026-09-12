@@ -1,6 +1,54 @@
-# Project State: Assignment 1 (Lexical & Semantic Retrieval)
+# Project State: Assignment 2 (Learning from Click-Logs), built on Assignment 1
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
+
+## Assignment 2: current state (updated 2026-09-12)
+
+**Brief:** `A2.pdf` (repo root). Due **2026-09-20**. Q1 features · Q2 two-stage re-ranker ·
+Q3 reproduce the official baseline, then beat it with an ablation and paired bootstrap CI ·
+Q4 serving/scale · Q5 extended eval with slices · Q6 6-page design note · Q7–Q9 deliverables.
+Team goal of rank < 10 on both leaderboards is a stretch on top of the graded work, pursued
+only once Q1–Q6 are solid.
+
+**Current objective: Q3.** See `decisions/ADR-015-a2-official-baseline-reproduction.md` (canonical).
+
+| Item | Status |
+|---|---|
+| Corpus-stats anchor table | ✅ `docs/corpus_stats.md` + `scripts/compute_corpus_stats.py` (matches 2026-08-31 exactly) |
+| Local env | ✅ Rebuilt: poetry py3.11 venv had vanished; 328 passed / 1 skipped |
+| Q3 Option A (official TF code on Ada) | ❌ **Timebox expired.** PyPI is ~0.09–0.37 MB/s from every reachable machine; the TF+CUDA env never finished (job 2694353 held a GPU idle ~4 h). See ADR-015 addendum. |
+| Q3 Option B (PyTorch port of the official configs) | 🟡 **Running.** `src/retrieval/nrms_official{,_data}.py`, 26 unit tests, local smoke tests pass |
+| MIND control, job 2694501 | 🟡 Running. Epoch 1: 63 min of training, dev monitor AUC 0.6692 (> J's 0.6579). 10 epochs done at ~14:30 Ada time on 2026-09-12 |
+| EB-NeRD control 2694505 / treatment 2694506 | ⏳ Queued (1-GPU cap on QoS `low`) |
+| MIND treatment (title + abstract 50), job 2694529 | ⏳ Queued last. Projected ~37 h for 10 epochs; result ~2026-09-14/15 |
+| Q2 true-retrieval-ceiling eval | ⬜ Not started (engineer's decision 4) |
+| Q1 session gap, Q4 p99/cost framing, Q5 head/tail slice, Q6 note | ⬜ Not started. Gap analysis in `knowledge/ai-usage-log/2026-09-11_*` |
+
+**Decisions this cycle (the engineer's):**
+- Option A with a one-session timebox, falling back to B. The fallback has now been applied.
+- Treatments: EB-NeRD = official NRMS + freshness. MIND = official NRMS + title+abstract input.
+  The first MIND spec (GloVe vs random init) was re-decided, because the official NRMS is
+  already GloVe-initialised.
+- Q2: leaderboards keep ranking each impression's real candidate list, plus a separate,
+  honestly-reported true-retrieval-ceiling evaluation.
+
+**Environment facts that changed since A1:**
+- Ada QoS is now `low` (cpu 10, gpu 1, mem 32,000 MB per user). `u22-cpu` is devalab-only.
+- `/share1` is not mounted on compute nodes.
+- `$HOME` has ~5 GB free of 25.6 GB.
+- None of A1's Ada artifacts survive; Candidate K's 65-feature booster must be retrained if
+  it is needed.
+- ADR-014's claim of "no trained J checkpoint locally" is wrong:
+  `experiments/candidate_j_nrms_lite_ada_2026-08-24/nrms_lite_best.pt` (MINDsmall run) exists.
+
+**Open risks:**
+- MIND 10-epoch wall time is still unmeasured.
+- Option B must be reported as a reimplementation, not "the official code".
+- MIND published NRMS (67.76) is above J's 0.6462, so a faithful control should beat J on MIND.
+
+---
+
+# Assignment 1 record (historical, unchanged below)
 
 > **RESOLVED (2026-08-30): Candidate K is a real, confirmed Codabench
 > leaderboard win — EB-NeRD's first.** Submission ID **907863**, uploaded
