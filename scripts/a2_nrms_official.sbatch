@@ -25,6 +25,9 @@
 #   e.g. sbatch scripts/a2_nrms_official.sbatch mind treatment mind_treatment --abstract-size 50
 set -euo pipefail
 export OPENBLAS_NUM_THREADS=8 OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 NUMEXPR_NUM_THREADS=8
+# Job 2694505 OOM'd with 1.88GB "reserved but unallocated" on an 11GB 2080 Ti;
+# expandable segments is the allocator's own advice for that fragmentation.
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 P=$HOME/a2
 source "$HOME/venvs/perf_bench/bin/activate"

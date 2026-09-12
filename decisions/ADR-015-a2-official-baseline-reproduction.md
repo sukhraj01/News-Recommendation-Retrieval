@@ -203,6 +203,30 @@ attempted rescue found nothing on `/ssd_scratch` because nothing was ever writte
 glob was fixed in the unused Option A script anyway, since it would bite if a TF env ever
 becomes available.
 
+**EB-NeRD control OOM'd, and what it exposed (job 2694505, 2026-09-12).** The control
+completed epoch 1 (early-stop val AUC 0.5960, 201 s/epoch, 1,019 samples/s) and then died in
+epoch 2's early-stop scoring with `torch.OutOfMemoryError` — 1.38 GiB requested, 1.18 GiB
+free on the 11 GB 2080 Ti.
+
+The cause is arithmetic, not a leak. That block scored 1,024 samples at once, and each
+sample carries 20 history + 5 candidate articles, so 25,600 rows enter the news encoder
+together; their attention scores alone are 25,600 × 20 heads × 30 × 30 × 4 B ≈ 1.8 GB.
+Epoch 1 fit; epoch 2 met a fragmented allocator (1.88 GB "reserved but unallocated").
+
+Three fixes, and one scheduling consequence:
+- `--es-batch` (default **128**, was a hard-coded 1024) with per-chunk frees: ~0.23 GB.
+- `evaluate()`'s news-encoding chunk is now **width-aware**, `2048 × (30/T)²`. This matters
+  for the MIND *treatment*, whose 80-token input (title 30 + abstract 50) makes attention
+  ~7× the control's per row; a flat 2048 would have allocated ~1 GB per chunk on a card that
+  had already OOM'd once.
+- `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`, the allocator's own advice for that
+  fragmentation signature.
+- **Queue reordered.** Cancelling the doomed EB-NeRD treatment (2694506) immediately started
+  the MIND treatment (2694529, the ~37 h job), which would have put the two ~30-minute
+  EB-NeRD arms behind it for two days — and it carried the unfixed width-aware chunk itself.
+  It was cancelled 2 minutes in and will be resubmitted behind the EB-NeRD pair, so the
+  first complete A/B result arrives today rather than on the 14th.
+
 **MIND treatment timing (projected, then submitted).** On identical 461-example local runs,
 the treatment's 80-token input cost 3.2× the control's 30 tokens (52.1 s vs 16.3 s). Applying
 that ratio gives ~3.7 h per epoch and ~37 h for 10 epochs, inside the 72 h limit with ~2×

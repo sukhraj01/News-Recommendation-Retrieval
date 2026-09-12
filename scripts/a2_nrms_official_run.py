@@ -63,6 +63,10 @@ ap.add_argument("--max-train-impressions", type=int, default=None, help="smoke r
 ap.add_argument("--max-eval-impressions", type=int, default=None, help="smoke runs only")
 ap.add_argument("--require-gpu", action="store_true")
 ap.add_argument("--log-every", type=int, default=5000, help="progress line every N train steps (0 = off)")
+ap.add_argument("--es-batch", type=int, default=128,
+                help="EB-NeRD early-stop scoring batch. Each sample carries history+candidate "
+                     "articles, so attention memory is O(batch * articles * T^2): 1024 OOM'd "
+                     "an 11GB 2080 Ti (job 2694505).")
 # MIND
 ap.add_argument("--mind-train-zip")
 ap.add_argument("--mind-dev-zip")
@@ -182,8 +186,15 @@ def evaluate(model, news_tokens_t, imps_eval, his_size, pub_s=None, use_fresh=Fa
     once, then per impression, user vector . candidate vectors."""
     model.eval()
     with torch.no_grad():
-        vecs = torch.cat([model.encode_news(news_tokens_t[i:i + 2048])
-                          for i in range(0, news_tokens_t.shape[0], 2048)])
+        # Width-aware chunk: self-attention cost per row is O(T^2), so the
+        # MIND treatment's 80 tokens (title 30 + abstract 50) needs ~7x less
+        # rows per chunk than the control's 30 to hold the same memory. A flat
+        # 2048 would allocate ~1GB of attention scores per chunk at T=80 on an
+        # 11GB card that job 2694505 already OOM'd once.
+        t_width = news_tokens_t.shape[1]
+        chunk = max(128, int(2048 * (30.0 / t_width) ** 2))
+        vecs = torch.cat([model.encode_news(news_tokens_t[i:i + chunk])
+                          for i in range(0, news_tokens_t.shape[0], chunk)])
         scores_all = []
         for s in range(0, len(imps_eval), a.eval_batch):
             chunk = imps_eval[s:s + a.eval_batch]
@@ -336,13 +347,20 @@ else:
         # model/LR selection, not for any reported number.
         model.eval()
         with torch.no_grad():
+            # --es-batch, not 1024: each sample carries 20 history + 5 candidate
+            # articles, so B=1024 pushes 25,600 rows through the news encoder at
+            # once and its attention scores alone are B*25*20heads*30*30*4B ~
+            # 1.8GB. That OOM'd job 2694505 on an 11GB 2080 Ti in epoch 2 (epoch
+            # 1 fit, then fragmentation). 128 keeps it ~0.23GB.
             probs = []
-            for s in range(0, int(is_es.sum()), 1024):
-                sl = np.flatnonzero(is_es)[s:s + 1024]
+            es_idx = np.flatnonzero(is_es)
+            for s in range(0, len(es_idx), a.es_batch):
+                sl = es_idx[s:s + a.es_batch]
                 lg = model(tok_t[torch.as_tensor(hist_all[sl], device=dev)],
                            tok_t[torch.as_tensor(cand_all[sl], device=dev)],
                            torch.as_tensor(age_all[sl], device=dev) if use_fresh else None)
                 probs.append(torch.softmax(lg, -1).cpu().numpy())
+                del lg
         probs = np.concatenate(probs)
         y = np.zeros_like(probs)
         y[:, 0] = 1
