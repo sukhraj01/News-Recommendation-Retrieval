@@ -1,0 +1,267 @@
+{
+  "benchmark": "profile_mind",
+  "dataset": "mind",
+  "bundle": "large",
+  "split": "dev",
+  "timestamp": "2026-09-12T17:36:51",
+  "git_rev": "e5aed04",
+  "git_dirty": true,
+  "tag": "a2q4-per-request",
+  "hardware_label": "Mac15,12 / 8GiB",
+  "hardware": {
+    "platform": "macOS-15.7.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.11.14",
+    "cpu_model": "Apple M3",
+    "hw_model": "Mac15,12",
+    "ram_gb": 8.0,
+    "physical_cores": 8,
+    "torch": "2.13.0",
+    "cuda_available": false,
+    "mps_available": true,
+    "numpy": "1.26.4"
+  },
+  "sample": {
+    "sampled_users": 1200,
+    "sampled_impressions": 1771,
+    "sampled_candidate_rows": 66482,
+    "sampled_impressions_per_user": 1.4758,
+    "population_users": 255990,
+    "population_impressions": 376471,
+    "population_impressions_per_user": 1.4706,
+    "population_candidate_rows": null,
+    "sample_seed": 0,
+    "sampling": "systematic-by-user"
+  },
+  "counts": {
+    "users": 1175,
+    "impressions": 1723,
+    "candidate_rows": 64954,
+    "history_articles": 29133
+  },
+  "corpus": {
+    "n_articles": 72023
+  },
+  "setup": {
+    "bm25_index_build_s": 2.184027959010564,
+    "bm25_vocab_size": 63441,
+    "bm25_weights_nnz": 1933590,
+    "bm25_weights_mb": 23.5,
+    "embed_index_load_s": 0.07006587498472072,
+    "embed_from_cache": true,
+    "embed_matrix_mb": 110.6,
+    "embed_dim": 384,
+    "nrms_vocab_build_s": 0.15696841702447273,
+    "nrms_vocab_size": 22262,
+    "nrms_config": {
+      "embed_dim": 300,
+      "num_heads": 15,
+      "max_title_len": 20,
+      "max_history_len": 50,
+      "recorded_vocab_size": 26293,
+      "source": "experiments/candidate_j_nrms_lite_ada_mindlarge_2026-08-25/config.json"
+    },
+    "nrms_model_init_s": 0.40404245897661895,
+    "nrms_params": 7478312,
+    "nrms_device": "cpu"
+  },
+  "data_load_s": 1.69,
+  "wall_s": 69.712,
+  "stage_total_s": 67.516,
+  "unattributed_s": 2.196,
+  "per_impression_ms": {
+    "1_query_tokenize": 0.4569,
+    "2_bm25_score_all": 3.2336,
+    "3_embed_query_build": 0.2487,
+    "4_embed_score_all": 3.1188,
+    "5_bm25_candidate_lookup": 0.1174,
+    "6_embed_candidate_lookup": 0.0588,
+    "7_hybrid_blend": 0.0518,
+    "8_nrms_inference": 29.88,
+    "9_rank_tiebreak": 0.1358,
+    "10_metrics": 1.8835
+  },
+  "end_to_end_impressions_per_s": 24.7,
+  "end_to_end_ms_per_impression": 40.46,
+  "stages": [
+    {
+      "stage": "1_query_tokenize",
+      "n_calls": 1175,
+      "total_s": 0.7872460554353893,
+      "mean_ms": 0.6699966429237356,
+      "p50_ms": 0.2767080150078982,
+      "p90_ms": 1.4215160161256801,
+      "p99_ms": 6.398448914987966,
+      "max_ms": 18.633667001267895,
+      "throughput_per_s": 1492.5447919204396,
+      "pct_of_total": 1.1660087475884262
+    },
+    {
+      "stage": "2_bm25_score_all",
+      "n_calls": 1175,
+      "total_s": 5.571411750919651,
+      "mean_ms": 4.741627022059278,
+      "p50_ms": 2.8852910036221147,
+      "p90_ms": 7.019024592591454,
+      "p99_ms": 21.80526515701785,
+      "max_ms": 701.6575419984292,
+      "throughput_per_s": 210.89807261257388,
+      "pct_of_total": 8.251949683503277
+    },
+    {
+      "stage": "3_embed_query_build",
+      "n_calls": 1175,
+      "total_s": 0.4284789654193446,
+      "mean_ms": 0.3646629492930592,
+      "p50_ms": 0.09412498911842704,
+      "p90_ms": 0.39134139660745876,
+      "p99_ms": 2.8569692396558746,
+      "max_ms": 165.6057499931194,
+      "throughput_per_s": 2742.2583016415956,
+      "pct_of_total": 0.634630327312702
+    },
+    {
+      "stage": "4_embed_score_all",
+      "n_calls": 1175,
+      "total_s": 5.373608764028177,
+      "mean_ms": 4.573284054492065,
+      "p50_ms": 1.8877080001402646,
+      "p90_ms": 9.077616606373342,
+      "p99_ms": 44.13738299917892,
+      "max_ms": 160.79175000777468,
+      "throughput_per_s": 218.6612482593902,
+      "pct_of_total": 7.958979002453599
+    },
+    {
+      "stage": "5_bm25_candidate_lookup",
+      "n_calls": 1723,
+      "total_s": 0.20225720870075747,
+      "mean_ms": 0.11738665623955744,
+      "p50_ms": 0.02954198862425983,
+      "p90_ms": 0.13160778908058995,
+      "p99_ms": 1.4691637718351553,
+      "max_ms": 25.88991599623114,
+      "throughput_per_s": 8518.855822583826,
+      "pct_of_total": 0.29956793429402767
+    },
+    {
+      "stage": "6_embed_candidate_lookup",
+      "n_calls": 1723,
+      "total_s": 0.10139437468023971,
+      "mean_ms": 0.05884757671517104,
+      "p50_ms": 0.020291015971451998,
+      "p90_ms": 0.09042499586939809,
+      "p99_ms": 0.7201325142523259,
+      "max_ms": 5.686542019248009,
+      "throughput_per_s": 16993.05316920888,
+      "pct_of_total": 0.15017760586686232
+    },
+    {
+      "stage": "7_hybrid_blend",
+      "n_calls": 1723,
+      "total_s": 0.08927476801909506,
+      "mean_ms": 0.05181356240226063,
+      "p50_ms": 0.032042007660493255,
+      "p90_ms": 0.05110821221023797,
+      "p99_ms": 0.14554322347976265,
+      "max_ms": 14.312459010398015,
+      "throughput_per_s": 19299.96614084134,
+      "pct_of_total": 0.13222696986601237
+    },
+    {
+      "stage": "8_nrms_inference",
+      "n_calls": 1723,
+      "total_s": 51.48329956291127,
+      "mean_ms": 29.88003456930428,
+      "p50_ms": 21.733875008067116,
+      "p90_ms": 53.20437457994558,
+      "p99_ms": 147.6255714631404,
+      "max_ms": 412.9315000027418,
+      "throughput_per_s": 33.467163422471366,
+      "pct_of_total": 76.25313233468049
+    },
+    {
+      "stage": "9_rank_tiebreak",
+      "n_calls": 1723,
+      "total_s": 0.23398037638980895,
+      "mean_ms": 0.1357982451478868,
+      "p50_ms": 0.12174999574199319,
+      "p90_ms": 0.15675899339839813,
+      "p99_ms": 0.599609020282513,
+      "max_ms": 3.7609580031130463,
+      "throughput_per_s": 7363.865408650764,
+      "pct_of_total": 0.34655386807071886
+    },
+    {
+      "stage": "10_metrics",
+      "n_calls": 1723,
+      "total_s": 3.24535601111711,
+      "mean_ms": 1.883549629203198,
+      "p50_ms": 1.8559159943833947,
+      "p90_ms": 2.244350401451811,
+      "p99_ms": 6.391615269239988,
+      "max_ms": 30.291833012597635,
+      "throughput_per_s": 530.9124774286049,
+      "pct_of_total": 4.806773526363894
+    }
+  ],
+  "reconciliation": {
+    "reference": {
+      "bm25_index_build_s": 1.7,
+      "bm25_full_retrieval_min": 9.8,
+      "embed_encode_s": 264.4,
+      "embed_full_retrieval_min": 10.4,
+      "encoder_throughput_articles_s": 373.6,
+      "source": "PROJECT_STATE.md 'Part 2 \u2014 Benchmark before trusting anything at MINDlarge scale'"
+    },
+    "measured_bm25_index_build_s": 2.184,
+    "projected_full_split": {
+      "bm25_query_plus_score_min": 23.09,
+      "bm25_score_only_min": 20.23,
+      "embed_score_only_min": 19.51,
+      "basis": "1,175 sampled users x 255,990 population users"
+    },
+    "projected_end_to_end_all_stages_min": 245.87
+  },
+  "peak_rss_gb": 0.75,
+  "index_memory": {
+    "bm25_weight_matrix_mb": 23.5,
+    "embedding_matrix_mb": 110.6,
+    "nrms_parameters_mb": 29.9,
+    "total_mb": 164.0,
+    "peak_process_rss_gb": 0.75,
+    "note": "float32; excludes Python container overhead and the id->row lookup dicts. Compare against peak_process_rss_gb for the whole-process figure."
+  },
+  "per_request": {
+    "n_requests": 500,
+    "request_total_ms": {
+      "mean": 33.287761556042824,
+      "p50": 28.691145504126325,
+      "p90": 52.378341896110214,
+      "p99": 94.67018677329176,
+      "max": 126.2782079866156
+    },
+    "stage_mean_ms": {
+      "query_tokenize": 0.4953512502252124,
+      "bm25_score_all": 3.5314043236430734,
+      "embed_query_build": 0.13654984184540808,
+      "embed_score_all": 2.8415157404961064,
+      "candidate_lookup": 0.08232058188878,
+      "hybrid_blend": 0.04679683409631252,
+      "nrms_inference": 26.033500510500744,
+      "rank": 0.12032247334718704
+    },
+    "stage_p99_ms": {
+      "query_tokenize": 3.872534647234715,
+      "bm25_score_all": 10.394834504695606,
+      "embed_query_build": 1.1978852294851077,
+      "embed_score_all": 18.62253925151884,
+      "candidate_lookup": 0.4120241539203562,
+      "hybrid_blend": 0.10658175917342294,
+      "nrms_inference": 81.26724441506666,
+      "rank": 0.24167613446479663
+    },
+    "note": "one cold request per call: per-user stages are paid inside the request, not amortised across a user's impressions as in the batched sweep"
+  }
+}

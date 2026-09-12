@@ -59,7 +59,12 @@ from benchmarks.timing import (  # noqa: E402
 )
 
 SEED = 0
-MODEL_DIR = _REPO_ROOT / "experiments" / "candidate_k_gbdt_ebnerd_small_2026-08-26"
+# The 2026-09-12 retrain: 65 features, i.e. ADR-013's corrected feature set.
+# ADR-014 profiled the 2026-08-26 booster, which predates that correction and
+# has only 60 -- its caveat ("the 65-feature model's weights were never brought
+# back from Ada") is closed by this retrain (ADR-013's 2026-09-12 addendum).
+MODEL_DIR = _REPO_ROOT / "experiments" / "candidate_k_gbdt_ebnerd_small_2026-09-12"
+LEGACY_MODEL_DIR = _REPO_ROOT / "experiments" / "candidate_k_gbdt_ebnerd_small_2026-08-26"
 DEFAULT_MODEL = MODEL_DIR / "model_K_rank.txt"
 
 # ADR-013's own recorded macro timings for this same path, carried here so each
@@ -81,7 +86,8 @@ def _load_reference_timings() -> dict:
     return out
 
 
-def resolve_model_features(booster, model_path: Path) -> tuple[list[str], list[int] | None, str]:
+def resolve_model_features(booster, model_path: Path, arm: str | None = None
+                           ) -> tuple[list[str], list[int] | None, str]:
     """Map the booster's columns onto positions in the CURRENT `FEATURE_NAMES`.
 
     This is not bookkeeping — getting it wrong feeds the model silently
@@ -114,7 +120,17 @@ def resolve_model_features(booster, model_path: Path) -> tuple[list[str], list[i
 
     cfg = model_path.parent / "config.json"
     if cfg.exists():
-        recorded = json.loads(cfg.read_text()).get("feature_names")
+        data = json.loads(cfg.read_text())
+        recorded = data.get("feature_names")
+        # An arm may withhold features (K_rank_nopos drops position_in_view and
+        # relative_position_in_view), so its booster has fewer columns than the
+        # run's 65-name list. The run records the exclusion explicitly, so the
+        # arm's column order is the recorded order minus those names -- derived
+        # from the record, never guessed. Without this the nopos arm (the one
+        # that actually shipped, ADR-013) cannot be profiled at all.
+        withheld = ((data.get("arms") or {}).get(arm) or {}).get("withheld") if arm else None
+        if recorded and withheld:
+            recorded = [n for n in recorded if n not in set(withheld)]
         if recorded and len(recorded) == booster.num_feature():
             missing = [n for n in recorded if n not in FEATURE_NAMES]
             if missing:
@@ -280,6 +296,93 @@ def run_batch(stack: dict, beh: pd.DataFrame, booster, feature_idx, timer: Stage
     return counts
 
 
+def run_per_request(stack: dict, beh: pd.DataFrame, booster, feature_idx,
+                    n_requests: int) -> dict:
+    """Serving latency for ONE user request at a time — the A2 Q4.2 quantity.
+
+    Deliberately different from `run_batch`, and both are reported. `run_batch`
+    measures the deployed *batched* shape (5,000 impressions per feature-frame
+    call) and divides, which is the right number for throughput and for the
+    cost of a full scoring pass. It cannot answer "what does one request cost",
+    because a per-chunk p99 is the tail over chunks of 5,000, not over requests.
+
+    Here each impression goes through the real path alone — feature frame,
+    LightGBM predict, rank — so the fixed per-call overhead a single request
+    actually pays is included. Metrics are excluded: a production ranker does
+    not compute AUC (ADR-014's serving-vs-evaluation split).
+    """
+    from src.evaluation.ranking_metrics import rank_candidates
+    from src.retrieval import ebnerd_features as ef
+
+    totals, stage_ms = [], {"feature_frame": [], "predict": [], "rank": []}
+    for i in range(min(n_requests, len(beh))):
+        one = beh.iloc[i : i + 1]
+        t0 = time.perf_counter()
+        X, meta = ef.build_feature_frame(one, stack["art"], stack["prof"], stack["pop"],
+                                         with_labels=False)
+        t1 = time.perf_counter()
+        mat = X if feature_idx is None else X[:, feature_idx]
+        scores = np.asarray(booster.predict(mat, num_iteration=booster.best_iteration),
+                            dtype=np.float64)
+        t2 = time.perf_counter()
+        rank_candidates(scores, str(meta["impression_id"][0]), seed=SEED)
+        t3 = time.perf_counter()
+        totals.append((t3 - t0) * 1e3)
+        stage_ms["feature_frame"].append((t1 - t0) * 1e3)
+        stage_ms["predict"].append((t2 - t1) * 1e3)
+        stage_ms["rank"].append((t3 - t2) * 1e3)
+
+    a = np.asarray(totals)
+    pct = lambda v, q: float(np.percentile(v, q))  # noqa: E731
+    return {
+        "n_requests": int(len(a)),
+        "request_total_ms": {
+            "mean": float(a.mean()), "p50": pct(a, 50), "p90": pct(a, 90),
+            "p99": pct(a, 99), "max": float(a.max()),
+        },
+        "stage_mean_ms": {k: float(np.mean(v)) for k, v in stage_ms.items()},
+        "stage_p99_ms": {k: pct(np.asarray(v), 99) for k, v in stage_ms.items()},
+        "note": ("one impression per call, no batching; the deployed path batches, so this "
+                 "is the single-request latency, not the throughput-optimal cost"),
+    }
+
+
+def measure_setup_memory(zip_path: Path, split: str, emb_npy: Path, emb_json: Path) -> dict:
+    """Retained memory of the serving-side index/feature store (A2 Q4.1).
+
+    Measured by rebuilding under `tracemalloc` rather than instrumenting the
+    timed build: tracemalloc inflates allocation-heavy code, and the timed
+    build's numbers are what ADR-014 reports. Paying one extra rebuild keeps
+    the two measurements from corrupting each other.
+    """
+    import tracemalloc
+
+    from src.retrieval.ebnerd_features import (
+        build_history_popularity,
+        build_user_profiles,
+        load_article_table,
+    )
+
+    out: dict = {}
+    tracemalloc.start()
+    base = tracemalloc.get_traced_memory()[0]
+    art = load_article_table(zip_path, embeddings_npy=emb_npy, embeddings_json=emb_json)
+    after_art = tracemalloc.get_traced_memory()[0]
+    prof = build_user_profiles(zip_path, split, art)
+    after_prof = tracemalloc.get_traced_memory()[0]
+    pop = build_history_popularity(zip_path, split, art)
+    after_pop = tracemalloc.get_traced_memory()[0]
+    tracemalloc.stop()
+
+    out["article_table_mb"] = round((after_art - base) / 1e6, 1)
+    out["user_profiles_mb"] = round((after_prof - after_art) / 1e6, 1)
+    out["history_popularity_mb"] = round((after_pop - after_prof) / 1e6, 1)
+    out["total_feature_store_mb"] = round((after_pop - base) / 1e6, 1)
+    out["method"] = "tracemalloc retained delta per component, separate rebuild"
+    del art, prof, pop
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -288,7 +391,17 @@ def main() -> None:
     ap.add_argument("--n-impressions", type=int, default=25_000)
     ap.add_argument("--chunk-size", type=int, default=5_000)
     ap.add_argument("--warmup-chunks", type=int, default=1)
-    ap.add_argument("--model", type=Path, default=DEFAULT_MODEL)
+    ap.add_argument("--model", type=Path, default=None,
+                    help="explicit booster path; default: --arm inside MODEL_DIR")
+    ap.add_argument("--arm", default="K_rank", choices=["K_rank", "K_cls", "K_rank_nopos"],
+                    help="K_rank_nopos is the arm that shipped (ADR-013); K_rank is what "
+                         "ADR-014 profiled, so it is the comparable one")
+    ap.add_argument("--per-request", type=int, default=2_000,
+                    help="A2 Q4.2: requests timed one at a time for a request-level p99 "
+                         "(0 disables)")
+    ap.add_argument("--measure-memory", action="store_true",
+                    help="A2 Q4.1: index/feature-store retained memory, via a separate "
+                         "tracemalloc rebuild (adds one setup pass)")
     ap.add_argument("--cprofile-impressions", type=int, default=5_000)
     ap.add_argument("--no-cprofile", action="store_true")
     ap.add_argument("--tag", default="")
@@ -312,8 +425,11 @@ def main() -> None:
           f"{s['user_profiles_s']:.1f}s | popularity {s['history_popularity_s']:.1f}s | "
           f"behaviours {s['behaviors_load_s']:.1f}s", flush=True)
 
-    booster = lgb.Booster(model_file=str(args.model))
-    model_features, feature_idx, feature_source = resolve_model_features(booster, args.model)
+    model_path = args.model or (MODEL_DIR / f"model_{args.arm}.txt")
+    booster = lgb.Booster(model_file=str(model_path))
+    model_features, feature_idx, feature_source = resolve_model_features(
+        booster, model_path, arm=args.arm)
+    args.model = model_path
     print(f"[ebnerd] model {args.model.name}: {booster.num_trees()} trees, "
           f"{len(model_features)} features (mapped via {feature_source}), "
           f"best_iter={booster.best_iteration}", flush=True)
@@ -386,6 +502,23 @@ def main() -> None:
         },
         "peak_rss_gb": round(peak_rss_gb(), 2),
     }
+
+    payload["arm"] = args.arm
+
+    if args.per_request:
+        print(f"[ebnerd] per-request latency over {args.per_request:,} single requests …",
+              flush=True)
+        payload["per_request"] = run_per_request(stack, beh.iloc[warm_n:], booster,
+                                                 feature_idx, args.per_request)
+        pr = payload["per_request"]["request_total_ms"]
+        print(f"[ebnerd] per-request: mean {pr['mean']:.2f} ms | p50 {pr['p50']:.2f} | "
+              f"p90 {pr['p90']:.2f} | p99 {pr['p99']:.2f} | max {pr['max']:.2f}", flush=True)
+
+    if args.measure_memory:
+        print("[ebnerd] measuring feature-store memory (separate rebuild) …", flush=True)
+        payload["index_memory"] = measure_setup_memory(zip_path, args.split, emb_npy, emb_json)
+        print(f"[ebnerd] feature store: {payload['index_memory']['total_feature_store_mb']} MB",
+              flush=True)
 
     if not args.no_cprofile:
         print(f"[ebnerd] cProfile over {args.cprofile_impressions:,} impressions …", flush=True)

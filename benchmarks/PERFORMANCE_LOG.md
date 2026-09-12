@@ -161,3 +161,23 @@ Compared against `2026-09-12T12-33-29_snapshot.json` (`62aace6`):
 | `rank_and_auc` | 1.9546 | 1.547 | -20.9% | 🟢 |
 
 **Verdict:** no regression
+
+### 2026-09-12T17:40:36 — `e5aed04` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: PROJECT_STATE.md benchmarks/cost_qps.py benchmarks/profile_ebnerd.py benchmarks/profile_mind.py benchmarks/results/2026-09-12T17-08-37_ebnerd_small_validation_profile.json benchmarks/results/2026-09-12T17-09-25_ebnerd_small_validation_profile.json benchmarks/results/2026-09-12T17-37-08_mind_large_dev_profile.json benchmarks/results/2026-09-12T17-37-21_cost_qps.json decisions/ADR-014-performance-benchmarking-methodology.md 
+
+**End-to-end:** 3.5361 ms/impression (282.8 impressions/s) · peak RSS 0.55 GB
+
+Compared against `2026-09-12T12-40-20_snapshot.json` (`5e5d1fb`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.1578 | 0.15 | -4.9% | · |
+| `bm25_score_all` | 1.132 | 1.049 | -7.3% | · |
+| `embed_query_build` | 0.0309 | 0.0322 | +4.2% | · |
+| `embed_score_all` | 1.2136 | 0.9133 | -24.7% | 🟢 |
+| `bm25_candidate_lookup` | 0.0173 | 0.0167 | -3.5% | · |
+| `embed_candidate_lookup` | 0.0179 | 0.0125 | -30.2% | ~ |
+| `rank_and_auc` | 1.547 | 1.1137 | -28.0% | 🟢 |
+
+**Verdict:** no regression

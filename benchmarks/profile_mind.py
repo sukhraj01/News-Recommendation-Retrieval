@@ -286,6 +286,78 @@ def run_batch(stack: dict, rows: pd.DataFrame, timer: StageTimer,
     return counts
 
 
+def run_per_request(stack: dict, rows: pd.DataFrame, n_requests: int) -> dict:
+    """Serving latency for ONE cold user request — the A2 Q4.2 quantity.
+
+    `run_batch` hoists the per-user stages (tokenize, BM25 `score_all`, embedding
+    query, embedding `score_all`) out of the per-impression loop, because that is
+    what the deployed harness does when sweeping a whole split. Dividing its
+    totals by impressions gives an *amortised* cost, which is right for
+    throughput and wrong for "what does one request cost": a single arriving
+    request with a cold cache pays the per-user stages itself.
+
+    So each request here runs the whole path alone — query construction,
+    full-corpus BM25 and embedding scoring, candidate lookup, blend, NRMS,
+    rank. Metrics are excluded: a production ranker does not compute AUC
+    (ADR-014's serving-vs-evaluation split).
+    """
+    totals, stage_ms = [], {k: [] for k in
+                            ("query_tokenize", "bm25_score_all", "embed_query_build",
+                             "embed_score_all", "candidate_lookup", "hybrid_blend",
+                             "nrms_inference", "rank")}
+    done = 0
+    for user_id, user_rows in rows.groupby("user_id", sort=False):
+        if done >= n_requests:
+            break
+        hist = list(stack["hist_by_user"].get(user_id, []))
+        for impression_id, imp in user_rows.groupby("impression_id", sort=False):
+            if done >= n_requests:
+                break
+            cand = imp["article_id"].tolist()
+
+            t0 = time.perf_counter()
+            bm25_query = build_user_query(hist, stack["text_lookup"])
+            t1 = time.perf_counter()
+            bm25_full = score_all(stack["bm25"], bm25_query)
+            t2 = time.perf_counter()
+            embed_query = build_user_embedding_query(hist, stack["vector_lookup"])
+            t3 = time.perf_counter()
+            embed_full = (np.zeros(len(stack["emb"].article_ids)) if embed_query is None
+                          else stack["emb"].vectors @ embed_query)
+            t4 = time.perf_counter()
+            bm25_scores = _lookup_scores(bm25_full, stack["bm25"].id_to_col, cand)
+            embed_scores = _lookup_scores(embed_full, stack["emb"].id_to_col, cand)
+            t5 = time.perf_counter()
+            hybrid = 0.5 * _minmax(bm25_scores) + 0.5 * _minmax(embed_scores)
+            t6 = time.perf_counter()
+            stack["nrms"].score(hist, cand)
+            t7 = time.perf_counter()
+            rank_candidates(hybrid, impression_id, seed=SEED)
+            t8 = time.perf_counter()
+
+            totals.append((t8 - t0) * 1e3)
+            for key, dt in (("query_tokenize", t1 - t0), ("bm25_score_all", t2 - t1),
+                            ("embed_query_build", t3 - t2), ("embed_score_all", t4 - t3),
+                            ("candidate_lookup", t5 - t4), ("hybrid_blend", t6 - t5),
+                            ("nrms_inference", t7 - t6), ("rank", t8 - t7)):
+                stage_ms[key].append(dt * 1e3)
+            done += 1
+
+    a = np.asarray(totals)
+    pct = lambda v, q: float(np.percentile(v, q))  # noqa: E731
+    return {
+        "n_requests": int(len(a)),
+        "request_total_ms": {
+            "mean": float(a.mean()), "p50": pct(a, 50), "p90": pct(a, 90),
+            "p99": pct(a, 99), "max": float(a.max()),
+        },
+        "stage_mean_ms": {k: float(np.mean(v)) for k, v in stage_ms.items()},
+        "stage_p99_ms": {k: pct(np.asarray(v), 99) for k, v in stage_ms.items()},
+        "note": ("one cold request per call: per-user stages are paid inside the request, "
+                 "not amortised across a user's impressions as in the batched sweep"),
+    }
+
+
 def cprofile_batch(stack: dict, rows: pd.DataFrame, n_users: int, top_n: int = 30) -> dict:
     """Independent function-level attribution over a sub-batch.
 
@@ -339,6 +411,11 @@ def main() -> None:
                     help="users timed then discarded, to exclude one-time warmup costs")
     ap.add_argument("--device", default=None,
                     help="torch device for NRMS (default: auto — cuda > mps > cpu)")
+    ap.add_argument("--per-request", type=int, default=500,
+                    help="A2 Q4.2: cold requests timed one at a time for a request-level "
+                         "p99 (0 disables). Each pays the per-user stages itself, unlike "
+                         "the batched sweep, so this is slower than the amortised figure "
+                         "on purpose")
     ap.add_argument("--cprofile-users", type=int, default=150)
     ap.add_argument("--no-cprofile", action="store_true")
     ap.add_argument("--tag", default="", help="free-text label stored in the results JSON")
@@ -433,6 +510,31 @@ def main() -> None:
         "reconciliation": reconciliation,
         "peak_rss_gb": round(peak_rss_gb(), 2),
     }
+
+    # A2 Q4.1: the serving-side index footprint, totalled rather than left as
+    # three separate setup fields. float32 parameters; the text/vector lookup
+    # dicts are views over the same arrays plus Python container overhead and
+    # are excluded, which is stated so the number is not read as a process RSS.
+    setup_m = stack["setup"]
+    nrms_mb = setup_m["nrms_params"] * 4 / 1e6
+    payload["index_memory"] = {
+        "bm25_weight_matrix_mb": setup_m["bm25_weights_mb"],
+        "embedding_matrix_mb": setup_m["embed_matrix_mb"],
+        "nrms_parameters_mb": round(nrms_mb, 1),
+        "total_mb": round(setup_m["bm25_weights_mb"] + setup_m["embed_matrix_mb"] + nrms_mb, 1),
+        "peak_process_rss_gb": payload["peak_rss_gb"],
+        "note": ("float32; excludes Python container overhead and the id->row lookup dicts. "
+                 "Compare against peak_process_rss_gb for the whole-process figure."),
+    }
+
+    if args.per_request:
+        print(f"[mind] per-request latency over {args.per_request:,} cold requests …",
+              flush=True)
+        payload["per_request"] = run_per_request(
+            stack, rows[rows["user_id"].isin(bench_users)], args.per_request)
+        pr = payload["per_request"]["request_total_ms"]
+        print(f"[mind] per-request: mean {pr['mean']:.2f} ms | p50 {pr['p50']:.2f} | "
+              f"p90 {pr['p90']:.2f} | p99 {pr['p99']:.2f} | max {pr['max']:.2f}", flush=True)
 
     if not args.no_cprofile:
         print(f"[mind] cProfile over {args.cprofile_users} users …", flush=True)

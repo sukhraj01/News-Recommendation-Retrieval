@@ -1,0 +1,108 @@
+{
+ "analysis": "cost_qps",
+ "timestamp": "2026-09-12T17:37:21",
+ "sla_ms": 100.0,
+ "prices": {
+  "g4dn.xlarge": {
+   "usd_per_hour": 0.526,
+   "vcpu": 4,
+   "gpu": "1x T4",
+   "source": "AWS EC2 on-demand list price, us-east-1, 2026-09-12"
+  },
+  "c6i.2xlarge": {
+   "usd_per_hour": 0.34,
+   "vcpu": 8,
+   "gpu": null,
+   "source": "AWS EC2 on-demand list price, us-east-1, 2026-09-12"
+  }
+ },
+ "assumptions": {
+  "A1_price_basis": "AWS on-demand list prices, us-east-1, 2026-09-12; not spot, not negotiated, not measured here",
+  "A2_hardware_mapping": "latency measured on Apple M3 / RTX 2080 Ti, not on the priced instances; the 2080 Ti is faster than a T4, so GPU-path costs here are optimistic",
+  "A3_worker_scaling": "instance QPS = per-worker QPS x vCPU, i.e. perfect linear scaling. Optimistic: ADR-014 measured a 2.5x slowdown from one concurrent job, so real scaling is sublinear",
+  "A4_serial_requests": "one in-flight request per worker; the SLA is checked against the measured single-request p99"
+ },
+ "sources": {
+  "mind_profile": "2026-09-12T17:36:51",
+  "ebnerd_profile": "2026-09-12T17:08:53"
+ },
+ "rows": [
+  {
+   "dataset": "mind",
+   "arm": null,
+   "hardware_measured": "Mac15,12 / 8GiB",
+   "n_requests_timed": 500,
+   "request_mean_ms": 33.288,
+   "request_p99_ms": 94.67,
+   "sla_ms": 100.0,
+   "meets_sla": true,
+   "sla_headroom_x": 1.06,
+   "per_worker_qps": 30.0,
+   "instance": "c6i.2xlarge",
+   "instance_vcpu": 8,
+   "instance_qps_optimistic": 240.3,
+   "usd_per_hour": 0.34,
+   "usd_per_1k_queries": 0.000393,
+   "batched_impressions_per_s": 24.7,
+   "index_memory": {
+    "bm25_weight_matrix_mb": 23.5,
+    "embedding_matrix_mb": 110.6,
+    "nrms_parameters_mb": 29.9,
+    "total_mb": 164.0,
+    "peak_process_rss_gb": 0.75,
+    "note": "float32; excludes Python container overhead and the id->row lookup dicts. Compare against peak_process_rss_gb for the whole-process figure."
+   }
+  },
+  {
+   "dataset": "mind",
+   "arm": null,
+   "hardware_measured": "Mac15,12 / 8GiB",
+   "n_requests_timed": 500,
+   "request_mean_ms": 33.288,
+   "request_p99_ms": 94.67,
+   "sla_ms": 100.0,
+   "meets_sla": true,
+   "sla_headroom_x": 1.06,
+   "per_worker_qps": 30.0,
+   "instance": "g4dn.xlarge",
+   "instance_vcpu": 4,
+   "instance_qps_optimistic": 120.2,
+   "usd_per_hour": 0.526,
+   "usd_per_1k_queries": 0.001216,
+   "batched_impressions_per_s": 24.7,
+   "index_memory": {
+    "bm25_weight_matrix_mb": 23.5,
+    "embedding_matrix_mb": 110.6,
+    "nrms_parameters_mb": 29.9,
+    "total_mb": 164.0,
+    "peak_process_rss_gb": 0.75,
+    "note": "float32; excludes Python container overhead and the id->row lookup dicts. Compare against peak_process_rss_gb for the whole-process figure."
+   }
+  },
+  {
+   "dataset": "ebnerd",
+   "arm": "K_rank_nopos",
+   "hardware_measured": "Mac15,12 / 8GiB",
+   "n_requests_timed": 2000,
+   "request_mean_ms": 9.214,
+   "request_p99_ms": 22.737,
+   "sla_ms": 100.0,
+   "meets_sla": true,
+   "sla_headroom_x": 4.4,
+   "per_worker_qps": 108.5,
+   "instance": "c6i.2xlarge",
+   "instance_vcpu": 8,
+   "instance_qps_optimistic": 868.3,
+   "usd_per_hour": 0.34,
+   "usd_per_1k_queries": 0.000109,
+   "batched_impressions_per_s": 2720.0,
+   "index_memory": {
+    "article_table_mb": 108.2,
+    "user_profiles_mb": 82.1,
+    "history_popularity_mb": 0.2,
+    "total_feature_store_mb": 190.5,
+    "method": "tracemalloc retained delta per component, separate rebuild"
+   }
+  }
+ ]
+}

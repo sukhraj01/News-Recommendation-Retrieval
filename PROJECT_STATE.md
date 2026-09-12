@@ -26,7 +26,9 @@ only once Q1–Q6 are solid.
 | MIND treatment (title + abstract 50), job 2694992 | 🟡 Running on gnode047 (2080ti). **Measured 300 samples/s at width 80** vs the control's 893 at width 30 (2.98× slower, as projected); 179 min/epoch training, ~3.6 h/epoch with eval → **~36–37 h**, ETA early **2026-09-14**, inside both the 72 h wall limit and the 2026-09-20 deadline |
 | Candidate K (for Q4/Q5) | ✅ **Retrained 2026-09-12 at 65 features**: K_rank_nopos 0.7588 (CI 0.7571–0.7606), reproducing ADR-013's post-correction band. Stored in 3 places (repo `experiments/`, `~/a2_model_artifacts/`, Ada `$HOME/a2/artifacts/`). `ebnerd_large` retrain deferred: S3 is ~18 KB/s from Ada and `$HOME` has ~4.9 GB free |
 | Q2 true-retrieval-ceiling eval | ⬜ Not started. **NRMS-only, decided 2026-09-12** — K's features are impression-conditional and undefined for retrieved-but-unshown candidates (ADR-015) |
-| Q1 session gap, Q4 p99/cost framing, Q5 head/tail slice, Q6 note | ⬜ Not started. Gap analysis in `knowledge/ai-usage-log/2026-09-11_*` |
+| **Q4 serving/scale** | ✅ **Done** (ADR-014 addendum, 2026-09-12). Index memory: MIND **164.0 MB** (BM25 23.5 + embed 110.6 + NRMS 29.9), EB-NeRD **190.5 MB** (articles 108.2 + profiles 82.1 + popularity 0.2). Request p99: MIND **94.67 ms** (1.1× headroom under a 100 ms SLA; max 126 ms already breaches), EB-NeRD **22.74 ms** (4.4×). Cost/1k queries: MIND $0.0031–$0.0004, EB-NeRD $0.0009–$0.0001. 10×: MIND breaks on **latency** (NRMS = 78% of a request), EB-NeRD on **user-profile memory** (5.35 KB/user → ~4.2 GB at `ebnerd_large`'s 791,582 users) |
+| Q4 gap | ⚠️ MIND GPU per-request latency unmeasured — QoS `low` gives 1 GPU and the MIND treatment holds it ~36 h. The `g4dn.xlarge` cost row is invalid until then (CPU latency on a GPU instance) and is excluded, not estimated |
+| Q1 session gap, Q5 head/tail slice, Q6 note | ⬜ Not started. Gap analysis in `knowledge/ai-usage-log/2026-09-11_*` |
 
 **Decisions this cycle (the engineer's):**
 - Option A with a one-session timebox, falling back to B. The fallback has now been applied.

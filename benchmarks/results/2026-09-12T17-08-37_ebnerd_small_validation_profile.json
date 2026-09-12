@@ -1,0 +1,174 @@
+{
+  "benchmark": "profile_ebnerd",
+  "dataset": "ebnerd",
+  "bundle": "small",
+  "split": "validation",
+  "timestamp": "2026-09-12T17:08:02",
+  "git_rev": "e5aed04",
+  "git_dirty": true,
+  "tag": "a2q4-retrained-k-65feat",
+  "hardware_label": "Mac15,12 / 8GiB",
+  "hardware": {
+    "platform": "macOS-15.7.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.11.14",
+    "cpu_model": "Apple M3",
+    "hw_model": "Mac15,12",
+    "ram_gb": 8.0,
+    "physical_cores": 8,
+    "torch": "2.13.0",
+    "cuda_available": false,
+    "mps_available": true,
+    "numpy": "1.26.4"
+  },
+  "sample": {
+    "sampled_impressions": 25000,
+    "population_impressions": 244647,
+    "sampling": "systematic-by-impression",
+    "sample_seed": 0
+  },
+  "counts": {
+    "impressions": 20000,
+    "candidate_rows": 238018,
+    "chunks": 4
+  },
+  "chunk_size": 5000,
+  "model": {
+    "path": "experiments/candidate_k_gbdt_ebnerd_small_2026-09-12/model_K_rank.txt",
+    "n_trees": 563,
+    "n_features": 65,
+    "best_iteration": -1,
+    "trained": true,
+    "feature_name_source": "config.json",
+    "features_absent_vs_current": [],
+    "caveat": "locally-available ebnerd_small booster (2026-08-26, 60 features); the deployed 65-feature ebnerd_large model that scored 0.7542 on Codabench was trained on Ada and its weights are not available"
+  },
+  "setup": {
+    "article_table_s": 0.38323416601633653,
+    "n_articles": 20738,
+    "user_profiles_s": 2.6124285419937223,
+    "n_profiled_users": 15342,
+    "history_popularity_s": 0.4995454589952715,
+    "behaviors_load_s": 0.41724516701651737,
+    "n_impressions_in_split": 244647
+  },
+  "wall_s": 6.516,
+  "stage_total_s": 6.463,
+  "unattributed_s": 0.053,
+  "per_impression_ms": {
+    "1_feature_frame_build": 0.1949,
+    "1a_short_term_features": 0.1282,
+    "2_lightgbm_predict": 0.0782,
+    "3_rank_tiebreak": 0.0089,
+    "4_metrics": 0.0411
+  },
+  "per_candidate_row_us": {
+    "1_feature_frame_build": 16.38,
+    "1a_short_term_features": 10.77,
+    "2_lightgbm_predict": 6.573,
+    "3_rank_tiebreak": 0.747,
+    "4_metrics": 3.453
+  },
+  "end_to_end_impressions_per_s": 3069.3,
+  "end_to_end_ms_per_impression": 0.3258,
+  "mean_candidates_per_impression": 11.9,
+  "stages": [
+    {
+      "stage": "1_feature_frame_build",
+      "n_calls": 4,
+      "total_s": 3.8987690409994684,
+      "mean_ms": 974.6922602498671,
+      "p50_ms": 942.1028744982323,
+      "p90_ms": 1109.6208292903611,
+      "p99_ms": 1171.3727207187912,
+      "max_ms": 1178.2340419886168,
+      "throughput_per_s": 1.0259648514533655,
+      "pct_of_total": 60.32530583603721
+    },
+    {
+      "stage": "1a_short_term_features",
+      "n_calls": 4,
+      "total_s": 2.563480000011623,
+      "mean_ms": 640.8700000029057,
+      "p50_ms": 610.3448335052235,
+      "p90_ms": 771.6436627059011,
+      "p99_ms": 831.8105412789736,
+      "max_ms": 838.4957500093151,
+      "throughput_per_s": 1.56037885998013,
+      "pct_of_total": 39.66449753218067
+    },
+    {
+      "stage": "2_lightgbm_predict",
+      "n_calls": 4,
+      "total_s": 1.5644784579926636,
+      "mean_ms": 391.1196144981659,
+      "p50_ms": 392.55306249833666,
+      "p90_ms": 404.67350800463464,
+      "p99_ms": 405.5038255013642,
+      "max_ms": 405.5960830010008,
+      "throughput_per_s": 2.556762593671173,
+      "pct_of_total": 24.207035723281816
+    },
+    {
+      "stage": "3_rank_tiebreak",
+      "n_calls": 4,
+      "total_s": 0.1777171249850653,
+      "mean_ms": 44.42928124626633,
+      "p50_ms": 43.73345848580357,
+      "p90_ms": 45.9111830976326,
+      "p99_ms": 46.747868014499545,
+      "max_ms": 46.84083300526254,
+      "throughput_per_s": 22.507678988933367,
+      "pct_of_total": 2.749801233231547
+    },
+    {
+      "stage": "4_metrics",
+      "n_calls": 4,
+      "total_s": 0.8219434159691446,
+      "mean_ms": 205.48585399228614,
+      "p50_ms": 204.74031248886604,
+      "p90_ms": 207.76983308896888,
+      "p99_ms": 208.84432050137548,
+      "max_ms": 208.96370799164288,
+      "throughput_per_s": 4.8665150450577475,
+      "pct_of_total": 12.71785720744943
+    }
+  ],
+  "reconciliation": {
+    "reference": {
+      "source": "experiments/candidate_k_gbdt_ebnerd_small_2026-08-26/config.json (timings block)"
+    },
+    "projected_full_split_min": 1.32
+  },
+  "peak_rss_gb": 0.77,
+  "arm": "K_rank",
+  "per_request": {
+    "n_requests": 2000,
+    "request_total_ms": {
+      "mean": 10.301527529081795,
+      "p50": 9.82970799668692,
+      "p90": 14.742783698602585,
+      "p99": 27.35849250515457,
+      "max": 191.43791700480506
+    },
+    "stage_mean_ms": {
+      "feature_frame": 8.914673468621913,
+      "predict": 1.2942941554792924,
+      "rank": 0.09255990498058964
+    },
+    "stage_p99_ms": {
+      "feature_frame": 19.358892748423386,
+      "predict": 12.50475533161079,
+      "rank": 0.26519769773585716
+    },
+    "note": "one impression per call, no batching; the deployed path batches, so this is the single-request latency, not the throughput-optimal cost"
+  },
+  "index_memory": {
+    "article_table_mb": 108.2,
+    "user_profiles_mb": 82.1,
+    "history_popularity_mb": 0.2,
+    "total_feature_store_mb": 190.5,
+    "method": "tracemalloc retained delta per component, separate rebuild"
+  }
+}

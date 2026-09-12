@@ -503,6 +503,110 @@ ms/impression absolutely; sub-floor moves are labelled `noise`.
 
 ---
 
+# Addendum (2026-09-12) — A2 Q4: index memory, request-level p99, cost/QPS, 10×
+
+A2 Q4 asks three things this ADR's original tables could not answer, plus one it could:
+**index memory**, **p99 latency for a single user request**, **cost per 1,000 queries at a
+target SLA**, and a **10× scaling argument**. The gap was not missing data but the wrong
+denominator: every number here was amortised per impression inside batched sweeps, so its
+p99 is a tail over *chunks*, not over requests.
+
+## Method changes (`profile_mind.py`, `profile_ebnerd.py`, new `cost_qps.py`)
+
+- **`--per-request`**: each request runs the whole path alone. On MIND that means a *cold*
+  request pays the per-user stages (tokenize, BM25 `score_all`, embedding query, embedding
+  `score_all`) itself, instead of having them hoisted and amortised across a user's
+  impressions. Metrics are excluded, per this ADR's serving-vs-evaluation split.
+- **`--measure-memory`**: retained bytes per component via `tracemalloc` on a *separate*
+  rebuild, so the timed build's numbers (which this ADR reports) stay uncontaminated.
+- **Arm-aware feature mapping**: the shipped `K_rank_nopos` arm has 63 features against the
+  run's 65-name list, so the profiler previously refused it. It now filters the recorded
+  list by the run's own `arms[arm].withheld`, deriving the column order from the record
+  rather than guessing. **The arm that actually shipped is profilable for the first time.**
+- **This ADR's standing caveat is closed**: the EB-NeRD profile no longer uses the
+  60-feature pre-correction booster. It runs against the **retrained 65-feature** model
+  (ADR-013's 2026-09-12 addendum).
+
+## Q4.1 — Index and feature-store memory
+
+| MIND (MINDlarge-dev, 72,023 articles) | MB | | EB-NeRD (`ebnerd_small`, 20,738 articles / 15,342 users) | MB |
+|---|---:|---|---|---:|
+| BM25 weight matrix | 23.5 | | Article table | 108.2 |
+| Embedding matrix (384-dim) | 110.6 | | User profiles | 82.1 |
+| NRMS parameters (7.48M × fp32) | 29.9 | | History popularity | 0.2 |
+| **Total index** | **164.0** | | **Total feature store** | **190.5** |
+| Peak process RSS | 750 MB | | Peak process RSS | 770 MB |
+
+Float32 payloads; Python container overhead and the id→row dicts are excluded, which is why
+the process RSS is ~4× the index total.
+
+## Q4.2 — Latency for a single user request (the new number)
+
+| | MIND (M3 CPU) | EB-NeRD `K_rank_nopos` | EB-NeRD `K_rank` |
+|---|---:|---:|---:|
+| mean | 33.29 ms | 9.21 ms | 10.30 ms |
+| p50 | 28.69 ms | 9.50 ms | 9.83 ms |
+| p90 | 52.38 ms | 11.87 ms | 14.74 ms |
+| **p99** | **94.67 ms** | **22.74 ms** | **27.36 ms** |
+| max | 126.28 ms | 42.84 ms | 191.44 ms |
+| requests timed | 500 | 2,000 | 2,000 |
+
+**MIND meets a p99 < 100 ms SLA with 1.1× headroom — and its observed max, 126 ms, already
+breaches it.** EB-NeRD clears the same SLA with 4.4× headroom.
+
+**Batched vs per-request is a ~30× gap on EB-NeRD** (0.33–0.37 ms/impression amortised vs
+~10 ms for one request) and ~1.2× on MIND (40.46 vs 33.29 — MIND's per-user work dominates
+either way). Quoting a batched figure as request latency would have understated EB-NeRD's
+serving cost by a factor of thirty. Both are reported; neither replaces the other.
+
+Within a MIND request, **NRMS is 26.03 ms of the 33.29 ms mean (78%) and 81.27 ms of the
+p99**. The batched sweep's NRMS stage p99 (147.6 ms) is larger than the whole request's p99:
+different samples (1,723 impressions vs 500 cold requests) and different cache states, not a
+contradiction — stated because the two tables sit next to each other.
+
+## Q4.3 — Cost per 1,000 queries (`benchmarks/cost_qps.py`)
+
+Prices are **AWS on-demand list, us-east-1, captured 2026-09-12**: c6i.2xlarge (8 vCPU)
+$0.340/h, g4dn.xlarge (4 vCPU, 1×T4) $0.526/h. Not measured by this project.
+
+| System | Instance | QPS/worker | $/1k (1 worker) | $/1k (all vCPU, optimistic) |
+|---|---|---:|---:|---:|
+| MIND | c6i.2xlarge | 30.0 | **$0.0031** | $0.0004 |
+| EB-NeRD (`nopos`) | c6i.2xlarge | 108.5 | **$0.0009** | $0.0001 |
+
+**The range is the answer, not the lower bound.** The optimistic column assumes perfect
+linear scaling across vCPUs; this ADR itself measured a **2.5× slowdown from a single
+concurrent job** on one machine, so real throughput is sublinear and the truth sits between
+the columns.
+
+**One row is deliberately excluded as invalid.** `cost_qps.py` will also price MIND on
+g4dn.xlarge, but that run measured latency with `--device cpu`, so it applies CPU latency to
+a GPU instance. This ADR measured NRMS **8.98× faster on a 2080 Ti**, so the GPU figure would
+be far off. Fixing it needs a GPU per-request run, which is blocked: QoS `low` allows one GPU
+and the MIND treatment (job 2694992) holds it for ~36 h. **Recorded as a gap, not estimated.**
+
+## Q4.4 — What breaks at 10×, per dataset
+
+- **MIND breaks on latency, not memory.** The index is 164 MB and grows with articles and
+  vocabulary, not users: MINDlarge-test's 120,959 articles imply ~250 MB, still trivial. But
+  p99 headroom is 1.1×, and NRMS is 78% of a request. 10× the load therefore needs ~10×
+  the workers, or the NRMS candidate-vector cache this ADR measured at **7.02× on CPU** (no
+  accuracy change), or GPU serving at **8.98×**. Of the three, the cache is free.
+- **EB-NeRD breaks on memory, and specifically on user profiles.** They are 82.1 MB for
+  15,342 users = **5.35 KB/user**, while the article table (108.2 MB) scales with articles.
+  At `ebnerd_large`'s **791,582 users** the same rate projects **~4.2 GB** of profiles — from
+  a 190 MB feature store to something that no longer fits comfortably beside a model on a
+  small instance. Latency is not the constraint here (4.4× headroom).
+
+## Reconciliation with this ADR's original numbers
+
+| Quantity | Originally recorded | Measured now | Verdict |
+|---|---|---|---|
+| MIND batched, M3 CPU | 43.70 ms/impression | 40.46 ms/impression | reproduces (7% faster) |
+| BM25 weight matrix | 23.5 MB | 23.5 MB | exact |
+| BM25 full-retrieval projection | 15.4–21.4 min | 20.23 min | inside the range |
+| EB-NeRD booster | 60 features (pre-correction) | **65 features** (retrained) | caveat closed |
+
 # Affected Files
 
 **New:** `benchmarks/{timing,loaders,profile_mind,profile_ebnerd,ablations,snapshot,reconcile_adr006}.py`,
