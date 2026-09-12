@@ -81,3 +81,63 @@ Compared against `2026-09-03T23-56-45_snapshot.json` (`ccdebd2`):
 | `rank_and_auc` | 2.4517 | 408 |
 
 _(no comparable prior snapshot — recorded as a baseline)_
+
+### 2026-09-12T12:33:04 — `62aace6` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: scripts/a2_ebnerd_prepare_tokens.py scripts/a2_nrms_official.sbatch scripts/a2_nrms_official_run.py src/retrieval/nrms_official.py src/retrieval/nrms_official_data.py tests/unit/test_nrms_official.py tests/unit/test_nrms_official_data.py 
+
+**End-to-end:** 11.7251 ms/impression (85.3 impressions/s) · peak RSS 0.43 GB
+
+Compared against `2026-09-07T02-56-56_snapshot.json` (`8d3e651`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.4394 | 0.2362 | -46.2% | ~ |
+| `bm25_score_all` | 2.6559 | 2.0896 | -21.3% | 🟢 |
+| `embed_query_build` | 0.2509 | 0.0763 | -69.6% | ~ |
+| `embed_score_all` | 3.5336 | 6.3217 | +78.9% | 🔴 |
+| `bm25_candidate_lookup` | 0.1231 | 0.0349 | -71.6% | ~ |
+| `embed_candidate_lookup` | 0.0387 | 0.0491 | +26.9% | ~ |
+| `rank_and_auc` | 2.4517 | 2.1617 | -11.8% | · |
+
+**Verdict:** REGRESSION DETECTED
+
+### 2026-09-12T12:33:17 — `62aace6` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: scripts/a2_ebnerd_prepare_tokens.py scripts/a2_evaluate_scores.py scripts/a2_nrms_official.sbatch scripts/a2_nrms_official_run.py src/retrieval/nrms_official.py src/retrieval/nrms_official_data.py tests/unit/test_a2_evaluate_scores.py tests/unit/test_nrms_official.py tests/unit/test_nrms_official_data.py 
+
+**End-to-end:** 11.3103 ms/impression (88.4 impressions/s) · peak RSS 0.5 GB
+
+Compared against `2026-09-12T12-33-04_snapshot.json` (`62aace6`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.2362 | 0.223 | -5.6% | · |
+| `bm25_score_all` | 2.0896 | 2.3137 | +10.7% | · |
+| `embed_query_build` | 0.0763 | 0.097 | +27.1% | ~ |
+| `embed_score_all` | 6.3217 | 5.3968 | -14.6% | · |
+| `bm25_candidate_lookup` | 0.0349 | 0.0664 | +90.3% | ~ |
+| `embed_candidate_lookup` | 0.0491 | 0.0373 | -24.0% | ~ |
+| `rank_and_auc` | 2.1617 | 2.5818 | +19.4% | 🔴 |
+
+**Verdict:** REGRESSION DETECTED
+
+### 2026-09-12T12:33:29 — `62aace6` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: knowledge/ai-usage-log/2026-09-11_a2-kickoff-corpus-stats-gap-analysis.md scripts/a2_ebnerd_prepare_tokens.py scripts/a2_evaluate_scores.py scripts/a2_nrms_official.sbatch scripts/a2_nrms_official_run.py src/retrieval/nrms_official.py src/retrieval/nrms_official_data.py tests/unit/test_a2_evaluate_scores.py tests/unit/test_nrms_official.py tests/unit/test_nrms_official_data.py 
+
+**End-to-end:** 10.9217 ms/impression (91.6 impressions/s) · peak RSS 0.47 GB
+
+Compared against `2026-09-12T12-33-17_snapshot.json` (`62aace6`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.223 | 0.233 | +4.5% | · |
+| `bm25_score_all` | 2.3137 | 1.9667 | -15.0% | · |
+| `embed_query_build` | 0.097 | 0.0453 | -53.3% | ~ |
+| `embed_score_all` | 5.3968 | 6.0037 | +11.2% | · |
+| `bm25_candidate_lookup` | 0.0664 | 0.0255 | -61.6% | ~ |
+| `embed_candidate_lookup` | 0.0373 | 0.0273 | -26.8% | ~ |
+| `rank_and_auc` | 2.5818 | 1.9546 | -24.3% | 🟢 |
+
+**Verdict:** no regression
