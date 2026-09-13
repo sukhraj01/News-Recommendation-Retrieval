@@ -301,7 +301,22 @@ if a.dataset == "mind":
             {**log, "checkpoint_epoch": ep, "note": "mid-run checkpoint, not the final "
              "reported result -- see results.json for that once the run completes"},
             indent=1, default=str))
+        # The other half of the safety net, added the same day as the scores
+        # checkpoint above but only after realizing scores alone are not
+        # recoverable: without the WEIGHTS, a completed run cannot be scored
+        # against a different split later (e.g. MINDlarge_test for a real
+        # leaderboard submission) -- exactly the gap that blocked shipping the
+        # first treatment run. Overwritten each epoch, same "one rolling
+        # checkpoint" reasoning as the scores file.
+        torch.save(model.state_dict(), OUT / "checkpoint_model.pt")
     final_scores, eval_rows = scores, dv_eval  # final epoch, no selection (official fit)
+    # Final weights, saved once under their own name so they are not confused
+    # with the rolling mid-run checkpoint above (which, on a normal
+    # completion, holds the identical final-epoch state anyway).
+    torch.save(model.state_dict(), OUT / "model_weights.pt")
+    log["model_arch"] = {"head_num": 20, "head_dim": 20, "attention_hidden_dim": 200,
+                         "dropout": 0.2, "title_size": TITLE, "abstract_size": ABS,
+                         "vocab_size": int(embedding.shape[0]), "embed_dim": int(embedding.shape[1])}
 
 else:
     P = np.load(a.ebnerd_tokens)

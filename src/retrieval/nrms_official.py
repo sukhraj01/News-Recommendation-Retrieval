@@ -189,6 +189,58 @@ def freshness_feature(impression_time_s: np.ndarray, published_time_s: np.ndarra
     return np.log1p(np.clip(age_h, 0.0, None)).astype(np.float32)
 
 
+class OfficialNRMSScorer:
+    """Implements `src/retrieval/score.py::Scorer`'s `score(query,
+    candidate_ids) -> np.ndarray` contract, the same protocol
+    `nrms_training.py::NRMSLiteScorer` implements for Candidate J -- so a
+    trained `OfficialNRMS` plugs into `src/submission/mind_format.py`'s
+    `write_predictions` completely unchanged, the identical real-submission
+    path every prior candidate in this project (J, the frozen-embedding
+    scorers) used.
+
+    `query` is a user's raw history `article_ids` (prefixed, as stored in
+    `user_history.parquet`), truncated/padded to the most-recent 50 inside
+    this class -- callers pass the full history, not a pre-truncated one,
+    mirroring `NRMSLiteScorer`'s contract exactly. `[]` is the empty-history
+    convention every scorer in this project shares.
+
+    A candidate id absent from `token_lookup` (MIND's documented
+    `N89741`-style missing-candidate quirk) scores `-inf`, the same
+    convention `NRMSLiteScorer`/`score.py::_lookup_scores` already use.
+    """
+
+    def __init__(self, model, token_lookup: dict[str, np.ndarray], max_history_len: int,
+                device: torch.device):
+        self.model = model
+        self.token_lookup = token_lookup
+        self.max_history_len = max_history_len
+        self.device = device
+        self.model.eval()
+
+    @torch.no_grad()
+    def score(self, query, candidate_ids) -> np.ndarray:
+        k = len(candidate_ids)
+        known_mask = np.fromiter((c in self.token_lookup for c in candidate_ids), dtype=bool, count=k)
+        scores = np.full(k, -np.inf, dtype=np.float64)
+        if not known_mask.any():
+            return scores
+
+        width = next(iter(self.token_lookup.values())).shape[0]
+        pad_row = np.zeros(width, dtype=np.int64)  # official dummy-news row: all zeros
+        hist_ids = list(query)[-self.max_history_len:]
+        hist_rows = [self.token_lookup.get(a, pad_row) for a in hist_ids]
+        hist_rows = [pad_row] * (self.max_history_len - len(hist_rows)) + hist_rows  # left-pad
+        hist_t = torch.as_tensor(np.stack(hist_rows), device=self.device).unsqueeze(0)
+
+        known_ids = [c for c, keep in zip(candidate_ids, known_mask) if keep]
+        cand_rows = np.stack([self.token_lookup[a] for a in known_ids])
+        cand_t = torch.as_tensor(cand_rows, device=self.device).unsqueeze(0)
+
+        known_scores = self.model(hist_t, cand_t).squeeze(0).cpu().numpy()
+        scores[known_mask] = known_scores
+        return scores
+
+
 def official_loss(logits: torch.Tensor) -> torch.Tensor:
     """Categorical cross-entropy over [positive, neg_1..neg_npratio], with the
     positive always at index 0 (the label layout both official loaders use)."""

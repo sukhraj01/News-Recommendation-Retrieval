@@ -473,8 +473,58 @@ descriptive data point, not a controlled one.
 and what is actually live: treatment vs. J is **+0.0443** (+5.65% relative). Whatever the
 control-vs-treatment decision, both sit well above J's real deployed diversity.
 
-**Decision: still open, for the engineer.** This addendum supplies evidence, not a
-recommendation on ship/no-ship.
+**Decision (2026-09-14): ship the treatment.** The diversity comparison against J's real
+deployed 0.7840 settles it. The −0.0060 regression is real and disclosed, but it is a
+regression **relative to a better alternative** (the reproduced control, 0.8343) — not
+relative to what is actually deployed. Measured against what MIND's leaderboard currently
+returns to users, the treatment is a diversity *improvement* of +0.0443, on top of the
+accuracy gains in the table above. A guardrail framework exists to stop a primary-metric win
+from silently costing something users would notice; it is not a mandate to hold every new
+candidate to the standard of the best *reproduction* run in the lab rather than the standard
+of what is actually shipping today. The control itself is not a leaderboard candidate — it
+exists to prove the treatment is measured against a trustworthy baseline, not to compete for
+deployment — so "control beats treatment on diversity" was never a like-for-like deployment
+comparison in the first place.
+
+This does not erase the finding: it is still true, and still reported above, that the
+treatment costs 0.0060 of diversity relative to the control, CI-clear, and that remains the
+number any future improvement to this line should be measured against, not J's figure. The
+decision to ship rests on the *deployment* comparison (treatment vs. currently-live), not on
+retroactively deciding the guardrail didn't matter.
+
+**What shipping requires, not yet done.** No trained treatment checkpoint was ever saved —
+`a2_nrms_official_run.py`'s MIND path only ever wrote evaluation scores on MINDlarge-**dev**;
+the model's weights existed only in the training job's memory and were never written to disk.
+Producing a real MINDlarge-**test** submission (the blind, unlabeled split Codabench scores)
+requires retraining with weight-saving added, then running test-set inference from the saved
+checkpoint — there is no way to recover the already-completed run's weights.
+
+**Fixed and launched (2026-09-14, job 2695890).** `a2_nrms_official_run.py`'s MIND path now
+saves `model.state_dict()` after every epoch (one rolling checkpoint, same "overwrite, don't
+accumulate" pattern as the scores checkpoint added earlier) and the final epoch's weights
+explicitly to `model_weights.pt`. A new `OfficialNRMSScorer`
+(`src/retrieval/nrms_official.py`) implements the same `Scorer` protocol Candidate J's
+`NRMSLiteScorer` already does, so a new `scripts/a2_generate_mind_test_predictions.py` routes
+through `src/submission/mind_format.py::write_predictions` completely unchanged — the
+identical real-submission path every prior candidate used. Verified before spending GPU time:
+a local smoke-trained checkpoint loaded into a fresh `OfficialNRMS` with `load_state_dict`
+raising on any shape mismatch (none), and `OfficialNRMSScorer` scored real MINDlarge_test
+articles correctly — finite scores for known candidates, `-inf` for an unknown one, no crash
+on empty history.
+
+**Runs to a NEW output directory (`mind_treatment_v2`), deliberately not overwriting the
+already-reported run.** The dev-set numbers in this ADR's Q3 A/B section (AUC 0.6868, the
+diversity@10 regression, all of it) came from the completed, evaluated run — that evidence
+must not be silently replaced by a second run's slightly different numbers.
+
+**A real caveat, stated before it could be discovered as a surprise:** this retrain is not
+guaranteed to produce byte-identical weights to the run already evaluated. This ADR's own
+GPU-determinism finding is that CUDA training is stable to ~8 decimals run-to-run, not
+bit-exact — ordinary reduction non-determinism, confirmed earlier not to be a code defect.
+So the shipped checkpoint is a same-config, same-seed *sibling* of the evaluated run, not
+literally the same weights. Mitigation: once this job completes, its own final-epoch dev
+monitor AUC will be checked against 0.6868 before the resulting predictions are treated as
+representative of the evaluated result — a real verification, not an assumption.
 
 **Q3 is now complete on both datasets.** EB-NeRD: reproduced (0.5613), improved
 by freshness (0.5677, +0.0064 CI-clear, no guardrail regression). MIND:
