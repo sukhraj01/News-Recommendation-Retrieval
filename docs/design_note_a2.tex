@@ -1,0 +1,335 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{6pt}{2pt}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection}{0.6em}{}
+
+\setlist{itemsep=1pt, topsep=2pt, parsep=0pt}
+\setlength{\parskip}{2pt}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{0.95}
+
+\title{\vspace{-1em}Design Note --- Learning from Click-Logs on EB-NeRD and MIND\vspace{-0.5em}}
+\author{\small CS4.406 Information Retrieval \& Extraction --- Assignment 2}
+\date{\small \today\ (MIND treatment result pending --- see \S2.2)}
+
+\begin{document}
+\maketitle
+\vspace{-1.5em}
+
+\section{What We Built}
+
+Assignment 1 built lexical (BM25) and semantic (embedding) candidate
+generation for both datasets. Assignment 2 adds the behavioural layer: engineered
+click-history features, a two-stage retrieve-then-rank pipeline, and --- the
+graded gap A1 left open --- a literal reproduction of each dataset's official
+NRMS baseline, improved by one principled change and tested with a paired
+bootstrap.
+
+\subsection*{1.1 Click-history and session features (Q1)}
+
+EB-NeRD already had 65 engineered features (Candidate K, ADR-013): long/short-term
+category/topic/embedding affinity, freshness (\texttt{article\_age\_h}, the single
+top feature by gain), and --- added this assignment for Q1 --- session features
+(\texttt{session\_position}, \texttt{session\_start\_gap\_h}, three
+\texttt{context\_*} match features). MIND had none of this: only frozen-embedding
+similarity and symbolic category/entity overlap (Candidates A--J).
+
+Candidate L (A2 Q1, this assignment) adds five engineered features for MIND: click
+count, category match, subcategory match (the last two already existed unweighted
+in \texttt{features.py}), and two new \textbf{recency-weighted} affinity features
+using the same geometric decay (decay$=0.9$, most-recent-last) already established
+for MIND's embedding-query recency experiment (Candidate C). Scored by a cheap
+CPU-only logistic-regression combiner --- deliberately not a new NRMS run, so it
+does not contend with the treatment training job below.
+
+\textbf{Result: a real, CI-clear loss.} AUC $0.6176$ [$0.6153,0.6197$] vs.\ the
+deployed embedding baseline's $0.6340$ --- paired $-0.0164$ [$-0.0191,-0.0139$],
+and every metric (MRR, nDCG@5, nDCG@10) loses the same way (ADR-016). Reported
+plainly, not explained away: no hyperparameter search was run, and the CI
+half-width ($\sim$0.001--0.002) is far smaller than the 0.016 gap, so tuning
+would not close it. Click-history statistics alone --- recency-weighted or not
+--- do not carry enough per-candidate signal to beat frozen embedding
+similarity on MIND, consistent with Candidate D's earlier standalone loss
+(0.613) and with Candidate F's finding that even a 7-feature combiner
+including embeddings only barely avoided losing overall. Not adopted; MIND's
+real win remains Candidate J and, per this assignment, the reproduced-then-
+improved official NRMS (\S2.2).
+
+\textbf{Stated as a dataset limitation, not a gap to force-fill:} MIND has
+\emph{no} freshness feature and \emph{no} session feature. Confirmed by direct
+measurement against the processed data, not assumed --- \texttt{article\_published\_time}
+is null for all 72{,}023 MINDlarge articles, and \texttt{session\_id}\slash\texttt{dwell\_time}\slash
+\texttt{scroll\_percentage}\slash\texttt{is\_front\_page} are null for all 14{,}085{,}557
+impression rows. \texttt{src/datasets/mind.py} hardcodes these columns to \texttt{None}
+at parse time because MIND's source TSVs never carry this information at all --- it
+is not a sampling artifact and cannot be engineered around.
+
+\textbf{A modeling fact worth stating plainly:} click count is identical for every
+candidate within one impression (it depends only on the user). A linear combiner's
+contribution to a per-impression ranking metric (AUC/MRR/nDCG@K --- all rank-order-only)
+is provably invariant to an additive per-impression constant. Rather than asserting
+this from theory alone, the experiment script includes an ablation that zeroes the
+feature and re-scores every dev impression: the maximum absolute AUC change was
+\textbf{exactly $0.00\mathrm{e}{+00}$} --- not approximately zero, bit-for-bit zero,
+matching the proof precisely. Click count is still reported, per Q1's explicit ask,
+with this caveat attached rather than hidden; its fitted coefficient (0.064) is
+nonzero because it can still reduce the pointwise training loss (which differs
+across users) even though it cannot move any impression's internal ranking.
+
+\textbf{Leakage.} MIND provides no per-click timestamps, so the EB-NeRD-style
+temporal-boundary check cannot be built for MIND. The structurally equivalent guard
+the dataset actually supports is reused instead: since a user's history is one fixed
+snapshot for the whole split, every history-derived feature must trace back to
+\emph{exactly one} value regardless of which of that user's real impressions produced
+it. A new integration test exercises this against real MINDsmall data (not a
+synthetic call-the-function-twice check, which would prove only determinism) and
+confirms candidate-derived components legitimately vary while history-derived ones
+do not.
+
+\subsection*{1.2 Two-stage retrieve-then-rank, and an honest retrieval ceiling (Q2)}
+
+Both leaderboard submissions rank each impression's own shown candidate list ---
+what the competitions actually score. A2 additionally asks for top-$K$ retrieval
+from A1's own generator, $K\sim100$--$200$. We report this honestly, separately:
+A1's measured recall@200 is 2.62--2.78\% on MIND and 1.21--2.77\% on EB-NeRD, so
+at least $\sim$97\% of clicked articles never enter a top-200 list from either
+retriever. No re-ranker can recover a click the candidate generator never surfaced.
+
+\textbf{Only NRMS (both datasets) re-ranks in that evaluation.} Candidate K's GBDT
+is excluded by construction: its features are \emph{impression-conditional}
+(\texttt{position\_in\_view}, the five \texttt{*\_rank\_in\_imp} features,
+\texttt{n\_candidates}, three \texttt{context\_*} features), defined relative to the
+other candidates the publisher actually showed. A retrieved-but-never-shown
+candidate has no position in that list and no in-list rank to compare against ---
+any value would be invented and would silently drive the ranking. A reduced
+``retrieval-safe'' GBDT was considered and rejected: it would answer a different
+model's ceiling, not Candidate K's, at the cost of a second model to maintain.
+
+\section{Baseline Reproduced, Then Beaten (Q3) --- A/B Framing}
+
+\textbf{Control} = the official baseline, reproduced. \textbf{Treatment} = control
+plus exactly one principled change. \textbf{Test} = paired bootstrap 95\% CI of
+(treatment $-$ control) over the identical impressions, resampling users --- the
+same statistic ADR-010's Candidate G introduced. \textbf{Guardrails} that must not
+regress even if the primary metric wins: diversity@10, novelty@10, coverage@10, and
+serving latency (p99, \S3).
+
+\textbf{Reproduction method.} The brief names the official code directly:
+ebnerd-benchmark's NRMS for EB-NeRD, \texttt{microsoft/recommenders}' NRMS for MIND.
+We attempted this (Option A) on Ada within a one-session timebox; it did not train
+--- every reachable machine's PyPI throughput (0.09--0.37\,MB/s) made the $\sim$3\,GB
+TensorFlow+CUDA install multi-hour, and one job held a GPU idle $\sim$4h before we
+diagnosed it. Per the pre-agreed timebox rule, we fell back to \textbf{Option B}: a
+layer-for-layer PyTorch port of the official Keras graph (bias-free Q/K/V attention
+at the official 20$\times$20 width, no output projection, no padding mask, the exact
+\texttt{AttLayer2} pooling formula, official hyperparameters read from the shipped
+config files rather than retyped) plus the official loaders' exact input semantics
+(most-recent-50 history, MIND's zero-pad negative sampling, EB-NeRD's
+with-replacement sampling). This must be read as \emph{a faithful reimplementation},
+never as ``the official code'' --- and it is reported as such throughout, with the
+revisit condition (a cheap TF environment) recorded rather than silently dropped.
+
+\subsection*{2.1 EB-NeRD --- complete}
+
+\begin{center}
+{\footnotesize
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+& AUC & 95\% CI & MRR & nDCG@5 & nDCG@10 & Div.@10 & Nov.@10 \\
+\midrule
+Control (reproduced NRMS) & 0.5613 & 0.5597--0.5629 & 0.3512 & 0.3904 & 0.4680 & 0.7894 & 17.208 \\
+Treatment (+freshness) & \textbf{0.5677} & 0.5659--0.5696 & 0.3555 & 0.3957 & 0.4725 & 0.7900 & 17.236 \\
+\bottomrule
+\end{tabular}\par}
+\end{center}
+
+\textbf{Paired treatment $-$ control:} AUC $+0.0064$ [$+0.0053$, $+0.0075$]; MRR
+$+0.0043$; nDCG@5 $+0.0053$; nDCG@10 $+0.0044$ --- all CI-clear. \textbf{No guardrail
+regressed}: diversity $+0.0006$ and novelty $+0.0280$, both CI-clear improvements;
+coverage fell $0.2021\to0.1987$ ($-1.7\%$ relative), reported as a point difference
+only (ADR-007: a set-union statistic is mechanically biased under bootstrap
+resampling), flagged rather than hidden.
+
+Two things the headline must not obscure. \textbf{The gain is small and merely
+\emph{tightly} estimated} --- the narrow CI reflects $n=244{,}647$ impressions, not
+a large effect. \textbf{The improved baseline (0.5677) is still far below Candidate
+K (0.7588)} on the identical split; A1's GBDT remains the strongest EB-NeRD system
+this project has, and beating the official NRMS baseline does not change that.
+
+\textbf{Head/tail slicing (Q5) reverses the headline.} An impression's clicked
+article is \emph{head} if it sits in the top 20\% of train-split click counts,
+else \emph{tail} (train-only, so no dev-click leakage; never-clicked-in-train
+articles fall in tail by construction). The paired gain is entirely a tail effect:
+
+\begin{center}
+{\footnotesize
+\begin{tabular}{@{}lrrl@{}}
+\toprule
+Slice & $n$ & Paired $\Delta$AUC (95\% CI) & Verdict \\
+\midrule
+Head (top 20\% by train clicks) & 9{,}541 & $-0.0217$ [$-0.0258$, $-0.0178$] & CI-clear \textbf{loss} \\
+Tail & 235{,}106 & $+0.0076$ [$+0.0064$, $+0.0087$] & CI-clear gain \\
+\bottomrule
+\end{tabular}\par}
+\end{center}
+
+The $+0.0064$ aggregate is a tail gain diluted by a real head regression on 3.9\%
+of impressions --- exactly the failure mode slicing exists to catch. Mechanistically
+plausible: a freshness-weighted ranker should help least where an article is
+popular enough to be clicked regardless of age.
+
+\textbf{Anti-gaming (Q9): pricing the serving-time-unavailable features.}
+\texttt{context\_read\_time}/\allowbreak\texttt{context\_scroll\_percentage} were flagged in
+ADR-013 as EB-NeRD's weakest serving-time claim (a page's total read time is only
+known once the user leaves it). A fourth GBDT arm withholding both gives
+$0.7570$ vs.\ $0.7581$ with them --- paired $+0.0011$ [$+0.0008,+0.0015]$, CI-clear
+but negligible against the $+0.2140$ margin over \texttt{embed\_sim}. For contrast,
+withholding \emph{position} features \emph{improves} AUC by $0.0007$. Neither
+flagged group is load-bearing; freshness is (\texttt{article\_age\_h} remains top
+by gain). \texttt{K\_rank} and \texttt{K\_rank\_nopos} reproduced bit-identically
+across the three- and four-arm runs, incidental evidence of a deterministic pipeline.
+
+\subsection*{2.2 MIND --- control complete, treatment pending}
+
+\begin{center}
+{\footnotesize
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+& AUC & 95\% CI & MRR & nDCG@5 & nDCG@10 \\
+\midrule
+Control (reproduced NRMS, 10 ep.) & 0.6831 & 0.6821--0.6839 & 0.3803 & 0.3620 & 0.4279 \\
+Candidate J (A1's best, same split) & 0.6579 & --- & 0.3581 & 0.3411 & 0.4064 \\
+Published NRMS (paper, \emph{test} split) & 0.6776 & --- & 0.3305$^\dagger$ & 0.3594 & 0.4163 \\
+\bottomrule
+\end{tabular}\par}
+\end{center}
+$^\dagger$ Not directly comparable: the official evaluator sums $1/\text{rank}$ over
+\emph{all} clicked items; ours is first-hit-only (established in A1's Codabench
+converter validation).
+
+The reproduced control \textbf{beats Candidate J by $+0.0252$ AUC} on the identical
+MINDlarge-dev split (marginal, not paired --- J's per-impression scores were never
+saved) and lands close to the published test-split figure, which is the evidence
+Q3 needs that the reproduction is trustworthy. Head/tail and warm/cold slices are
+already computed for the control: head 0.7411 vs.\ tail 0.6474; warm 0.6932 vs.\
+cold 0.6209 --- a 0.0723 gap, marginally \emph{wider} than A1's embedding-baseline
+gap (0.0682), so the reproduced baseline lifts both cohorts $\sim$0.05 without
+closing cold-start, echoing ADR-008's conclusion for embeddings.
+
+\textbf{Treatment: title+abstract input} (title 30 tokens + abstract 50, widths
+from the official \texttt{nrms.yaml}/\texttt{naml.yaml}), ablated against the
+title-only control. \emph{The original treatment spec --- GloVe vs.\ random
+init --- was reconsidered before running it}: the official NRMS is already
+GloVe-initialised, so that comparison would have measured the control against a
+deliberately degraded control, not an improvement. Training is a $\sim$36--37h
+job (measured: 300 samples/s at width 80 vs.\ 893 at width 30, a $2.98\times$
+slowdown matching the $3.2\times$ predicted from a local smoke test), inside the
+72h wall limit with $\sim$2$\times$ margin, expected to complete before this
+deadline. \textbf{This section will be completed with the real paired result; it
+is not filled in with a projection.}
+
+\section{Serving and Scale Analysis (Q4)}
+
+Everything below is a measured \emph{single-request} p99, not the batched,
+amortised figure this project's stage-level profiling (ADR-014) originally
+reported --- the gap between the two is itself a finding (below).
+
+\begin{center}
+{\footnotesize
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+& Index/store memory & Request p99 & SLA 100ms & \$/1k queries \\
+\midrule
+MIND (M3 CPU) & 164.0\,MB & \textbf{94.67\,ms} & PASS, $1.1\times$ headroom & \$0.0031--\$0.0004 \\
+EB-NeRD (\texttt{K\_rank\_nopos}) & 190.5\,MB & \textbf{22.74\,ms} & PASS, $4.4\times$ headroom & \$0.0009--\$0.0001 \\
+\bottomrule
+\end{tabular}\par}
+\end{center}
+
+\textbf{Batched vs.\ single-request differs by mechanism, and by how much room
+there is to amortise.} EB-NeRD's $\sim$30$\times$ gap (0.33\,ms/impression
+amortised vs.\ $\sim$10\,ms for one cold request) comes from per-call
+vectorisation overhead paid once per 5{,}000-impression chunk instead of once
+per impression. Quoting the batched figure as request latency would have
+understated EB-NeRD's real serving cost by a factor of thirty. MIND's batched
+sweep instead hoists per-\emph{user} work (tokenize, BM25/embedding scoring)
+out of the impression loop --- but the real MIND population averages only
+1.47 impressions/user (ADR-014), so there is little to amortise, and the
+batched figure (40.46\,ms/impression) and the cold single-request mean
+(33.29\,ms) sit within $\sim$1.2$\times$ of each other, in the \emph{opposite}
+direction from EB-NeRD's gap. Reported as measured, not smoothed into a false
+parallel between the two datasets.
+
+\textbf{MIND's p99 headroom is thin, and its observed max (126\,ms) already
+breaches the 100\,ms target.} NRMS is 78\% of a request's cost. EB-NeRD is
+comfortable (4.4$\times$) and dominated by feature-frame construction, not the
+booster.
+
+Cost/QPS is reported as a \emph{range}, not a point: the optimistic end assumes
+perfect linear scaling across an instance's vCPUs, which this project's own
+profiling contradicts (a measured $2.5\times$ slowdown from a single concurrent
+job on one 8GB machine, ADR-014) --- real throughput is sublinear, so the truth
+sits between the two columns. Prices are AWS on-demand list, us-east-1, captured
+2026-09-12; a GPU-measured MIND figure is an explicit, recorded gap (blocked
+behind a 1-GPU cluster quota while the treatment trains), not estimated.
+
+\section{Where the System Breaks at 10$\times$}
+
+\textbf{MIND breaks on latency, not memory.} The index (164\,MB) scales with
+articles/vocabulary, not users --- MINDlarge-test's 120,959 articles project to
+$\sim$250\,MB, still trivial. But p99 headroom is only $1.1\times$, and NRMS is
+78\% of a request. Two measured, ready fixes exist rather than needing new
+engineering: this project's own NRMS candidate-vector cache ($7.02\times$ on
+CPU, no accuracy cost, ADR-014) or GPU serving ($8.98\times$, same ADR).
+
+\textbf{EB-NeRD breaks on memory, specifically user profiles.} They cost
+5.35\,KB/user (82.1\,MB for 15{,}342 users); the article table (108.2\,MB)
+scales with articles instead. At \texttt{ebnerd\_large}'s real 791{,}582 users,
+the same per-user rate projects to $\sim$4.2\,GB of profiles alone --- from a
+190\,MB feature store today to something that no longer sits comfortably beside
+a model on a small serving instance. Latency is not the constraint here
+($4.4\times$ headroom).
+
+\textbf{The treatment itself has a real 10$\times$-adjacent cost story.} MIND's
+title+abstract treatment costs $2.98\times$ the control per training step ---
+measured, not assumed, from the first 45{,}000 of 105{,}740 steps before
+committing the full $\sim$37h job. The same accounting applies to any future
+feature addition: verify the marginal training cost on a small slice before
+paying for the whole run, which is exactly how the 37h estimate was validated
+here rather than discovered as an overrun.
+
+\section{Limitations and Open Items}
+
+\begin{itemize}
+\item MIND's treatment result and its paired A/B (\S2.2) are the one section
+  genuinely pending a running job, not an unstarted analysis --- the
+  methodology, guardrails, and comparison target are identical to \S2.1's.
+\item The GPU-measured MIND cost row (\S3) is blocked behind a 1-GPU cluster
+  quota until the treatment job releases it; recorded as a gap, not estimated
+  from the CPU figure.
+\item Q9's serving-time-unavailable ablation and Candidate K's 65-feature
+  retrain are measured on \texttt{ebnerd\_small}, not the \texttt{ebnerd\_large}
+  split behind the real 0.7542 Codabench score --- that bundle is unreachable
+  at Ada's measured $\sim$18\,KB/s S3 rate with the cluster home directory's
+  remaining $\sim$4.9\,GB.
+\item Reproducibility is bitwise on CPU (verified: the reproduced-NRMS smoke
+  tests and the EB-NeRD control's independent re-run matched to every printed
+  digit) but
+  only stable to $\sim$8 decimals run-to-run on GPU (ordinary CUDA reduction
+  non-determinism, confirmed not to be a code defect) --- stated because this
+  project's principle is ``same code + same data = same results,'' and the
+  GPU qualification is real, not glossed over.
+\end{itemize}
+
+\end{document}
