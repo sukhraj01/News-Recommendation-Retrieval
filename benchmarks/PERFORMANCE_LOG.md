@@ -221,3 +221,23 @@ Compared against `2026-09-12T21-52-05_snapshot.json` (`7fa8bce`):
 | `rank_and_auc` | 1.135 | 1.0593 | -6.7% | · |
 
 **Verdict:** no regression
+
+### 2026-09-14T02:42:54 — `13564ff` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: PROJECT_STATE.md benchmarks/ada_mind_gpu_per_request.sbatch decisions/ADR-015-a2-official-baseline-reproduction.md docs/design_note_a2.pdf docs/design_note_a2.tex results/a2_q3/README.md results/a2_q3/mind_ab_sliced_eval.json 
+
+**End-to-end:** 3.3728 ms/impression (296.5 impressions/s) · peak RSS 0.52 GB
+
+Compared against `2026-09-13T07-38-43_snapshot.json` (`6d15e50`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.148 | 0.1714 | +15.8% | ~ |
+| `bm25_score_all` | 1.0729 | 1.0404 | -3.0% | · |
+| `embed_query_build` | 0.0354 | 0.0324 | -8.5% | · |
+| `embed_score_all` | 1.0134 | 0.8079 | -20.3% | ~ |
+| `bm25_candidate_lookup` | 0.0176 | 0.0166 | -5.7% | · |
+| `embed_candidate_lookup` | 0.0131 | 0.0126 | -3.8% | · |
+| `rank_and_auc` | 1.0593 | 1.0914 | +3.0% | · |
+
+**Verdict:** no regression

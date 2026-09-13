@@ -44,3 +44,18 @@ bf0a730fd4495f06f2b4f19c583d0ba7dd4f0a81c3a49403a9e026aad47c8339  mind_control_s
 Definition and findings: ADR-007's 2026-09-12 addendum. Headline: EB-NeRD's freshness gain
 **reverses on head articles** (head Δ−0.0217 CI-clear loss vs tail Δ+0.0076 gain), so the
 +0.0064 aggregate is a tail gain diluted by a head regression.
+
+## MIND A/B (added 2026-09-14)
+
+| File | What |
+|---|---|
+| `mind_ab_sliced_eval.json` | The MIND A/B verdict: control vs treatment, paired CIs, guardrails, head/tail + warm/cold slices |
+
+Headline: control 0.6831 -> treatment 0.6868, paired +0.0037 [+0.0031,+0.0044]
+AUC, CI-clear win. Guardrail regression: diversity@10 -0.0060
+[-0.0062,-0.0057], CI-clear -- the first guardrail regression in this
+project's history. Head/tail slicing independently reproduces EB-NeRD's exact
+pattern (head loses, tail gains). Gain is entirely a warm-user effect (cold:
+not significant). Full detail: ADR-015's 2026-09-14 addendum.
+
+Durable copies: `~/a2_model_artifacts/a2_q3_results/` and Ada `$HOME/a2/results/`.

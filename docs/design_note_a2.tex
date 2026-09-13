@@ -21,7 +21,7 @@
 
 \title{\vspace{-1em}Design Note --- Learning from Click-Logs on EB-NeRD and MIND\vspace{-0.5em}}
 \author{\small CS4.406 Information Retrieval \& Extraction --- Assignment 2}
-\date{\small \today\ (MIND treatment result pending --- see \S2.2)}
+\date{\small \today}
 
 \begin{document}
 \maketitle
@@ -200,7 +200,7 @@ flagged group is load-bearing; freshness is (\texttt{article\_age\_h} remains to
 by gain). \texttt{K\_rank} and \texttt{K\_rank\_nopos} reproduced bit-identically
 across the three- and four-arm runs, incidental evidence of a deterministic pipeline.
 
-\subsection*{2.2 MIND --- control complete, treatment pending}
+\subsection*{2.2 MIND --- complete}
 
 \begin{center}
 {\footnotesize
@@ -232,12 +232,48 @@ from the official \texttt{nrms.yaml}/\texttt{naml.yaml}), ablated against the
 title-only control. \emph{The original treatment spec --- GloVe vs.\ random
 init --- was reconsidered before running it}: the official NRMS is already
 GloVe-initialised, so that comparison would have measured the control against a
-deliberately degraded control, not an improvement. Training is a $\sim$36--37h
-job (measured: 300 samples/s at width 80 vs.\ 893 at width 30, a $2.98\times$
-slowdown matching the $3.2\times$ predicted from a local smoke test), inside the
-72h wall limit with $\sim$2$\times$ margin, expected to complete before this
-deadline. \textbf{This section will be completed with the real paired result; it
-is not filled in with a projection.}
+deliberately degraded control, not an improvement. Training took 34.06h (10
+epochs, no errors), comfortably inside the 72h wall limit.
+
+\begin{center}
+{\footnotesize
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+& AUC & 95\% CI & MRR & nDCG@5 & nDCG@10 & Div.@10 & Nov.@10 \\
+\midrule
+Control (reproduced NRMS) & 0.6831 & 0.6821--0.6839 & 0.3803 & 0.3620 & 0.4279 & 0.8343 & 17.623 \\
+Treatment (+title\slash abstract) & \textbf{0.6868} & 0.6859--0.6877 & 0.3829 & 0.3691 & 0.4314 & 0.8283 & 17.643 \\
+\bottomrule
+\end{tabular}\par}
+\end{center}
+
+\textbf{Paired treatment $-$ control:} AUC $+0.0037$ [$+0.0031,+0.0044$]; MRR
+$+0.0026$; nDCG@5 $+0.0071$; nDCG@10 $+0.0034$ --- all CI-clear wins.
+\textbf{A guardrail genuinely regressed:} diversity $-0.0060$
+[$-0.0062,-0.0057]$, CI-clear, while novelty improved $+0.0197$ (CI-clear) and
+coverage was flat ($-0.0001$, point only). \textbf{This is the first guardrail
+regression in this project's entire history} --- every earlier win, including
+EB-NeRD's freshness treatment above, improved every CI-bearing guardrail. Per
+the professor's explicit framing, a guardrail regression is not something a
+primary-metric win is allowed to paper over: it is reported as a real cost of
+the change, not smoothed into the accuracy headline. Plausible mechanism:
+49 additional abstract tokens likely sharpen the model's confidence toward
+specific topical matches at some expense to the categorical variety of what it
+ranks highly.
+
+\textbf{Head/tail slicing independently reproduces EB-NeRD's exact directional
+pattern} --- a different dataset, a different treatment, a different mechanism,
+the same qualitative result: head $-0.0063$ [$-0.0071,-0.0053$] (CI-clear loss,
+$n=143{,}164$) vs.\ tail $+0.0098$ [$+0.0090,+0.0108$] (CI-clear gain,
+$n=233{,}307$). Both treatments help most where the content signal is weakest
+relative to prior popularity and can mildly hurt where an article is already
+identifiable from its title alone --- independent replication, not designed in
+advance. \textbf{The gain is entirely a warm-user effect}: warm $+0.0043$
+[$+0.0036,+0.0050]$ CI-clear, cold $+0.0002$ [$-0.0020,+0.0022]$ \emph{not
+significant} --- sensible, since richer candidate text cannot improve a user
+representation built from zero history. The reproduced-then-improved pipeline
+still does not close cold-start, consistent with every earlier finding in this
+project.
 
 \section{Serving and Scale Analysis (Q4)}
 
@@ -312,9 +348,6 @@ here rather than discovered as an overrun.
 \section{Limitations and Open Items}
 
 \begin{itemize}
-\item MIND's treatment result and its paired A/B (\S2.2) are the one section
-  genuinely pending a running job, not an unstarted analysis --- the
-  methodology, guardrails, and comparison target are identical to \S2.1's.
 \item The GPU-measured MIND cost row (\S3) is blocked behind a 1-GPU cluster
   quota until the treatment job releases it; recorded as a gap, not estimated
   from the CPU figure.

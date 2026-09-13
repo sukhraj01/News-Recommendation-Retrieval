@@ -384,7 +384,76 @@ That fits the 72 h wall limit with ~2× margin, and lands early on **2026-09-14*
 the 2026-09-20 deadline. The step logging added after job 2694501 is what made this
 checkable 13 minutes in rather than 3 hours in.
 
-**MIND treatment timing (projected before submission).** On identical 461-example local runs,
+## MIND A/B result — Q3 complete on both datasets (2026-09-14)
+
+**Treatment finished cleanly: all 10 epochs, no errors, 34.06h wall (well inside the
+72h limit, and ~3.5h faster than the ~37h projection).** Per-epoch monitor AUC
+ranged 0.6769 (epoch 1) to a peak of 0.6916 (epoch 5), settling at **0.6868** by
+epoch 10 — the official recipe's "final epoch, no selection" number. Checksummed
+against Ada (sha256 match) before evaluation.
+
+Evaluated by the harness over all 376,471 MINDlarge-dev impressions, same
+methodology as EB-NeRD's A/B (§ above):
+
+| Metric | Control | Treatment | Paired Δ | 95% CI | Verdict |
+|---|---:|---:|---:|---|---|
+| **AUC** (primary) | 0.6831 | 0.6868 | **+0.0037** | +0.0031, +0.0044 | CI-clear win |
+| MRR | 0.3803 | 0.3829 | +0.0026 | +0.0018, +0.0034 | CI-clear win |
+| nDCG@5 | 0.3620 | 0.3691 | +0.0071 | +0.0063, +0.0078 | CI-clear win |
+| nDCG@10 | 0.4279 | 0.4314 | +0.0034 | +0.0028, +0.0041 | CI-clear win |
+| diversity@10 (guardrail) | 0.8343 | 0.8283 | **−0.0060** | −0.0062, −0.0057 | **CI-clear REGRESSION** |
+| novelty@10 (guardrail) | 17.623 | 17.643 | +0.0197 | +0.0174, +0.0221 | CI-clear improvement |
+| coverage@10 (guardrail) | 0.0627 | 0.0626 | −0.0001 | point only (ADR-007) | negligible |
+
+**The headline is not just the win — it's that a guardrail genuinely regressed
+while the primary metric won CI-clear.** This is the first time in this project's
+entire history (both assignments) that a candidate's guardrail has regressed
+rather than improved or held flat; every earlier win (EB-NeRD's freshness
+treatment included) improved every CI-bearing guardrail. Per the professor's
+explicit framing, a guardrail regression is not allowed to be waved through by a
+primary-metric win — it is reported here as exactly that: a real cost of the
+title+abstract change, not smoothed into the accuracy headline. Plausible
+mechanism: richer candidate text content (49 additional abstract tokens) likely
+sharpens the model's confidence toward specific topical matches with a user's
+history, at some expense to the categorical variety of what it ranks highly.
+
+**Head/tail slicing reproduces EB-NeRD's exact directional pattern —
+independently, on a different dataset, a different treatment, and a different
+mechanism:**
+
+| Slice | $n$ | Control AUC | Paired ΔAUC | 95% CI | Verdict |
+|---|---:|---:|---:|---|---|
+| Head (top 20% by train clicks) | 143,164 | 0.7411 | **−0.0063** | −0.0071, −0.0053 | CI-clear loss |
+| Tail | 233,307 | 0.6474 | **+0.0098** | +0.0090, +0.0108 | CI-clear gain |
+
+Both datasets' treatments help most where the content signal is weakest relative
+to prior popularity (tail/unpopular articles) and can mildly hurt where an
+article is already popular enough to be identified from title alone. This is
+independent replication of the same qualitative finding across EB-NeRD (freshness)
+and MIND (richer text), from unrelated mechanisms — the kind of cross-dataset
+consistency slicing was built to be able to surface, not designed in advance.
+
+**Warm/cold: the gain is entirely a warm-user effect.**
+
+| Cohort | $n$ | Paired ΔAUC | 95% CI | Verdict |
+|---|---:|---:|---|---|
+| Warm | 323,747 | +0.0043 | +0.0036, +0.0050 | CI-clear win |
+| Cold | 52,724 | +0.0002 | −0.0020, +0.0022 | **not significant** |
+
+Sensible mechanistically: richer candidate text cannot improve a user
+representation built from zero history. The reproduced-then-improved MIND
+pipeline still does not close cold-start, consistent with every prior finding
+in this project (A1's embeddings, this ADR's control-vs-J comparison) that
+better modeling raises the whole curve without narrowing the warm/cold gap.
+
+**Q3 is now complete on both datasets.** EB-NeRD: reproduced (0.5613), improved
+by freshness (0.5677, +0.0064 CI-clear, no guardrail regression). MIND:
+reproduced (0.6831), improved by title+abstract (0.6868, +0.0037 CI-clear,
+**one guardrail regression, disclosed**). Both satisfy Q3's four requirements —
+reproduce, improve by one change, ablate, ship a paired CI — and both now also
+carry Q5's slicing and, for EB-NeRD, Q9's ablation.
+
+**MIND treatment timing (projected before submission, for the historical record).** On identical 461-example local runs,
 the treatment's 80-token input cost 3.2× the control's 30 tokens (52.1 s vs 16.3 s). Applying
 that ratio gives ~3.7 h per epoch and ~37 h for 10 epochs, inside the 72 h limit with ~2×
 margin. Submitted behind the EB-NeRD jobs. With the 1-GPU cap, the expected MIND treatment
