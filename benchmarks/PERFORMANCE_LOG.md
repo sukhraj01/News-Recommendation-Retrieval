@@ -201,3 +201,23 @@ Compared against `2026-09-12T17-40-36_snapshot.json` (`e5aed04`):
 | `rank_and_auc` | 1.1137 | 1.135 | +1.9% | · |
 
 **Verdict:** no regression
+
+### 2026-09-13T07:38:43 — `6d15e50` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: decisions/ADR-016-mind-click-history-features.md scripts/run_mind_history_features_experiment.py src/retrieval/mind_features.py tests/integration/test_leakage.py tests/unit/test_mind_features.py 
+
+**End-to-end:** 3.5795 ms/impression (279.4 impressions/s) · peak RSS 0.6 GB
+
+Compared against `2026-09-12T21-52-05_snapshot.json` (`7fa8bce`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.1424 | 0.148 | +3.9% | · |
+| `bm25_score_all` | 1.0577 | 1.0729 | +1.4% | · |
+| `embed_query_build` | 0.0318 | 0.0354 | +11.3% | · |
+| `embed_score_all` | 1.0383 | 1.0134 | -2.4% | · |
+| `bm25_candidate_lookup` | 0.017 | 0.0176 | +3.5% | · |
+| `embed_candidate_lookup` | 0.013 | 0.0131 | +0.8% | · |
+| `rank_and_auc` | 1.135 | 1.0593 | -6.7% | · |
+
+**Verdict:** no regression
