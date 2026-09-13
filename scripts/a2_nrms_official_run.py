@@ -282,6 +282,25 @@ if a.dataset == "mind":
                "dev_mean_auc_monitor": mean_auc(scores, dv_eval)}
         log["epochs"].append(rec)
         print(json.dumps(rec), flush=True)
+        # Safety net for a long (MIND: ~1.5-2 day) job with no other mid-run
+        # recovery point: overwrite one checkpoint after every epoch, using the
+        # SAME schema the final output uses (scores.parquet + results.json), so
+        # a job killed by its own time limit before the last epoch still leaves
+        # a real, fully-evaluated result -- the latest completed epoch's, not
+        # nothing. Does not change what gets REPORTED: the official recipe's
+        # "final epoch, no selection" semantics are unaffected, since this is
+        # overwritten every epoch and superseded by the real final write below
+        # if the run completes normally.
+        pd.DataFrame({
+            "impression_id": [r["impression_id"] for r in dv_eval],
+            "user_id": [r["user_id"] for r in dv_eval],
+            "labels": [list(map(int, r["labels"])) for r in dv_eval],
+            "scores": [s.tolist() for s in scores],
+        }).to_parquet(OUT / "checkpoint_scores.parquet", index=False)
+        (OUT / "checkpoint_results.json").write_text(json.dumps(
+            {**log, "checkpoint_epoch": ep, "note": "mid-run checkpoint, not the final "
+             "reported result -- see results.json for that once the run completes"},
+            indent=1, default=str))
     final_scores, eval_rows = scores, dv_eval  # final epoch, no selection (official fit)
 
 else:
