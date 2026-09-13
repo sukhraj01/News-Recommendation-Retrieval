@@ -1,0 +1,268 @@
+{
+  "benchmark": "profile_mind",
+  "dataset": "mind",
+  "bundle": "large",
+  "split": "dev",
+  "timestamp": "2026-09-13T21:13:44",
+  "git_rev": "unknown",
+  "git_dirty": false,
+  "tag": "a2q4-gpu",
+  "hardware_label": "Xeon E5-2640 v4 / 126GiB + GeForce RTX 2080 Ti",
+  "hardware": {
+    "platform": "Linux-5.15.0-191-generic-x86_64-with-glibc2.35",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "python": "3.11.16",
+    "cpu_model": "Intel(R) Xeon(R) CPU E5-2640 v4 @ 2.40GHz",
+    "ram_gb": 125.8,
+    "physical_cores": 40,
+    "torch": "2.11.0+cu128",
+    "cuda_available": true,
+    "gpu_name": "NVIDIA GeForce RTX 2080 Ti",
+    "gpu_memory_gb": 11.4,
+    "mps_available": false,
+    "numpy": "1.26.4"
+  },
+  "sample": {
+    "sampled_users": 1200,
+    "sampled_impressions": 1771,
+    "sampled_candidate_rows": 66482,
+    "sampled_impressions_per_user": 1.4758,
+    "population_users": 255990,
+    "population_impressions": 376471,
+    "population_impressions_per_user": 1.4706,
+    "population_candidate_rows": null,
+    "sample_seed": 0,
+    "sampling": "systematic-by-user"
+  },
+  "counts": {
+    "users": 1170,
+    "impressions": 1718,
+    "candidate_rows": 64751,
+    "history_articles": 29100
+  },
+  "corpus": {
+    "n_articles": 72023
+  },
+  "setup": {
+    "bm25_index_build_s": 4.231061772996327,
+    "bm25_vocab_size": 63441,
+    "bm25_weights_nnz": 1933590,
+    "bm25_weights_mb": 23.5,
+    "embed_index_load_s": 3.9144532040008926,
+    "embed_from_cache": true,
+    "embed_matrix_mb": 110.6,
+    "embed_dim": 384,
+    "nrms_vocab_build_s": 0.4480622229966684,
+    "nrms_vocab_size": 22262,
+    "nrms_config": {
+      "embed_dim": 300,
+      "num_heads": 15,
+      "max_title_len": 20,
+      "max_history_len": 50,
+      "recorded_vocab_size": 26293,
+      "source": "experiments/candidate_j_nrms_lite_ada_mindlarge_2026-08-25/config.json"
+    },
+    "nrms_model_init_s": 2.8557854239988956,
+    "nrms_params": 7478312,
+    "nrms_device": "cuda"
+  },
+  "data_load_s": 7.16,
+  "wall_s": 35.845,
+  "stage_total_s": 33.947,
+  "unattributed_s": 1.898,
+  "per_impression_ms": {
+    "1_query_tokenize": 0.5878,
+    "2_bm25_score_all": 4.8226,
+    "3_embed_query_build": 0.131,
+    "4_embed_score_all": 1.9825,
+    "5_bm25_candidate_lookup": 0.0613,
+    "6_embed_candidate_lookup": 0.0421,
+    "7_hybrid_blend": 0.1157,
+    "8_nrms_inference": 7.0933,
+    "9_rank_tiebreak": 0.2147,
+    "10_metrics": 4.7089
+  },
+  "end_to_end_impressions_per_s": 47.9,
+  "end_to_end_ms_per_impression": 20.864,
+  "stages": [
+    {
+      "stage": "1_query_tokenize",
+      "n_calls": 1170,
+      "total_s": 1.0099115059929318,
+      "mean_ms": 0.8631722273443861,
+      "p50_ms": 0.5433795013232157,
+      "p90_ms": 2.07479630116723,
+      "p99_ms": 4.147145690949398,
+      "max_ms": 8.026750001590699,
+      "throughput_per_s": 1158.517348358826,
+      "pct_of_total": 2.9749379127192537
+    },
+    {
+      "stage": "2_bm25_score_all",
+      "n_calls": 1170,
+      "total_s": 8.285148321949237,
+      "mean_ms": 7.0813233520933645,
+      "p50_ms": 6.473156998254126,
+      "p90_ms": 12.25516059639631,
+      "p99_ms": 16.36994640313787,
+      "max_ms": 22.04961099778302,
+      "throughput_per_s": 141.21654248487076,
+      "pct_of_total": 24.405902605531455
+    },
+    {
+      "stage": "3_embed_query_build",
+      "n_calls": 1170,
+      "total_s": 0.22504034695157316,
+      "mean_ms": 0.19234217688168645,
+      "p50_ms": 0.16792400128906593,
+      "p90_ms": 0.3014339017681778,
+      "p99_ms": 0.5063149147463261,
+      "max_ms": 0.8271900005638599,
+      "throughput_per_s": 5199.0677042982625,
+      "pct_of_total": 0.6629106174798006
+    },
+    {
+      "stage": "4_embed_score_all",
+      "n_calls": 1170,
+      "total_s": 3.4059106481727213,
+      "mean_ms": 2.9110347420279665,
+      "p50_ms": 2.980787499836879,
+      "p90_ms": 3.0078356961894315,
+      "p99_ms": 3.0341271369252354,
+      "max_ms": 5.032460998336319,
+      "throughput_per_s": 343.5204621788031,
+      "pct_of_total": 10.03293125630965
+    },
+    {
+      "stage": "5_bm25_candidate_lookup",
+      "n_calls": 1718,
+      "total_s": 0.10528936701302882,
+      "mean_ms": 0.061286011066955075,
+      "p50_ms": 0.04791050014318898,
+      "p90_ms": 0.11832330055767669,
+      "p99_ms": 0.2132033449743174,
+      "max_ms": 0.3511480026645586,
+      "throughput_per_s": 16316.937300871126,
+      "pct_of_total": 0.3101552243682068
+    },
+    {
+      "stage": "6_embed_candidate_lookup",
+      "n_calls": 1718,
+      "total_s": 0.07232032106549013,
+      "mean_ms": 0.04209564672030858,
+      "p50_ms": 0.03013400055351667,
+      "p90_ms": 0.0882426043972373,
+      "p99_ms": 0.15984223820851173,
+      "max_ms": 0.5162650049896911,
+      "throughput_per_s": 23755.425510960522,
+      "pct_of_total": 0.21303694801083026
+    },
+    {
+      "stage": "7_hybrid_blend",
+      "n_calls": 1718,
+      "total_s": 0.1988146888834308,
+      "mean_ms": 0.11572449876800396,
+      "p50_ms": 0.1246069987246301,
+      "p90_ms": 0.1321352960076183,
+      "p99_ms": 0.1611284788668854,
+      "max_ms": 0.20726000366266817,
+      "throughput_per_s": 8641.21262693673,
+      "pct_of_total": 0.585656616500556
+    },
+    {
+      "stage": "8_nrms_inference",
+      "n_calls": 1718,
+      "total_s": 12.186294913757592,
+      "mean_ms": 7.093303209404885,
+      "p50_ms": 7.350613501330372,
+      "p90_ms": 7.507838599849492,
+      "p99_ms": 7.91730012242624,
+      "max_ms": 9.149927005637437,
+      "throughput_per_s": 140.97804231378657,
+      "pct_of_total": 35.89767077549169
+    },
+    {
+      "stage": "9_rank_tiebreak",
+      "n_calls": 1718,
+      "total_s": 0.3687739409797359,
+      "mean_ms": 0.21465305062848425,
+      "p50_ms": 0.23703849728917703,
+      "p90_ms": 0.2529191981011536,
+      "p99_ms": 0.27833071741042653,
+      "max_ms": 0.486616998387035,
+      "throughput_per_s": 4658.680587450738,
+      "pct_of_total": 1.0863125845515291
+    },
+    {
+      "stage": "10_metrics",
+      "n_calls": 1718,
+      "total_s": 8.089809658071317,
+      "mean_ms": 4.708853118784236,
+      "p50_ms": 4.806705997907557,
+      "p90_ms": 4.880404503637692,
+      "p99_ms": 4.948000099466299,
+      "max_ms": 6.445282997447066,
+      "throughput_per_s": 212.3659359878668,
+      "pct_of_total": 23.830485459037025
+    }
+  ],
+  "reconciliation": {
+    "reference": {
+      "bm25_index_build_s": 1.7,
+      "bm25_full_retrieval_min": 9.8,
+      "embed_encode_s": 264.4,
+      "embed_full_retrieval_min": 10.4,
+      "encoder_throughput_articles_s": 373.6,
+      "source": "PROJECT_STATE.md 'Part 2 \u2014 Benchmark before trusting anything at MINDlarge scale'"
+    },
+    "measured_bm25_index_build_s": 4.231,
+    "projected_full_split": {
+      "bm25_query_plus_score_min": 33.9,
+      "bm25_score_only_min": 30.21,
+      "embed_score_only_min": 12.42,
+      "basis": "1,170 sampled users x 255,990 population users"
+    },
+    "projected_end_to_end_all_stages_min": 123.98
+  },
+  "peak_rss_gb": 2.1,
+  "index_memory": {
+    "bm25_weight_matrix_mb": 23.5,
+    "embedding_matrix_mb": 110.6,
+    "nrms_parameters_mb": 29.9,
+    "total_mb": 164.0,
+    "peak_process_rss_gb": 2.1,
+    "note": "float32; excludes Python container overhead and the id->row lookup dicts. Compare against peak_process_rss_gb for the whole-process figure."
+  },
+  "per_request": {
+    "n_requests": 500,
+    "request_total_ms": {
+      "mean": 19.90541632795066,
+      "p50": 19.2869980019168,
+      "p90": 26.60453899661661,
+      "p99": 33.14744653500382,
+      "max": 35.654196006362326
+    },
+    "stage_mean_ms": {
+      "query_tokenize": 1.0590533518407028,
+      "bm25_score_all": 7.828090790120768,
+      "embed_query_build": 0.20988011387817096,
+      "embed_score_all": 2.8722901981673203,
+      "candidate_lookup": 0.13359862013021484,
+      "hybrid_blend": 0.15959587186807767,
+      "nrms_inference": 7.383827043988276,
+      "rank": 0.2590803379571298
+    },
+    "stage_p99_ms": {
+      "query_tokenize": 5.081149503821503,
+      "bm25_score_all": 17.34104098628449,
+      "embed_query_build": 0.5329759036249015,
+      "embed_score_all": 3.0229860885447124,
+      "candidate_lookup": 0.3613986221171215,
+      "hybrid_blend": 0.1954685879900353,
+      "nrms_inference": 7.843431070068618,
+      "rank": 0.2999251305300277
+    },
+    "note": "one cold request per call: per-user stages are paid inside the request, not amortised across a user's impressions as in the batched sweep"
+  }
+}

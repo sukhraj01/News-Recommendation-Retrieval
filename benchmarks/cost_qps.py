@@ -51,8 +51,18 @@ PRICES = {
 }
 
 
-def newest(pattern: str, exclude_tag: str | None = None) -> dict | None:
-    """Most recent results JSON matching `pattern`, ignoring smoke runs."""
+def newest(pattern: str, exclude_tag: str | None = None, device: str | None = None) -> dict | None:
+    """Most recent results JSON matching `pattern`, ignoring smoke runs.
+
+    `device` ("cpu"/"cuda"), when given, filters to profiles whose
+    `setup.nrms_device` matches. This is load-bearing, not cosmetic: MIND has
+    both a CPU- and a GPU-measured profile on disk, and picking "the newest
+    one" for both the CPU-instance and GPU-instance pricing rows would price
+    GPU latency on a c6i.2xlarge (no GPU to run NRMS on) or CPU latency on a
+    g4dn.xlarge -- exactly the error this function exists to prevent, caught
+    once already on the g4dn.xlarge side (excluded rather than reported) and
+    now on the c6i.2xlarge side too once a GPU profile became the newest file.
+    """
     best, best_ts = None, ""
     for path in sorted(_RESULTS.glob(pattern)):
         try:
@@ -62,6 +72,8 @@ def newest(pattern: str, exclude_tag: str | None = None) -> dict | None:
         if exclude_tag and exclude_tag in (data.get("tag") or ""):
             continue
         if "per_request" not in data:
+            continue
+        if device and data.get("setup", {}).get("nrms_device") != device:
             continue
         ts = data.get("timestamp", "")
         if ts >= best_ts:
@@ -109,16 +121,22 @@ def main() -> None:
     ap.add_argument("--out", default=None)
     a = ap.parse_args()
 
-    mind = newest("*mind_*_profile.json", a.exclude_tag)
+    mind_cpu = newest("*mind_*_profile.json", a.exclude_tag, device="cpu")
+    mind_gpu = newest("*mind_*_profile.json", a.exclude_tag, device="cuda")
     ebnerd = newest("*ebnerd_*_profile.json", a.exclude_tag)
-    if mind is None and ebnerd is None:
+    if mind_cpu is None and mind_gpu is None and ebnerd is None:
         raise SystemExit("no profile JSON with a per_request block found — run the "
                          "profilers with --per-request first")
 
     rows = []
-    if mind is not None:
-        rows.append(analyse(mind, a.sla_ms, a.cpu_instance))
-        rows.append(analyse(mind, a.sla_ms, a.gpu_instance))
+    if mind_cpu is not None:
+        rows.append(analyse(mind_cpu, a.sla_ms, a.cpu_instance))
+    else:
+        print(f"NOTE: no CPU-measured MIND profile found; skipping {a.cpu_instance} row")
+    if mind_gpu is not None:
+        rows.append(analyse(mind_gpu, a.sla_ms, a.gpu_instance))
+    else:
+        print(f"NOTE: no GPU-measured MIND profile found; skipping {a.gpu_instance} row")
     if ebnerd is not None:
         rows.append(analyse(ebnerd, a.sla_ms, a.cpu_instance))
 
@@ -140,7 +158,8 @@ def main() -> None:
                                   "against the measured single-request p99",
         },
         "sources": {
-            "mind_profile": mind.get("timestamp") if mind else None,
+            "mind_profile_cpu": mind_cpu.get("timestamp") if mind_cpu else None,
+            "mind_profile_gpu": mind_gpu.get("timestamp") if mind_gpu else None,
             "ebnerd_profile": ebnerd.get("timestamp") if ebnerd else None,
         },
         "rows": rows,

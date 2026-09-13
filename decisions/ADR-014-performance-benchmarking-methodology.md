@@ -564,6 +564,39 @@ p99**. The batched sweep's NRMS stage p99 (147.6 ms) is larger than the whole re
 different samples (1,723 impressions vs 500 cold requests) and different cache states, not a
 contradiction — stated because the two tables sit next to each other.
 
+## Addendum (2026-09-14) — the excluded MIND GPU row, measured for real
+
+The 2026-09-12 addendum above excluded a MIND-on-`g4dn.xlarge` cost row rather
+than estimate it, because the only per-request run at that point used
+`--device cpu`. Once the Q3 MIND treatment job released the account's one-GPU
+quota, `benchmarks/ada_mind_gpu_per_request.sbatch` ran the identical
+`profile_mind.py --per-request` on a real 2080 Ti:
+
+| | mean | p50 | p90 | **p99** | max |
+|---|---:|---:|---:|---:|---:|
+| MIND, GPU (2080 Ti) | 19.91 ms | 19.29 ms | 26.60 ms | **33.15 ms** | 35.65 ms |
+| MIND, CPU (M3), for comparison | 33.29 ms | 28.69 ms | 52.38 ms | 94.67 ms | 126.28 ms |
+
+**GPU headroom against the 100 ms SLA is 3.0×, against the CPU figure's 1.1×.**
+NRMS inference drops from 78% of the request (CPU) to 36% (GPU) — consistent
+with this ADR's own GPU-vs-CPU finding elsewhere (NRMS 8.98× faster on a
+2080 Ti). Real cost, both rows now genuinely measured on their own hardware:
+
+| Instance | mean | p99 | headroom | \$/1k queries (1 worker) |
+|---|---:|---:|---:|---:|
+| c6i.2xlarge (CPU-measured) | 33.29 ms | 94.67 ms | 1.1× | \$0.0031 |
+| g4dn.xlarge (GPU-measured) | 19.91 ms | 33.15 ms | 3.0× | \$0.0007 |
+
+**A second bug caught in the process, same family as the first.** Fixing the
+first excluded-row problem (CPU latency priced on a GPU instance) left a
+second one: `cost_qps.py` selected "the newest MIND profile" for *both*
+pricing rows. Once the GPU profile became the newest file on disk, that same
+selection bug would have silently priced GPU latency onto the CPU instance
+row too — the identical mistake, mirrored. Fixed by filtering candidate
+profiles on their recorded `setup.nrms_device` before selecting the newest
+match for each instance, with 4 new unit tests pinning the device-selection
+logic (`tests/unit/test_cost_qps.py`) since this script had none before.
+
 ## Q4.3 — Cost per 1,000 queries (`benchmarks/cost_qps.py`)
 
 Prices are **AWS on-demand list, us-east-1, captured 2026-09-12**: c6i.2xlarge (8 vCPU)

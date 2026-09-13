@@ -285,13 +285,21 @@ reported --- the gap between the two is itself a finding (below).
 {\footnotesize
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
-& Index/store memory & Request p99 & SLA 100ms & \$/1k queries \\
+Instance & Index/store & p99 & SLA 100ms & \$/1k (1 worker) \\
 \midrule
-MIND (M3 CPU) & 164.0\,MB & \textbf{94.67\,ms} & PASS, $1.1\times$ headroom & \$0.0031--\$0.0004 \\
-EB-NeRD (\texttt{K\_rank\_nopos}) & 190.5\,MB & \textbf{22.74\,ms} & PASS, $4.4\times$ headroom & \$0.0009--\$0.0001 \\
+MIND / CPU (c6i.2xlarge) & 164.0\,MB & \textbf{94.67\,ms} & PASS, $1.1\times$ & \$0.0031 \\
+MIND / GPU (g4dn.xlarge) & 164.0\,MB & \textbf{33.15\,ms} & PASS, $3.0\times$ & \$0.0007 \\
+EB-NeRD (\texttt{nopos}) / CPU & 190.5\,MB & \textbf{22.74\,ms} & PASS, $4.4\times$ & \$0.0009 \\
 \bottomrule
 \end{tabular}\par}
 \end{center}
+
+Both MIND rows are genuinely measured on their own hardware, not one profile
+priced onto both instance types --- an early version of the cost script did
+exactly that (excluded rather than reported the invalid row), and a second,
+mirrored version of the same bug (this time on the CPU row, once the GPU
+profile became the newest file) was caught and fixed with a regression test
+before these numbers were trusted.
 
 \textbf{Batched vs.\ single-request differs by mechanism, and by how much room
 there is to amortise.} EB-NeRD's $\sim$30$\times$ gap (0.33\,ms/impression
@@ -307,27 +315,38 @@ batched figure (40.46\,ms/impression) and the cold single-request mean
 direction from EB-NeRD's gap. Reported as measured, not smoothed into a false
 parallel between the two datasets.
 
-\textbf{MIND's p99 headroom is thin, and its observed max (126\,ms) already
-breaches the 100\,ms target.} NRMS is 78\% of a request's cost. EB-NeRD is
-comfortable (4.4$\times$) and dominated by feature-frame construction, not the
-booster.
+\textbf{On CPU, MIND's p99 headroom is thin, and its observed max (126\,ms)
+already breaches the 100\,ms target} --- NRMS is 78\% of a request's cost there.
+\textbf{On GPU, the same target has real headroom} ($3.0\times$): NRMS drops to
+36\% of the request, matching this project's own GPU-vs-CPU finding elsewhere
+in ADR-014 (NRMS $8.98\times$ faster on a 2080\,Ti). EB-NeRD is comfortable on
+CPU alone (4.4$\times$) and dominated by feature-frame construction, not the
+booster, so a GPU figure was not pursued for it.
 
-Cost/QPS is reported as a \emph{range}, not a point: the optimistic end assumes
-perfect linear scaling across an instance's vCPUs, which this project's own
-profiling contradicts (a measured $2.5\times$ slowdown from a single concurrent
-job on one 8GB machine, ADR-014) --- real throughput is sublinear, so the truth
-sits between the two columns. Prices are AWS on-demand list, us-east-1, captured
-2026-09-12; a GPU-measured MIND figure is an explicit, recorded gap (blocked
-behind a 1-GPU cluster quota while the treatment trains), not estimated.
+The \textbf{1-worker} \$/1k figures above are the conservative end of a range:
+an \emph{optimistic} column (not shown) assuming perfect linear scaling across
+an instance's vCPUs would give roughly 8$\times$ lower figures, but this
+project's own profiling contradicts that assumption directly (a measured
+$2.5\times$ slowdown from a single concurrent job on one 8GB machine,
+ADR-014) --- real per-instance throughput is sublinear, so the 1-worker number
+is the more honest one to lead with. Prices are AWS on-demand list, us-east-1,
+captured 2026-09-12.
 
 \section{Where the System Breaks at 10$\times$}
 
-\textbf{MIND breaks on latency, not memory.} The index (164\,MB) scales with
+\textbf{MIND breaks on CPU latency, not memory --- and GPU serving is a
+measured fix, not a hoped-for one.} The index (164\,MB) scales with
 articles/vocabulary, not users --- MINDlarge-test's 120,959 articles project to
-$\sim$250\,MB, still trivial. But p99 headroom is only $1.1\times$, and NRMS is
-78\% of a request. Two measured, ready fixes exist rather than needing new
-engineering: this project's own NRMS candidate-vector cache ($7.02\times$ on
-CPU, no accuracy cost, ADR-014) or GPU serving ($8.98\times$, same ADR).
+$\sim$250\,MB, still trivial. On CPU, p99 headroom is only $1.1\times$ with
+NRMS at 78\% of a request; \textbf{on GPU, the identical request-level
+benchmark measures $3.0\times$ headroom} (\S3), not a projection from a
+training-time speedup. A second, complementary fix needs no new hardware at
+all: this project's own NRMS candidate-vector cache measures $7.02\times$ on
+CPU with no accuracy cost (ADR-014). At 10$\times$ load, GPU serving buys real
+room but not unlimited room --- $3.0\times$ headroom absorbs roughly a
+3$\times$ traffic increase before the SLA is threatened again, so 10$\times$
+load still needs horizontal scaling (more GPU workers) on top of the device
+change, not instead of it.
 
 \textbf{EB-NeRD breaks on memory, specifically user profiles.} They cost
 5.35\,KB/user (82.1\,MB for 15{,}342 users); the article table (108.2\,MB)
@@ -348,9 +367,6 @@ here rather than discovered as an overrun.
 \section{Limitations and Open Items}
 
 \begin{itemize}
-\item The GPU-measured MIND cost row (\S3) is blocked behind a 1-GPU cluster
-  quota until the treatment job releases it; recorded as a gap, not estimated
-  from the CPU figure.
 \item Q9's serving-time-unavailable ablation and Candidate K's 65-feature
   retrain are measured on \texttt{ebnerd\_small}, not the \texttt{ebnerd\_large}
   split behind the real 0.7542 Codabench score --- that bundle is unreachable
