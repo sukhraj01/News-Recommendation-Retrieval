@@ -100,3 +100,57 @@
     NRMS + GloVe vs random init") is the control itself. Official recommenders NRMS is
     already GloVe-initialised, and ADR-012 already ran that lever on J.
 - **Gap analysis (AI research, not code):** verified against committed results.json, profile JSONs, `src/`, ADR-012/013/014, the local MIND paper PDF, the ebnerd-benchmark repo (`args_nrms.py`, `ebnerd_nrms.py`, `pyproject.toml`), the EB-NeRD arXiv paper's Table 3, and recommenders' `nrms_MIND.ipynb`. No pipeline code was changed.
+
+### Prompt 3
+
+> Track the evaluation JSONs in git (parquets stay out). Yes, use the wait time on Q4/Q5 — EB-NeRD re-profiling against retrained K, index-memory, p99/cost-per-QPS.
+
+### Prompt 4
+
+> Push the branch now.
+> Work Q1 and Q6 in parallel during the wait, not one-or-the-other. Q1/MIND scope: engineered features only (recency-weighted history stats, click count, category-match), evaluated with a cheap CPU-only logistic regression combiner — not a new NRMS run, so it doesn't contend with the running treatment job. State plainly that MIND has no freshness (no publish timestamp) or session features (no session boundaries) — dataset limitations, not gaps to force-fill. Reuse the existing leakage-boundary test for the new features. Q6: start drafting now from what's already measured (Q3 EB-NeRD, Q4, Q5, Q9); leave the MIND A/B section as the one piece that waits for Thursday's result.
+
+### Prompt 5
+
+> update
+
+### Prompt 6
+
+> Before deciding on the MIND leaderboard submission: give me the actual numbers — control vs. treatment on AUC/MRR/nDCG@5/nDCG@10 (with CIs), and the diversity@10 regression specifically (treatment's value and CI vs. control's, and separately vs. J's current deployed diversity@10 if you have it). I want the real magnitude on both sides before deciding whether this ships.
+>
+> EB-NeRD leaderboard stays as K, unchanged — confirming explicitly so it isn't touched during polish.
+>
+> Go ahead now on the final Q6 read-through and the Q2/Q7–Q9 deliverable checks — not blocked on the diversity decision above.
+
+## What was AI-generated vs. human-written/edited (Prompts 3–6)
+
+- **All AI-generated, no human edits, spanning 2026-09-11 through 2026-09-14 (one continuous
+  session):** the branch push; Q1's `src/retrieval/mind_features.py` + tests + leakage test +
+  `scripts/run_mind_history_features_experiment.py` (Candidate L, a real CI-clear loss,
+  reported honestly, ADR-016); Q6's `docs/design_note_a2.tex` draft and every subsequent
+  revision as new results landed; the Q3 MIND control (AUC 0.6831) and treatment (AUC 0.6868,
+  paired +0.0037, guardrail diversity@10 regressed -0.0060) evaluations, both checksummed
+  against Ada before trusting; Q4's GPU-measured MIND latency closure (job 2695844, p99
+  33.15ms) and the `cost_qps.py` device-selection bug it surfaced and fixed, with 4 new
+  regression tests; the per-epoch checkpointing hardening added to `a2_nrms_official_run.py`
+  after investigating what turned out to be a false alarm about the treatment job's pace
+  (caused by a stale NFS read on Ada, corrected against a clean re-read); and this session's
+  ad-hoc computation of Candidate J's real deployed diversity@10 (0.7840, from the actual
+  submitted MINDlarge_test prediction file, not an estimate).
+- **A real mistake made and corrected in the same session, kept visible rather than quietly
+  fixed:** reported the MIND treatment job as dangerously behind schedule and at risk of
+  timing out, attempted (denied) to extend its SLURM time limit, before re-verifying with a
+  clean read and finding the alarm was false. The one thing that survived the false alarm as
+  a genuine finding — no mid-run checkpoint existed — was fixed anyway, since it was true
+  regardless of the scare that surfaced it.
+- **Process gap found and fixed in this same edit:** this log file had not been updated since
+  early on 2026-09-11 despite four further substantive prompts and multiple days of work —
+  a violation of this file's own standing requirement. Prompts 3-6 above are the verbatim
+  catch-up; nothing was summarized or reconstructed from memory beyond copying the engineer's
+  own messages exactly as sent.
+- **Two other real gaps found while auditing Q7/Q8/Q9 deliverable status (not yet fixed, flagged
+  to the engineer instead of silently patched):** `README.md` has no mention of any A2 script
+  and was last touched 2026-08-22 (Assignment 1 era only); Q2's literal ask (retrieve top-K from
+  A1's generator, re-rank THAT set, report before/after metrics) was never built as a runnable
+  harness — only the retrieval-ceiling recall@K citation and the NRMS-only reasoning exist,
+  which is an honest but not literal satisfaction of Q2.1-4.

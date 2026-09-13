@@ -446,6 +446,36 @@ pipeline still does not close cold-start, consistent with every prior finding
 in this project (A1's embeddings, this ADR's control-vs-J comparison) that
 better modeling raises the whole curve without narrowing the warm/cold gap.
 
+## Addendum (2026-09-14) — J's real deployed diversity@10, for scale on the regression
+
+Before deciding whether the treatment ships to the MIND leaderboard, the engineer asked for
+diversity@10 magnitude against what is currently live (Candidate J). It was never computed
+for J anywhere in this project — checked directly, not assumed (no diversity/novelty/coverage
+field exists in any of J's config/results files or scripts). Computed here directly from J's
+actual submitted `MINDlarge_test/prediction.txt` (the literal ranking that scored 0.6462),
+joined against the raw candidate order in `MINDlarge_test/behaviors.tsv` and the processed
+test catalog's categories — not a re-run, not an estimate.
+
+| | Diversity@10 | 95% CI | Split | Model |
+|---|---:|---|---|---|
+| Control (reproduced NRMS) | 0.8343 | 0.8337–0.8348 | MINDlarge-**dev** | Option B reproduction |
+| Treatment (+title/abstract) | 0.8283 | 0.8277–0.8289 | MINDlarge-**dev** | Option B reproduction |
+| **Candidate J, currently live** | **0.7840** | 0.7830–0.7850 | MINDlarge-**test** | NRMS-lite (ADR-012) |
+
+Sampled systematically, 200,000 of 2,370,727 real test impressions, 163,251 users, 0 skipped.
+
+**Not a paired comparison — stated plainly.** J's number is on the blind test split, not dev,
+and from an entirely different architecture, not the official reproduction. It is a real
+descriptive data point, not a controlled one.
+
+**The magnitude, for scale.** The treatment's regression from the control is −0.0060
+(−0.72% relative) — an order of magnitude smaller than the gap between either new candidate
+and what is actually live: treatment vs. J is **+0.0443** (+5.65% relative). Whatever the
+control-vs-treatment decision, both sit well above J's real deployed diversity.
+
+**Decision: still open, for the engineer.** This addendum supplies evidence, not a
+recommendation on ship/no-ship.
+
 **Q3 is now complete on both datasets.** EB-NeRD: reproduced (0.5613), improved
 by freshness (0.5677, +0.0064 CI-clear, no guardrail regression). MIND:
 reproduced (0.6831), improved by title+abstract (0.6868, +0.0037 CI-clear,
