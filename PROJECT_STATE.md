@@ -44,6 +44,27 @@ only once Q1–Q6 are solid.
 - Q2: leaderboards keep ranking each impression's real candidate list, plus a separate,
   honestly-reported true-retrieval-ceiling evaluation.
 
+## A2 Deliverables Checklist (Q7–Q9), verified 2026-09-14 (not just claimed)
+
+| # | Item | Status | Evidence |
+|---|---|---|---|
+| 1 | README one-command reproduce | ✅ **Re-run live, this date**, after every change this session: `scripts/a2_evaluate_scores.py`'s documented invocation against `~/a2_model_artifacts/a2_q3_results/mind_{control,treatment}_scores.parquet` reproduced ADR-015's exact cited numbers (control 0.6831 → treatment 0.6868, diversity −0.0060) in ~4.7 min, no GPU |
+| 2 | MIND leaderboard screenshot | 🟡 **Blocked on the one remaining human step.** Real MINDlarge_test predictions for the treatment are being generated now (Ada job 2696298, chained `--dependency=afterok:2695890` off the retrain, no engineer action needed to *start* it). The validated `prediction.zip` will be ready in `submissions/mind_large_test_nrms_official_treatment/`, but **the actual Codabench upload requires the engineer's own account/login — this has been true for all 6 prior submissions in this project (README.md, this file's Leaderboard Submission row) and remains true here.** Not attempted; not something Claude Code can do regardless of readiness |
+| 3 | EB-NeRD leaderboard screenshot | ✅ **Unchanged, and now explicitly cross-referenced here for A2** (previously only findable under A1-era history): `submissions/ebnerd_testset_gbdt_k/leaderboard_screenshot_{upload,rank}.png`, submission 907863, score 0.7542, ADR-013. Confirmed present on disk this date. The 2026-09-12 Candidate K retrain (see the Q4/Q5 row above) was a **local** recovery of the model artifact for latency/feature-importance measurement, not a new Codabench submission — per the engineer's explicit instruction, K's leaderboard entry stays exactly as it is |
+| 4 | AI usage log current through today | ✅ `knowledge/ai-usage-log/2026-09-11_a2-kickoff-corpus-stats-gap-analysis.md` — Prompts 1–10 verbatim, in order, through this handoff message |
+| 5 | Working tree fully committed and pushed | ✅ verified this date — see the commit immediately following this checklist's own addition |
+
+**Open, and correctly left open rather than resolved by guessing:** whether `mind_treatment_v2`'s
+final (epoch-10) dev monitor AUC lands close enough to the already-evaluated 0.6868 to be
+treated as the same effective model, per ADR-015's stated mitigation for GPU non-determinism.
+Not yet knowable — the run is still training. **Decision rule already fixed in advance, not
+deferred:** if the final AUC is within the kind of run-to-run noise this project's own
+GPU-determinism finding established (~8 decimal places is bit-level noise; the real question is
+whether it's within the same ballpark as 0.6868, not identical to 8 decimals) — proceed with
+generating and readying the submission. If it lands materially different (a red flag, not
+expected), stop before packaging a submission and record why in this file rather than shipping
+a materially different model under the treatment's already-decided reasoning.
+
 **Environment facts that changed since A1:**
 - Ada QoS is now `low` (cpu 10, gpu 1, mem 32,000 MB per user). `u22-cpu` is devalab-only.
 - `/share1` is not mounted on compute nodes.

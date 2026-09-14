@@ -202,3 +202,88 @@
   (verified correct, above) plus a real, honestly-labeled reduced-scale local run (MINDsmall,
   a locally-trained control checkpoint, not the leaderboard-scale one) as an interim result,
   not a substitute.
+
+### Prompt 9
+
+> Confirmed Ada is reachable and my credentials work — I just logged in manually myself. So
+> this is scoped to your session's shell environment specifically. Debug it directly:
+>
+> echo $SSH_AUTH_SOCK and ssh-add -l — check whether an SSH agent is even running and has a key
+> loaded in this session's shell. macOS often unlocks a key into the agent via Keychain for an
+> interactive terminal, but a session running as a separate process may not inherit that same
+> agent socket.
+> ls -la ~/.ssh/ — confirm the key file is actually visible and has correct permissions (600
+> for the private key).
+> Check ~/.ssh/config for a Host ada entry and confirm the IdentityFile path is right.
+> Run ssh -v sukhraj.singh@ada.iiit.ac.in for verbose output — it'll show exactly which auth
+> methods got offered and why each was rejected, rather than guessing.
+>
+> If it turns out the key needs a passphrase and there's no way to unlock it
+> non-interactively, say so plainly rather than working around it — that's a real blocker I
+> may need to handle myself, not something to silently retry past.
+
+### Prompt 10
+
+> This is likely my last message for a while — I won't be able to respond to questions for
+> some time. Here's what to do so you're not blocked waiting on me:
+>
+> When job 2695890 finishes: proceed automatically, no need to check back in. Run the
+> full-scale Q2 harness, generate the real MINDlarge_test predictions, and submit to Codabench
+> as the new MIND submission. The ship decision is already made (ADR-015's reasoning: diversity
+> regression is relative to a better alternative, not relative to what's deployed) — don't wait
+> for re-confirmation on that.
+>
+> After it ships: update ADR-015 and Q6's design note to replace every interim/placeholder
+> number with the real full-scale ones — do a full read-through of Q6 specifically checking
+> that no number in it still traces back to the reduced-scale local checkpoint. Collect the new
+> leaderboard screenshot. EB-NeRD stays as K, unchanged — no new submission there, just confirm
+> its existing screenshot is already accounted for in A2's Q7 deliverables (not just A1's).
+>
+> Then finish the Q7 deliverable checklist end to end, not just claim it's done: actually
+> verify the README's one-command reproduce still works after all this session's changes, both
+> leaderboard screenshots are present, the AI usage log is current through today, and the
+> working tree is fully committed and pushed with nothing outstanding.
+>
+> If something genuinely uncertain comes up that isn't already covered by a decision made in
+> this session — default to the conservative option (don't ship, don't force-push, don't delete
+> anything), document the open question clearly in PROJECT_STATE with what you'd need to decide
+> it, and keep working on whatever else isn't blocked by it rather than stalling. Use the same
+> evidence-first standard you've used all session: measure before claiming, cite the real
+> file/number, flag what you're not sure of instead of rounding up.
+>
+> Target: everything genuinely complete and reproducible by Sept 20, not just checked off.
+
+## What was AI-generated vs. human-written/edited (Prompts 9-10)
+
+- **Root cause found and fixed, exactly as diagnosed via the engineer's own four debug steps:**
+  not a passphrase/agent problem — `ssh-add -l` genuinely showed no identities (real, not a
+  red herring), but the actual failure was that bare `ssh ada` / `test01@ada` authenticated as
+  the local shell username (`test01`, which doesn't exist on Ada) because no `~/.ssh/config`
+  existed in this session's home directory to map the `ada` alias to the real account.
+  `ssh -v sukhraj.singh@ada.iiit.ac.in` authenticated on the first try, offering `id_ed25519`
+  straight from disk with no passphrase prompt. Fixed by writing a `Host ada` block to
+  `~/.ssh/config` (`HostName ada.iiit.ac.in`, `User sukhraj.singh`, `IdentityFile
+  ~/.ssh/id_ed25519`) for the rest of this session — this is a local dotfile fix, not a repo
+  change.
+- **Job 2695890 checked directly, not guessed at:** confirmed RUNNING, 3/10 epochs complete,
+  dev monitor AUC already close to the previously-evaluated 0.6868 (0.6769/0.6879/0.6873 for
+  epochs 1-3) — real early evidence the retrain is reproducing the same effective model, the
+  exact mitigation ADR-015 specified in advance.
+- **Chained the next step natively in SLURM rather than relying on this session staying alive
+  for the ~20 remaining hours:** staged `MINDlarge_test.zip` to Ada (577 MB, sha256-verified
+  identical before and after transfer — the first transfer attempt silently produced no file
+  and was retried, the second succeeded), wrote and pushed
+  `scripts/a2_generate_mind_predictions.sbatch` (mirrors `a2_nrms_official.sbatch`'s hardened
+  GPU-capability gate), and submitted it as job 2696298 with `--dependency=afterok:2695890` so
+  it fires automatically the moment training succeeds, with no reliance on this session's own
+  background monitor surviving that long.
+- **A capability constraint distinguished from a judgment call, not silently substituted:** the
+  engineer's Prompt 10 says "submit to Codabench as the new MIND submission." Every prior
+  submission in this project (6 so far, all in PROJECT_STATE.md/README.md's own text) states
+  the Codabench upload is a manual, engineer-only step requiring their own account login --
+  something this codebase and Claude Code cannot do regardless of how ready the local artifact
+  is. This is not treated as an "uncertain decision needing the conservative default" (Prompt
+  10's own fallback clause) because it isn't uncertain -- it's a hard, already-established
+  capability gap, restated in this project's own README this same session. The validated
+  `prediction.zip` will be prepared and left ready; the literal upload remains the one
+  documented pending human action, exactly as for every submission before it.
