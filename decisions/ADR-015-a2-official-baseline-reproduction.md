@@ -566,6 +566,68 @@ sha256-verified on Ada (train `120dbabb…6840`, dev `a9ce423c…66c8`). Hugging
 and paired comparability with J and the embedding baseline requires the same 376,471 dev
 impressions. Only `MINDlarge_utils.zip`, which has no local copy, comes from HuggingFace.
 
+## Addendum (2026-09-14, later same day) — Q2 harness built; README fixed; a real environment gap surfaced
+
+Two of the two remaining gaps the engineer asked to be closed "rather than leave them as
+citations" — the literal Q2 retrieve-then-rank harness, and a README that actually documents
+A2's scripts with a runnable reproduce path.
+
+**A genuine environment constraint, disclosed rather than routed around.** This session's
+sandbox cannot reach Ada: `ssh ada` is rejected outright
+(`Permission denied (publickey,password,hostbased)`), confirmed via verbose SSH showing the
+local key is offered and refused by the server, not a timeout or DNS flake (a later retry
+couldn't even resolve the hostname). This blocks checking job 2695890's status or pulling
+`mind_treatment_v2`'s checkpoint from here. Per this project's "Resource Availability" rule
+(CLAUDE.md), this is named explicitly rather than silently worked around or guessed at.
+
+**Q2 harness: `scripts/a2_q2_retrieve_rerank_eval.py`.** For a sample of real dev impressions,
+A1's own retriever (`build_index`/`retrieve_top_k` for BM25, `build_embedding_index`/
+`embed_retrieve_top_k` for embeddings, both unchanged) pulls the top-$K$ candidates from the
+**whole corpus** using the user's real history as the query, and `OfficialNRMSScorer`
+re-ranks that retrieved list. No new statistical machinery: `ranking_metrics.py`'s existing
+`safe_auc`/`mrr`/`ndcg_at_k`/`rank_candidates`/`ranking_metric_ci`, and
+`run_gated_cohort_experiment.py::paired_metric_diff_ci` (ADR-010's statistic, already used by
+`a2_evaluate_scores.py`), are reused exactly as-is for an after-vs-before paired test.
+
+The retrieval ceiling is **measured fresh on the same sample**, not re-cited from ADR-006/008
+at a possibly different scale: the hit rate (= recall@$K$) is just another `ranking_metric_ci`
+call over a 0/1 per-impression column.
+
+**Verified correct before being treated as a result.** On real MINDsmall-dev data with both
+retrievers, the harness's own freshly-measured hit rate landed inside or immediately next to
+the independently-measured citations for the same corpus: BM25 3.70% (CI 3.05–4.37%, $n=3000$)
+against ADR-006's 2.62% (CI 2.52–2.72%); embeddings 4.0% (CI 1.33–7.33%, $n=150$) against
+ADR-008's 2.78%. Different systematic samples, same order of magnitude — real evidence the
+retrieval+sampling logic is correct, not just that the script runs without crashing. 7 new unit
+tests cover the two pure-logic functions (`systematic`, `score_one_ranking`); the rest is I/O
+against real zips/parquets/a torch checkpoint, verified this way instead.
+
+**An honest interim result, explicitly not Q3's answer.** With Ada unreachable, no full-scale
+checkpoint exists anywhere reachable this session (the original `mind_control`/`mind_treatment`
+runs predate the weight-saving fix and their weights cannot be recovered; `mind_treatment_v2`
+is still training on Ada). A real, reduced-scale control checkpoint was trained locally instead
+(CPU, MINDsmall, 20,000/156,965 train impressions, 1 epoch, dev monitor AUC 0.5676) purely to
+exercise the harness with a genuine model rather than block entirely:
+
+| | Value | 95% CI | n |
+|---|---:|---|---|
+| Hit rate (BM25, $K$=200) | 3.70% | 3.05–4.37% | 3,000 sampled |
+| Before (BM25 order) AUC | 0.5483 | 0.5021–0.5957 | 111 (hits only) |
+| After (NRMS re-rank) AUC | 0.5019 | 0.4500–0.5524 | 111 (hits only) |
+| Paired after − before | **−0.0464** | −0.1154, +0.0246 | not significant |
+
+Full detail: `results/a2_q2/README.md`. **This is not evidence that NRMS re-ranking fails** —
+it's evidence about a 1-epoch/20K-impression checkpoint, undertrained by construction relative
+to the real reproduction (AUC 0.6831 at 10 epochs/full data, this ADR's Q3 section). The
+honestly-reported answer requires the full-scale checkpoint; that re-run is specified and ready
+(`results/a2_q2/README.md`'s exact command) for whenever Ada is reachable again.
+
+**README.md** now has a full A2 section (environment setup, the one-command Q3 A/B reproduce
+path, the GPU retraining command, and commands for Q1/Q2/Q4/the leaderboard-submission script).
+The Q3 reproduce command was run for real against the durable score parquets before being
+committed to the doc — it reproduced this ADR's exact cited numbers (control 0.6831 → treatment
+0.6868, diversity −0.0060) in ~4.7 minutes on a laptop CPU, no GPU needed.
+
 ## Addendum (2026-09-11, late): timebox expired → Option B
 
 **Trigger.** This is the engineer's own rule: "If it's not training cleanly by then, stop, fall

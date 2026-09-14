@@ -379,6 +379,151 @@ above.
 
 ---
 
+# Assignment 2 — Reproduction, A/B Testing & the Retrieve-then-Rank Pipeline
+
+> Assignment 2 — CS4.406, built on this repository's Assignment 1 pipeline (branch `a2-q3-official-baseline`)
+
+A2 reproduces the official NRMS model (Wu et al. 2019) to the exact published
+configuration for both datasets, runs it as an A/B test (control =
+reproduced baseline, treatment = one principled change per dataset), and
+adds a literal retrieve-then-rank evaluation on top of A1's retriever. See
+`decisions/ADR-015-a2-official-baseline-reproduction.md` for the full design
+and results, `docs/design_note_a2.tex`/`.pdf` for the write-up, and
+`decisions/ADR-016-mind-click-history-features.md` for Q1.
+
+**Environment.** A2's training scripts need `torch`, which is not in this
+project's local Poetry environment (`pyproject.toml` — A1 never needed it).
+Everything here assumes `pip install torch` (CPU wheel is enough for
+`scripts/a2_q2_retrieve_rerank_eval.py` and small local runs; a real GPU is
+needed for a full-scale MIND/EB-NeRD training run and was done on Ada, IIIT-H's
+SLURM cluster — see `docs/ada_cluster_setup.md` for that environment's own
+setup and gotchas, none of which apply to running locally).
+
+## One-command reproduce (Q7): the evaluation half, not the GPU training half
+
+Training the real control/treatment NRMS models end-to-end takes GPU-hours
+(MINDlarge: ~34-37h on a single RTX 2080 Ti; see ADR-015). That's not
+something a "one command" can honestly paper over, so what *is* one command
+is re-running every downstream evaluation from the already-trained models'
+output (`scores.parquet`/`results.json`). The per-impression `scores.parquet`
+files are **132 MB and deliberately not in git** (Q8's no-large-binaries
+policy) — only their sha256 and the metrics/CIs computed from them are
+committed, under `results/a2_q3/` (see that directory's own `README.md`).
+Re-running this command needs the actual parquet files, either regenerated
+by `a2_nrms_official_run.py` (below) or fetched from their durable copy
+(`~/a2_model_artifacts/a2_q3_results/` on the machine that trained them, or
+Ada's own `$HOME/a2/results/` — matched against the recorded sha256s):
+
+```bash
+poetry run python scripts/a2_evaluate_scores.py \
+    --control  ~/a2_model_artifacts/a2_q3_results/mind_control_scores.parquet \
+    --treatment ~/a2_model_artifacts/a2_q3_results/mind_treatment_scores.parquet \
+    --out /tmp/mind_ab.json --dataset mind \
+    --source-zip data/raw/mind/MINDlarge_dev.zip \
+    --articles data/processed/mind/large/dev/articles.parquet \
+    --train-impressions data/processed/mind/large/train/impressions.parquet
+```
+
+reproduces Q3's full A/B result table (AUC/MRR/nDCG@5/nDCG@10, paired
+bootstrap CI, diversity/novelty/coverage guardrails) exactly — verified
+directly, ~4.7 min on a laptop CPU for MINDlarge-dev's 376,471 impressions,
+no GPU needed — given the score files. The equivalent EB-NeRD invocation
+swaps in the `ebnerd_*` scores/config paths and the `ebnerd_small` processed
+dir (244,647 impressions, well under a minute).
+
+## Retraining a model from scratch (the GPU half)
+
+```bash
+poetry run python scripts/a2_nrms_official_run.py \
+    --dataset mind --arm control --out-dir results/mind_control \
+    --mind-train-zip data/raw/mind/MINDlarge_train.zip \
+    --mind-dev-zip data/raw/mind/MINDlarge_dev.zip \
+    --mind-utils-dir data/processed/mind/mind_utils
+# --arm treatment additionally needs --abstract-size 50
+```
+
+`--dataset ebnerd` follows the same shape (`--ebnerd-zip`, `--ebnerd-tokens`
+from `scripts/a2_ebnerd_prepare_tokens.py`, `--arm treatment` needs no extra
+flag — EB-NeRD's treatment is freshness late-fusion, on by construction).
+`--max-train-impressions`/`--max-eval-impressions` bound a smoke run (a few
+minutes on a laptop CPU); omitting them runs the full official schedule (MIND
+10 epochs / EB-NeRD 5 epochs, no subsampling) — that's the multi-hour,
+GPU-shaped run. `scripts/a2_nrms_official.sbatch` is the hardened Ada launcher
+actually used for every real run in ADR-015 (GPU-capability gate, node
+constraint, qos) — a template for anyone repeating this on a different SLURM
+cluster, not portable as-is. `scripts/a2_mind_official_nrms.py` /
+`a2_ebnerd_official_nrms.py` are the abandoned Option A (official TF/Keras
+code) entry points, timeboxed out per ADR-015; kept for the record, not part
+of the reproduce path.
+
+## Q1: does click-history feature engineering beat the deployed baseline?
+
+```bash
+poetry run python scripts/run_mind_history_features_experiment.py --bundle small
+```
+
+Candidate L (ADR-016) — click count, category/subcategory match, and two
+recency-weighted affinity features, combined via a cheap logistic regression
+and compared against the deployed embedding baseline via the same
+`paired_metric_diff_ci` statistic as every other A/B test in this project. A
+real, CI-clear **loss**, reported honestly rather than dropped.
+
+## Q2: the literal retrieve-then-rank harness
+
+```bash
+poetry run python scripts/a2_q2_retrieve_rerank_eval.py \
+    --mind-bundle small --mind-dev-zip data/raw/mind/MINDsmall_dev.zip \
+    --checkpoint <model_weights.pt from a2_nrms_official_run.py> \
+    --abstract-size 0 --retriever bm25 --k 200 --n-impressions 3000 \
+    --out results/a2_q2/mind_small.json
+```
+
+Runs A1's own BM25/embedding retriever (`--retriever embedding` reuses the
+cached `data/processed/mind/<bundle>/dev/embeddings/`) to pull the top-K
+candidates from the **whole corpus** per sampled impression, using the
+user's real history as the query — then re-ranks that retrieved list with
+the trained `OfficialNRMS` and reports AUC/MRR/nDCG@5/nDCG@10 both before
+(retrieval order) and after (NRMS re-rank), paired-bootstrapped, against a
+hit rate (= recall@K) computed **fresh on the same sample**, not cited from
+an older benchmark run at a possibly different scale. This is deliberately
+distinct from the two Codabench submissions, which both rank each
+impression's own in-view list (what the competitions actually score) — see
+ADR-015's Q2 section for why NRMS is the only re-ranker evaluated this way
+(Candidate K's GBDT features are impression-conditional and undefined for a
+retrieved-but-never-shown candidate).
+
+Needs a checkpoint from `a2_nrms_official_run.py` (`--checkpoint
+.../model_weights.pt`, matching `--abstract-size` to the arm it was trained
+with: 0 control / 50 treatment).
+
+## Q3 leaderboard submissions
+
+```bash
+poetry run python scripts/a2_generate_mind_test_predictions.py \
+    --checkpoint <model_weights.pt> --mind-test-zip data/raw/mind/MINDlarge_test.zip \
+    --mind-utils-dir data/processed/mind/mind_utils --abstract-size 50 \
+    --out-dir submissions/mind_large_test_nrms_treatment
+```
+
+Produces `prediction.zip` in the same official `impression_id
+[rank_1,...,rank_N]` format as A1's own submission scripts (reused
+unchanged via `src/submission/mind_format.py`). Uploading to Codabench is
+always a manual, engineer-only step — see "Leaderboard Submission" above.
+
+## Q4: cost/latency
+
+```bash
+poetry run python benchmarks/profile_mind.py    # or profile_ebnerd.py
+poetry run python benchmarks/cost_qps.py
+```
+
+`cost_qps.py` turns the newest measured latency profile into a p99-SLA/QPS/
+cost-per-1000-queries table; its stated pricing/hardware-mapping assumptions
+are printed alongside the numbers (see the script's own docstring) — never
+report the cost figure without them.
+
+---
+
 # References
 
 ## Course
@@ -386,6 +531,7 @@ above.
 **CS4.406 – Information Retrieval & Extraction**
 
 Assignment 1 — Lexical & Semantic Retrieval
+Assignment 2 — Reproduction, A/B Testing & Retrieve-then-Rank
 
 ## Datasets
 

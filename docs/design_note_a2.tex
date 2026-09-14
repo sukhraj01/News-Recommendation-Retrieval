@@ -101,10 +101,31 @@ do not.
 
 Both leaderboard submissions rank each impression's own shown candidate list ---
 what the competitions actually score. A2 additionally asks for top-$K$ retrieval
-from A1's own generator, $K\sim100$--$200$. We report this honestly, separately:
-A1's measured recall@200 is 2.62--2.78\% on MIND and 1.21--2.77\% on EB-NeRD, so
-at least $\sim$97\% of clicked articles never enter a top-200 list from either
-retriever. No re-ranker can recover a click the candidate generator never surfaced.
+from A1's own generator, $K\sim100$--$200$, re-ranked, with before/after metrics
+reported. This is built as a literal, runnable harness
+(\texttt{scripts/a2\_q2\_retrieve\_rerank\_eval.py}), not left as a citation:
+A1's retriever pulls the top-$K$ candidates from the \emph{whole corpus} per
+sampled impression using the user's real history as the query, and the trained
+\texttt{OfficialNRMS} re-ranks that retrieved list. The retrieval ceiling is
+measured fresh on the same sample rather than re-cited from an earlier
+benchmark run, via the same bootstrap machinery as every other metric in this
+project. A1's independently measured recall@200 (2.62--2.78\% MIND, 1.21--2.77\%
+EB-NeRD) means at least $\sim$97\% of clicked articles never enter a top-200
+list from either retriever --- no re-ranker can recover a click the candidate
+generator never surfaced, and the harness's own freshly-measured hit rates
+confirm this order of magnitude directly (3.70\%, CI 3.05--4.37\%, BM25 on a
+3,000-impression MINDsmall-dev sample).
+
+A full-scale run (the actual reproduced/treatment NRMS re-ranking A1's
+retrieval on MINDlarge-dev) was queued but blocked this session by an
+environment access gap (the working environment could not reach the GPU
+cluster holding the trained checkpoint --- see ADR-015). What is reported
+instead is a real, honestly-labeled interim check with a reduced-scale local
+checkpoint (1 epoch, 20{,}000 impressions, CPU): after-vs-before AUC
+$-0.0464$ (CI $-0.1154$, $+0.0246$), not significant. This is evidence about
+an undertrained checkpoint, not evidence that re-ranking fails --- the
+decisive run needs the full-scale checkpoint and is specified, ready to run,
+in \texttt{results/a2\_q2/README.md}.
 
 \textbf{Only NRMS (both datasets) re-ranks in that evaluation.} Candidate K's GBDT
 is excluded by construction: its features are \emph{impression-conditional}
