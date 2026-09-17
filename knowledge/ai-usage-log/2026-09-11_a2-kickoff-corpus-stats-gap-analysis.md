@@ -287,3 +287,37 @@
   capability gap, restated in this project's own README this same session. The validated
   `prediction.zip` will be prepared and left ready; the literal upload remains the one
   documented pending human action, exactly as for every submission before it.
+
+## Autonomous execution phase (2026-09-15 through 2026-09-17, no new engineer prompts)
+
+Per Prompt 10's explicit standing instruction to proceed automatically once job 2695890
+finished, this phase had no new verbatim engineer input to log -- everything below executed the
+decisions already made and documented above. Recorded here per this project's own "every
+session leaves a durable record" requirement, even without a new prompt to quote.
+
+- **Job 2695890 completed clean:** `COMPLETED`, exit 0, 1d10h11m. Final dev monitor AUC
+  0.686786, matching the already-reported 0.6868 to four decimal places -- the pre-committed
+  decision rule (PROJECT_STATE.md) fired "proceed," not "stop and flag."
+- **Two real infrastructure faults hit and fixed, neither a code defect:** the chained
+  prediction job failed in 42s on a bad node (`gnode066`, CUDA init error despite a working
+  `nvidia-smi` -- excluded and resubmitted); the retry then failed on a real deployment gap
+  (Ada's `$HOME/a2/repo` was missing most of `src/` -- only `src/retrieval/` had ever been
+  pushed there across this project's whole history; fixed by pushing the complete tree). Third
+  attempt completed clean, 111.6 min.
+- **The submission validated with the same real discipline as every prior one:** a purpose-built
+  validator script (`scripts/a2_validate_mind_prediction.py`), unit-tested against known-good
+  and known-bad fixtures *before* being trusted on the real 2,370,727-line file, not assumed
+  correct. A spot-check of MIND's documented `N89741` missing-candidate quirk found it is
+  actually present in this split's own catalog (checked directly) and scored normally -- a real,
+  positive confirmation of test-catalog-only scoring holding, reported as the actual finding
+  rather than forced to match the expected one.
+- **Q2's real, full-scale answer superseded the interim result, in the opposite direction the
+  interim result predicted it might:** using the real `mind_treatment_v2` checkpoint on
+  MINDlarge-dev, NRMS re-ranking is a large, CI-clear win over raw BM25 order (paired AUC
+  +0.1796 [+0.1375,+0.2213]) -- confirming the interim check's own stated caveat that its null
+  result was an undertrained-checkpoint artifact, not a verdict on re-ranking. ADR-015,
+  `docs/design_note_a2.tex` (recompiled, re-verified at 6 pages via `pypdf`), `results/a2_q2/`,
+  and PROJECT_STATE.md all updated with the real numbers; the superseded interim result kept
+  as historical record, not deleted, per this project's decision-reversal principle.
+- All of the above is AI-generated, unedited by the engineer (who was unavailable throughout
+  this phase per Prompt 10).

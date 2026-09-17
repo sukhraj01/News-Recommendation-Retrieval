@@ -814,6 +814,75 @@ The ceiling is already measured and bounds this evaluation: recall@200 is 2.62% 
 2.78% (embeddings) on MINDsmall-dev, 2.77% / 1.21% on ebnerd_small. At least ~97% of clicked
 articles never enter a top-200 list, so no re-ranker can recover them.
 
+## Addendum (2026-09-17) — job 2695890 completed; shipped; Q2's real answer
+
+**The retrain finished clean.** Job 2695890: `COMPLETED`, exit 0, 1 day 10h11m elapsed (close to
+the ~34-37h projection). Final (epoch 10) dev monitor AUC: **0.686786**, matching the
+already-evaluated 0.6868 to four decimal places — the exact mitigation this ADR specified in
+advance for GPU non-determinism. `mind_treatment_v2` is the same effective model as the already-
+reported treatment result; nothing in this ADR's Q3 tables needed revision.
+
+**A real, node-specific infrastructure fault, fixed by exclusion (not a code bug).** The first
+prediction-generation job (2696298, chained `--dependency=afterok:2695890`) failed in 42s on
+`gnode066`: `nvidia-smi` reported the GPU fine, but torch's CUDA init raised `CUDA unknown
+error` — a newer driver (595.84) than every other node seen this project (570.211.01), on a node
+never used before. Resubmitted with `--exclude=gnode066`; landed on `gnode070` (driver 595.91.07,
+a similarly newer driver but no init failure there), cleared the GPU gate cleanly. Separately,
+that same resubmission first failed on a real deployment gap: `$HOME/a2/repo` on Ada is not a git
+checkout but a manually-curated subset of files pushed over the project's history, and only
+`src/retrieval/` had ever been pushed — `src/submission/`, `src/evaluation/`, `src/datasets/`,
+`src/utils/` were missing, so `a2_generate_mind_test_predictions.py`'s import of
+`src.submission.mind_format` failed immediately. Fixed by pushing the entire local `src/` tree
+(not just the missing pieces, to close this gap for good). Third resubmission (job 2699322)
+ran clean end to end: 111.6 minutes, `COMPLETED`, exit 0.
+
+**The real submission, validated with the same discipline as every prior one (ADR-012's
+precedent).** `submissions/mind_large_test_nrms_official_treatment/prediction.zip`:
+- **Line count:** 2,370,727 — independently verified via `wc -l`, exact match to this project's
+  known MINDlarge_test scale.
+- **Format:** a purpose-built validator (`scripts/a2_validate_mind_prediction.py`, unit-tested
+  against known-good and known-bad fixtures before trusting it on the real file) found 0
+  malformed lines, 0 duplicate impression ids, and every one of 2,370,727 rank lists a genuine
+  permutation of 1..N.
+- **A real, checked finding, not the expected one:** `N89741` (previously documented in ADR-012
+  as a MIND missing-candidate quirk) is in fact present in `MINDlarge_test`'s own `news.tsv` —
+  checked directly. It scored and ranked normally (rank 44 of 138 in the one impression checked
+  where it's a real candidate), which is correct: the earlier "missing" finding was about a
+  *union-catalog* scoring bug (Candidate J's, already fixed), not about this article being absent
+  from test's own catalog. Test-catalog-only scoring (this project's own established discipline)
+  means no candidate should ever fall through to the `-inf` convention here unless it is
+  genuinely absent from test's own news.tsv — this spot-check is a real, positive confirmation of
+  that discipline holding, not evidence of a defect.
+- **Zip packaging:** `prediction.txt` at the zip root, matching Codabench's required format
+  exactly (same convention as every prior submission).
+- **sha256-verified** identical between Ada and the local copy at every hop.
+
+**Ready to ship, upload still the engineer's own manual step** — unchanged from every prior
+submission in this project (README.md, PROJECT_STATE.md's Q7 checklist). Nothing here attempts
+or claims to perform that upload.
+
+**Q2's real answer, superseding the interim check.** Full-scale harness run:
+`mind_treatment_v2`'s actual checkpoint, MINDlarge-dev, BM25 top-200 retrieval, 8,000 sampled
+impressions (`results/a2_q2/mind_large_bm25.json`, full detail in `results/a2_q2/README.md`).
+
+| | Value | 95% CI |
+|---|---:|---|
+| Hit rate (recall@200, measured fresh) | 3.21% | 2.83–3.61% |
+| Before (BM25 order) AUC | 0.5428 | 0.5086–0.5753 |
+| After (NRMS re-rank) AUC | **0.7224** | 0.6890–0.7542 |
+| Paired after − before AUC | **+0.1796** | +0.1375, +0.2213 |
+| Paired after − before MRR/nDCG@5/nDCG@10 | all CI-clear wins | — |
+
+A large, unambiguous win for re-ranking, exactly the opposite direction from the interim check's
+null result — confirming that earlier result was evidence about an undertrained 1-epoch/20K-
+impression checkpoint, not about re-ranking itself, precisely as that addendum flagged in
+advance. The honest complete answer to Q2 has two halves, neither substituting for the other:
+retrieval recovers only ~3.2% of true clicks into its top-200 (the measured ceiling), but
+*within* that 3.2%, NRMS re-ranking is a substantial, CI-clear improvement over raw retrieval
+order. `docs/design_note_a2.tex` §1.2 and `PROJECT_STATE.md`'s Q2 row updated to match; the
+interim result is kept in `results/a2_q2/README.md` as historical record, not deleted, per this
+project's decision-reversal principle.
+
 ## Risks
 
 - `/share1` may not be mounted on compute nodes. The prep job fails fast on this.

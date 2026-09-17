@@ -116,16 +116,22 @@ generator never surfaced, and the harness's own freshly-measured hit rates
 confirm this order of magnitude directly (3.70\%, CI 3.05--4.37\%, BM25 on a
 3,000-impression MINDsmall-dev sample).
 
-A full-scale run (the actual reproduced/treatment NRMS re-ranking A1's
-retrieval on MINDlarge-dev) was queued but blocked this session by an
-environment access gap (the working environment could not reach the GPU
-cluster holding the trained checkpoint --- see ADR-015). What is reported
-instead is a real, honestly-labeled interim check with a reduced-scale local
-checkpoint (1 epoch, 20{,}000 impressions, CPU): after-vs-before AUC
-$-0.0464$ (CI $-0.1154$, $+0.0246$), not significant. This is evidence about
-an undertrained checkpoint, not evidence that re-ranking fails --- the
-decisive run needs the full-scale checkpoint and is specified, ready to run,
-in \texttt{results/a2\_q2/README.md}.
+\textbf{The full-scale run: a large, CI-clear win for re-ranking.} Using the real
+treatment checkpoint (10 epochs, MINDlarge, dev AUC 0.6868 --- matching \S2.2's
+Q3 result to four decimal places) on 8,000 sampled MINDlarge-dev impressions:
+hit rate 3.21\% (CI 2.83--3.61\%, consistent with the ceiling above), and among
+the impressions where the retrieved 200 actually contain the real click, NRMS
+re-ranking lifts AUC from 0.5428 (raw BM25 order, barely above random) to
+\textbf{0.7224} --- paired $+0.1796$ [$+0.1375,+0.2213$], with MRR/nDCG@5/nDCG@10
+all CI-clear wins in the same direction (\texttt{results/a2\_q2/README.md}). An
+earlier interim check, run while this session's environment could not yet reach
+the GPU cluster holding the trained checkpoint, used a deliberately-flagged
+1-epoch/20,000-impression local checkpoint and found no significant effect
+(paired AUC $-0.0464$, CI spanning zero) --- exactly the undertrained-checkpoint
+artifact that check was labeled as, now superseded by the real result. The
+honest overall answer: re-ranking helps substantially \emph{when} retrieval
+succeeds, but cannot recover the $\sim$97\% of clicks retrieval never surfaces
+at all --- both halves of Q2's answer, not one standing in for the other.
 
 \textbf{Only NRMS (both datasets) re-ranks in that evaluation.} Candidate K's GBDT
 is excluded by construction: its features are \emph{impression-conditional}
@@ -295,6 +301,18 @@ significant} --- sensible, since richer candidate text cannot improve a user
 representation built from zero history. The reproduced-then-improved pipeline
 still does not close cold-start, consistent with every earlier finding in this
 project.
+
+\textbf{Shipped as the new MIND leaderboard submission.} The $-0.0060$ diversity
+regression is real (above) but is relative to the reproduced control, not to
+what was actually deployed: measured against Candidate J's real deployed
+diversity@10 (0.7840, from J's own submitted predictions), the treatment is a
+diversity \emph{improvement} of $+0.0443$ --- an order of magnitude larger than
+the regression it costs relative to the lab-only control (ADR-015's 2026-09-14
+addendum). Real MINDlarge-test predictions were generated from the actual
+trained checkpoint (2,370,727 lines, independently verified: exact line-count
+match, every line a valid permutation, zero duplicates or malformed rows) and
+packaged as \texttt{prediction.zip}; the Codabench upload itself is the
+engineer's own manual step, as for every prior submission in this project.
 
 \section{Serving and Scale Analysis (Q4)}
 

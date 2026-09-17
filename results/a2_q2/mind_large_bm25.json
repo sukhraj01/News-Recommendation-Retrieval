@@ -1,0 +1,109 @@
+{
+  "config": {
+    "mind_bundle": "large",
+    "retriever": "bm25",
+    "k": 200,
+    "checkpoint": "/tmp/mind_treatment_v2_model_weights.pt",
+    "abstract_size": 50,
+    "n_impressions_sampled": 8000,
+    "seed": 0
+  },
+  "hit_rate": {
+    "value": 0.032125,
+    "ci_low": 0.028263778764382193,
+    "ci_high": 0.036139004084494906,
+    "n_impressions": 8000,
+    "n_users": 7917,
+    "n_skipped": 0
+  },
+  "before": {
+    "auc": {
+      "value": 0.5428083432815064,
+      "ci_low": 0.5086215750260485,
+      "ci_high": 0.5752543102937876,
+      "n_impressions": 257,
+      "n_users": 257,
+      "n_skipped": 7743
+    },
+    "mrr": {
+      "value": 0.0015787289049947635,
+      "ci_low": 0.0010207378212326423,
+      "ci_high": 0.002299318936264,
+      "n_impressions": 8000,
+      "n_users": 7917,
+      "n_skipped": 0
+    },
+    "ndcg5": {
+      "value": 0.03498575910362045,
+      "ci_low": 0.0163133699035654,
+      "ci_high": 0.056567696487260226,
+      "n_impressions": 257,
+      "n_users": 257,
+      "n_skipped": 7743
+    },
+    "ndcg10": {
+      "value": 0.041145817663398115,
+      "ci_low": 0.021711706844753317,
+      "ci_high": 0.06275195733644194,
+      "n_impressions": 257,
+      "n_users": 257,
+      "n_skipped": 7743
+    }
+  },
+  "after": {
+    "auc": {
+      "value": 0.7224339044704426,
+      "ci_low": 0.6889607351204003,
+      "ci_high": 0.7542392964400337,
+      "n_impressions": 257,
+      "n_users": 257,
+      "n_skipped": 7743
+    },
+    "mrr": {
+      "value": 0.004935950097906859,
+      "ci_low": 0.003780769653068726,
+      "ci_high": 0.00615637943659704,
+      "n_impressions": 8000,
+      "n_users": 7917,
+      "n_skipped": 0
+    },
+    "ndcg5": {
+      "value": 0.14624728099941114,
+      "ci_low": 0.11236636185280667,
+      "ci_high": 0.18490437567212198,
+      "n_impressions": 257,
+      "n_users": 257,
+      "n_skipped": 7743
+    },
+    "ndcg10": {
+      "value": 0.17707526208382746,
+      "ci_low": 0.1441518601458612,
+      "ci_high": 0.21577939922836786,
+      "n_impressions": 257,
+      "n_users": 257,
+      "n_skipped": 7743
+    }
+  },
+  "paired_after_minus_before": {
+    "auc": {
+      "diff": 0.17962556118893624,
+      "ci_low": 0.13754675187586782,
+      "ci_high": 0.22125367005952284
+    },
+    "mrr": {
+      "diff": 0.0033572211929120957,
+      "ci_low": 0.0022341977573407798,
+      "ci_high": 0.004505724299173298
+    },
+    "ndcg5": {
+      "diff": 0.1112615218957907,
+      "ci_low": 0.07572515589450106,
+      "ci_high": 0.14826784878791582
+    },
+    "ndcg10": {
+      "diff": 0.13592944442042937,
+      "ci_low": 0.1016063420426865,
+      "ci_high": 0.17399887593220745
+    }
+  }
+}
