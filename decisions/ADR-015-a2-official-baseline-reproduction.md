@@ -883,6 +883,177 @@ order. `docs/design_note_a2.tex` §1.2 and `PROJECT_STATE.md`'s Q2 row updated t
 interim result is kept in `results/a2_q2/README.md` as historical record, not deleted, per this
 project's decision-reversal principle.
 
+## Addendum (2026-09-18) — real Codabench score collapsed (0.5589); root cause found and fixed
+
+**Submission 930353 scored 0.5589 on the real MINDlarge_test leaderboard** — far below the
+0.6868 local dev AUC and far outside every other candidate's dev-to-test compression range in
+this project (hundredths of a point, not 0.13). Per the engineer's standing instruction, this
+was investigated methodically before any resubmission; submission 901961 (0.6462) remained the
+selected official entry throughout and was not touched.
+
+**Ruled out, each independently verified against Ada directly, not assumed:**
+- *Checkpoint provenance.* sha256 of `model_treatment_v2/model_weights.pt` on Ada matches what
+  job 2699322's own log recorded loading; the file's mtime falls inside job 2695890's run
+  window and has not been touched since; `torch.save` for MIND happens once, after the full
+  10-epoch loop (`a2_nrms_official_run.py:316`, "final epoch, no selection"), so there is no
+  earlier-epoch or wrong-job risk to check for.
+- *File transfer.* The committed `submissions/mind_large_test_nrms_official_treatment/
+  prediction.zip` is sha256-identical to what job 2699322 produced on Ada.
+- *Ranking direction.* `rank_candidates`/`ranks_for_impression` in `mind_format.py` (unchanged,
+  shared code already proven by Candidate J's real 0.6462 win) correctly assigns rank 1 to the
+  highest score; `OfficialNRMS.forward`'s logits are consistent with "higher = more relevant."
+  No sign flip.
+
+**Root cause: a user_id prefix mismatch silently zeroed out history for every impression.**
+`a2_generate_mind_test_predictions.py`'s hand-rolled `read_history_raw()` keyed its
+`query_by_user` dict by the RAW MIND user id (`"U84103"`), but
+`mind_format.py::read_raw_impressions()` (unchanged, shared) looks history up by the PREFIXED
+id (`prefix_id("mind", "U84103")` → `"mind:U84103"`). The keys never matched, so
+`query_by_user.get(row["user_id"], empty_query)` missed on every single impression and silently
+fell back to `empty_query = []`. **All 2,370,727 test impressions were scored with an empty,
+all-padding user history**, regardless of the user's real click history.
+
+Found via the exact procedure this ADR's parent objective specified: 10 real impressions were
+sampled from `MINDlarge_test`, independently re-scored on Ada using the real checkpoint and the
+production code path (verified byte-identical to what actually ran, via `diff` against every
+touched source file), and the reproduction landed **exactly** on the rank lists already embedded
+in the submitted `prediction.txt` — but only when history was forced empty for every user, even
+ones with real, non-trivial history (3–79 articles in the sample). That reproduction is the
+proof: checkpoint, scoring math, and ranking are all correct; the pipeline was simply never
+given the input it should have had.
+
+This explains why format validation passed cleanly (2,370,727 lines, 0 malformed, every rank
+list a genuine permutation): a history-blind run is not malformed, it collapses every user's
+personalization to the same constant content-prior ranking — well-formed, and just far worse
+than a personalized one on a metric that depends on telling users apart.
+
+Q2's real 0.7224 re-ranking result (this ADR, 2026-09-17 addendum) and the training run's own
+dev-monitor AUC (0.6868) are **not** affected: both source history from
+`user_history.parquet`/`OfficialNRMSScorer`'s documented contract via the tested orchestrator
+path or the training script's own in-memory row-index history, never through this hand-rolled
+reader.
+
+**Decision: retire the hand-rolled reader rather than patch the one key.** The one-line fix
+(key by `prefix_id("mind", user_id)` instead of the raw id) would have closed this specific
+instance, but the underlying condition that produced it — a second, hand-rolled TSV parser
+duplicating logic that already existed, tested, and prefixed correctly in
+`src/pipeline/orchestrator.py::build_mind_test` / `src/datasets/mind.py` — would still exist for
+the next change to this script to trip over. Candidate J's equivalent script
+(`generate_mind_nrms_predictions.py`) and the Q2 harness (`a2_q2_retrieve_rerank_eval.py`)
+already route history through `build_mind_test`'s `user_history.parquet`; `OfficialNRMSScorer`'s
+own docstring already documents its `query` contract as "as stored in `user_history.parquet`" —
+meaning the hand-rolled reader was always the deviation from this project's established
+convention, not a second valid implementation of it. With 3 days left, eliminating the
+duplication was judged lower-risk and no slower than patching: it deletes code instead of adding
+a new bespoke path to maintain, and it inherits `build_mind_test`'s existing real test coverage
+(`test_mind_loader.py`, `test_schema_conformance.py`, `test_leakage.py`) plus a static-history
+invariant assertion (`_build_user_history`) the hand-rolled version never had.
+
+`scripts/a2_generate_mind_test_predictions.py` was rewritten: `read_news_tsv_raw`/
+`read_history_raw` removed entirely; the article catalog and `query_by_user` now come from
+`build_mind_test(mind_test_zip, data_dir)` → `articles.parquet`/`user_history.parquet`, matching
+`generate_mind_nrms_predictions.py`'s established pattern exactly. Test-catalog-only scoring is
+preserved by construction (`build_mind_test` parses only that split's own `news.tsv`, never
+unioned with train/dev — the same discipline that already caught the N89741 quirk once).
+
+**Regression tests** (`tests/unit/test_mind_format.py`): `RecordingScorer` captures the actual
+`query` `write_predictions` passes through per impression (the existing `StubScorer` ignores
+`query` entirely and could not have caught this). One test pins the fix (a correctly-prefixed
+dict reaches the scorer with real history for the fixture's non-cold user, empty for the
+genuinely cold one); a second pins the failure mode itself so it can never regress silently (the
+same data, keyed the old unprefixed way, reaches the scorer as if every user were cold-start).
+
+**New permanent pre-upload gate** (`scripts/a2_check_mind_history_coverage.py`, per the
+engineer's explicit instruction): computes the real non-empty-history rate two independent ways
+— directly from `behaviors.tsv`'s own `history` column (no query_by_user, no join), and via the
+actual generation pipeline's join (`build_mind_test` → `user_history.parquet` →
+`query_by_user` → joined onto every real impression) — and fails loudly if they diverge beyond
+tolerance. This is exactly the check that would have caught the bug before any upload: on the
+real 2,370,727-impression MINDlarge_test,
+
+| | non-empty-history rate |
+|---|---:|
+| Ground truth (raw `behaviors.tsv`) | **98.77%** (2,341,619/2,370,727) |
+| Fixed pipeline (`build_mind_test` join) | **98.77%** (2,341,619/2,370,727) — 0.0000% difference |
+| (For reference) the broken pipeline that shipped 930353 | ~0% (confirmed via the 10-impression spot check) |
+
+Run on Ada (job 2700098, 31000M mem — the first attempt at 16000M OOM'd; `build_mind_test`'s
+exploded impressions table at MINDlarge_test's real 2,370,727-impression/~37-avg-candidate scale
+needs the same headroom the real generation jobs already budget for). The two independently-
+computed rates match to the exact row count, not just approximately — real confirmation the
+join is correct at full scale, not just on the 10-impression sample.
+
+`scripts/a2_generate_mind_test_predictions.py` now also runs this same check in-process as a
+`--min-history-hit-rate`-gated preflight, before any GPU time is spent, and
+`a2_generate_mind_predictions.sbatch` and the README's operational instructions are updated to
+match. 4 new unit tests (`test_a2_check_mind_history_coverage.py`) cover both rate functions
+against the real fixture and the CLI's pass/fail paths.
+
+**Regenerated submission.** Same checkpoint (`mind_treatment_v2/model_weights.pt`, unchanged,
+already verified clean above) — no retraining needed. Job 2700133 (`gnode085`, RTX 2080 Ti):
+in-process preflight confirmed the same 98.8% (2,341,619/2,370,727) hit-rate live before any
+scoring began, then `COMPLETED` clean, exit 0, 1:56:38 total (106.5 min of actual scoring,
+close to the prior run's 111.6 min — same order of magnitude, as expected for the same
+checkpoint and catalog size). Output: `results/mind_treatment_v2_test/prediction.zip`.
+
+Validated with the same discipline as every prior submission: `a2_validate_mind_prediction.py`
+found 2,370,727 lines, 0 malformed, 0 duplicate impression ids, every rank list a genuine
+permutation — identical clean bill of health to 930353's, confirming (again) that format
+validation alone was never going to distinguish the broken run from the fixed one. sha256
+(`415250e1…9b3cc9`) verified identical Ada↔local. Diffed directly against the broken 930353
+file: different on every line sampled — impression 1's rank list is `[6,14,15,9,12,13,16,10,3,
+2,8,4,1,7,11,5]` fixed vs. `[13,7,15,12,2,8,5,16,11,9,4,3,1,10,14,6]` in 930353, confirming the
+fix changes the actual output, not just the code path.
+
+Staged at `submissions/mind_large_test_nrms_official_treatment_fixed/prediction.zip` — a new
+directory, not overwriting `mind_large_test_nrms_official_treatment/` (930353's artifacts,
+left as historical record per this project's decision-reversal principle, same as the
+`_corrected` pattern already used for Candidate J's catalog-scoping fix).
+
+**Not yet done, and not this session's call to make alone (at the time of writing):** uploading
+the corrected file to Codabench. Per the engineer's standing instruction, 901961 (0.6462)
+remained the selected official submission and 930353 remained un-selected; the corrected file
+was staged, fully validated, awaiting the engineer's decision on whether/when to submit it as a
+new entry.
+
+## Addendum (2026-09-18, later same day) — corrected file uploaded; real, final MIND score 0.6766
+
+**The engineer uploaded the corrected file** (`submissions/mind_large_test_nrms_official_
+treatment_fixed/prediction.zip`) as **submission 930992 (2026-09-18 06:36)**. **Real Codabench
+score: 0.6766.**
+
+This is a sane result, not another anomaly: 0.6868 (local dev AUC) → 0.6766 (real Codabench) is
+inside this project's normal dev-to-test compression range (hundredths of a point), the same
+order of magnitude every other genuine candidate in this project has shown — unlike 930353's
+0.13-point collapse, which is exactly why that one was investigated rather than accepted at face
+value. It is also a real **+0.0304** improvement over the previous official submission (901961,
+0.6462), and the first MIND submission in this project to directly carry the official-baseline
+reproduction-plus-ablation result (Q3) all the way to a real leaderboard number.
+
+Confirmed two independent ways, matching this project's established two-screenshot convention
+(`leaderboard_screenshot_{upload,rank}.png`, e.g. ADR-012's/ADR-013's precedent):
+- **Participate-tab submission list:** submission 930992, `prediction.zip`, 2026-09-18 06:36,
+  Status "Finished", Score 0.6766.
+- **Public leaderboard rank table:** row 33, team "apollo19", 2026-09-18 06:36, submission
+  930992, Score 0.6766, next three columns 0.3293/0.3575/0.4151 — same ID, timestamp, and score
+  as the participate-tab view, an independent cross-check rather than the same number read twice
+  off one page.
+
+**930992 is now the selected official MIND submission, replacing 901961.** 930353 (0.5589)
+remains on record, un-selected, as the historical trail of the bug this addendum root-caused —
+not deleted, per this project's decision-reversal principle. Screenshots saved to
+`submissions/mind_large_test_nrms_official_treatment_fixed/leaderboard_screenshot_{upload,
+rank}.png`. `docs/design_note_a2.tex` §2.2 and `PROJECT_STATE.md`'s Q7 checklist updated to cite
+this real, final number in place of the earlier "awaiting upload" state.
+
+**Residual, explicitly out of scope this session.** `a2_q2_retrieve_rerank_eval.py` still
+hand-rolls its own `news.tsv` title/abstract reader (`read_news_tsv_raw`, catalog tokenization
+only, no user-id keying) rather than routing through `_parse_news_tsv`/`build_mind_test`. It is
+not implicated in this bug (its history comes correctly from `user_history.parquet`, confirmed
+by direct inspection) and its own result (Q2's real 0.7224) is independently verified, so it was
+left untouched given the 3-day budget — but it is the same class of duplication risk this
+addendum just retired elsewhere, and is worth the same treatment if this line of work continues.
+
 ## Risks
 
 - `/share1` may not be mounted on compute nodes. The prep job fails fast on this.

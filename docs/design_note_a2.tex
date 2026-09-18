@@ -302,17 +302,26 @@ representation built from zero history. The reproduced-then-improved pipeline
 still does not close cold-start, consistent with every earlier finding in this
 project.
 
-\textbf{Shipped as the new MIND leaderboard submission.} The $-0.0060$ diversity
-regression is real (above) but is relative to the reproduced control, not to
-what was actually deployed: measured against Candidate J's real deployed
-diversity@10 (0.7840, from J's own submitted predictions), the treatment is a
-diversity \emph{improvement} of $+0.0443$ --- an order of magnitude larger than
-the regression it costs relative to the lab-only control (ADR-015's 2026-09-14
-addendum). Real MINDlarge-test predictions were generated from the actual
-trained checkpoint (2,370,727 lines, independently verified: exact line-count
-match, every line a valid permutation, zero duplicates or malformed rows) and
-packaged as \texttt{prediction.zip}; the Codabench upload itself is the
-engineer's own manual step, as for every prior submission in this project.
+\textbf{Shipped as the new MIND leaderboard submission --- a real, confirmed win.}
+The $-0.0060$ diversity regression is real (above) but is relative to the
+reproduced control, not to what was actually deployed: measured against
+Candidate J's real deployed diversity@10 (0.7840, from J's own submitted
+predictions), the treatment is a diversity \emph{improvement} of $+0.0443$ ---
+an order of magnitude larger than the regression it costs relative to the
+lab-only control (ADR-015's 2026-09-14 addendum). Real MINDlarge-test
+predictions were generated from the actual trained checkpoint (2,370,727
+lines, independently verified: exact line-count match, every line a valid
+permutation, zero duplicates or malformed rows) and packaged as
+\texttt{prediction.zip}. A first upload (submission 930353) scored an
+anomalous 0.5589 --- a real pipeline bug (a user-id key mismatch silently
+scored every impression with empty history), root-caused via an independent
+re-scoring spot check and fixed at the source (ADR-015's 2026-09-18
+addendum), not a genuine generalization failure. The corrected file,
+regenerated from the same unmodified checkpoint, was uploaded as submission
+930992: \textbf{real Codabench score 0.6766} --- inside this project's normal
+dev-to-test compression range (0.6868 $\to$ 0.6766) and a real $+0.0304$ over
+the previous official submission (901961, 0.6462). 930992 is now the selected
+official MIND submission.
 
 \section{Serving and Scale Analysis (Q4)}
 
