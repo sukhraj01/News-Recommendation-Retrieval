@@ -501,9 +501,28 @@ with: 0 control / 50 treatment).
 ```bash
 poetry run python scripts/a2_generate_mind_test_predictions.py \
     --checkpoint <model_weights.pt> --mind-test-zip data/raw/mind/MINDlarge_test.zip \
-    --mind-utils-dir data/processed/mind/mind_utils --abstract-size 50 \
-    --out-dir submissions/mind_large_test_nrms_treatment
+    --mind-utils-dir data/processed/mind/mind_utils --data-dir data/processed/mind/large \
+    --abstract-size 50 --out-dir submissions/mind_large_test_nrms_treatment
 ```
+
+History and the article catalog come from `src/pipeline/orchestrator.py::build_mind_test`
+(writes parquet under `--data-dir`) — the same tested path Candidate J's equivalent script and
+the Q2 harness already use, not a hand-rolled reader (ADR-015's 2026-09-18 addendum: a prior
+version's hand-rolled reader had a user_id key mismatch that silently scored every impression
+with empty history; real Codabench score 0.5589 vs. 0.6868 local). The script aborts before any
+GPU time if the resulting history hit-rate looks broken (`--min-history-hit-rate`, default 30%).
+
+Before uploading anything to Codabench, run the standalone version of that same check against
+the full real test set:
+
+```bash
+poetry run python scripts/a2_check_mind_history_coverage.py \
+    --mind-test-zip data/raw/mind/MINDlarge_test.zip --data-dir data/processed/mind/large
+```
+
+It compares the pipeline's non-empty-history rate against ground truth computed directly from
+`behaviors.tsv`, independent of any query_by_user dict — a cheap, no-GPU, full-scale sanity pass
+that is now a required step before every MIND prediction upload, not just this one.
 
 Produces `prediction.zip` in the same official `impression_id
 [rank_1,...,rank_N]` format as A1's own submission scripts (reused

@@ -33,6 +33,24 @@ class StubScorer:
         return np.array([self.score_by_article.get(c, 0.0) for c in candidate_ids])
 
 
+class RecordingScorer:
+    """Records the exact `query` write_predictions passed in for each
+    impression, in row order. StubScorer above ignores `query` entirely, so
+    it cannot distinguish a correct query_by_user lookup from one that
+    silently missed and fell back to `empty_query` — exactly the real bug
+    this project shipped once (ADR-015, 2026-09-17 addendum: a hand-rolled
+    history reader keyed its dict by the raw user_id while write_predictions
+    looks it up by the prefixed one, so every lookup missed and every
+    MINDlarge_test impression was scored with empty history)."""
+
+    def __init__(self):
+        self.queries_seen: list = []
+
+    def score(self, query, candidate_ids):
+        self.queries_seen.append(query)
+        return np.zeros(len(candidate_ids))
+
+
 def test_read_raw_impressions_preserves_original_order_labeled():
     rows = read_raw_impressions(LABELED_ZIP, has_labels=True)
     assert [r["raw_impression_id"] for r in rows] == ["1", "2", "3"]
@@ -116,6 +134,46 @@ def test_write_truth_file_labels_match_original_order(tmp_path):
     impid3, labels3 = lines[2].split(" ")
     assert impid3 == "3"
     assert json.loads(labels3) == [1, 0]  # N4 clicked, N3 not -- reversed order preserved
+
+
+def test_write_predictions_looks_up_history_by_prefixed_user_id(tmp_path):
+    """Regression test for ADR-015's 2026-09-17 bug: a query_by_user dict
+    keyed by the RAW user_id ("U3") looks correct in isolation but silently
+    misses every real lookup, because read_raw_impressions' row["user_id"]
+    is always prefixed ("mind:U3") -- the exact convention every dataset
+    parser in src/datasets/ already follows (see test_mind_loader.py) and
+    the one a from-scratch reader has to remember to match. UNLABELED_ZIP's
+    U3 has real history "N1 N2"; U4 has none -- both must be distinguishable
+    on the scorer's side, not just present as valid dict entries."""
+    scorer = RecordingScorer()
+    correctly_prefixed = {"mind:U3": ["mind:N1", "mind:N2"]}
+
+    write_predictions(
+        tmp_path / "prediction.txt", UNLABELED_ZIP, scorer,
+        query_by_user=correctly_prefixed, empty_query=[], has_labels=False, seed=0,
+    )
+
+    assert scorer.queries_seen == [["mind:N1", "mind:N2"], []]  # impression 1 (U3), impression 2 (U4)
+
+
+def test_write_predictions_silently_drops_history_on_unprefixed_key(tmp_path):
+    """The failure mode itself, pinned so it can never regress unnoticed:
+    the SAME history data, keyed the way the retired hand-rolled reader
+    keyed it (raw "U3" instead of "mind:U3"), reaches the scorer as if
+    every user were cold-start. This is not a hypothetical -- it is what
+    actually shipped as Codabench submission 930353 (0.5589 vs. 0.6868
+    local), caught only by an independent re-scoring spot check, not by
+    format validation (a fully history-blind run still writes a
+    well-formed prediction file)."""
+    scorer = RecordingScorer()
+    unprefixed = {"U3": ["mind:N1", "mind:N2"]}  # the bug: dict key never went through prefix_id
+
+    write_predictions(
+        tmp_path / "prediction.txt", UNLABELED_ZIP, scorer,
+        query_by_user=unprefixed, empty_query=[], has_labels=False, seed=0,
+    )
+
+    assert scorer.queries_seen == [[], []]  # both users silently treated as cold-start
 
 
 def test_write_predictions_and_truth_have_matching_line_count(tmp_path):

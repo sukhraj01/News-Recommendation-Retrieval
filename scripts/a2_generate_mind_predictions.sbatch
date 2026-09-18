@@ -13,6 +13,13 @@
 # ADR-015: generate real MINDlarge_test Codabench predictions from a trained
 # OfficialNRMS checkpoint (scripts/a2_generate_mind_test_predictions.py).
 #
+# 2026-09-17 addendum: the script now routes history/catalog through
+# src/pipeline/orchestrator.py::build_mind_test (writes parquet to
+# --data-dir) instead of a retired hand-rolled TSV reader that had a
+# user_id prefix mismatch -- every impression was silently scored with
+# empty history, real Codabench score 0.5589 vs. 0.6868 local. See
+# ADR-015's 2026-09-17 addendum for the full root-cause writeup.
+#
 # Same hardened GPU-capability gate as a2_nrms_official.sbatch (real CUDA
 # matmul, not just is_available() -- see that script's comments for why).
 # --time=12h is generous, not a tight estimate: Candidate J's equivalent
@@ -57,6 +64,7 @@ python scripts/a2_generate_mind_test_predictions.py \
     --checkpoint "$CKPT" \
     --mind-test-zip "$P/raw/MINDlarge_test.zip" \
     --mind-utils-dir "$P/mind_utils" \
+    --data-dir "$P/data_large" \
     --abstract-size "$ABSTRACT_SIZE" \
     --out-dir "$P/results/${RUN_NAME}_test"
 echo "DONE $(date -Is)"
