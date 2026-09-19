@@ -102,3 +102,10 @@ benchmarks/results/snapshots/
 *.h5
 *.onnx
 *.safetensors
+
+# The assignment brief itself (A2.pdf) is course material, not project output.
+# It was tracked on the a2-q3-official-baseline branch; untracked here so the
+# published repository carries only our own work. A rule scoped to the repo
+# root, NOT a blanket *.pdf — docs/design_note*.pdf ARE deliverables and stay
+# tracked.
+/A2.pdf
