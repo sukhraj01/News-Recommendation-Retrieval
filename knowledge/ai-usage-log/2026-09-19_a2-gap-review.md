@@ -15,6 +15,16 @@
 
 5. > pushed now lets do the next step and let me know when done and tested. also let me know if any step requires rerunning of the pipeline which requires time as everything is already tested i feel, all we can do is at max update some docs or final report in desiogn note
 
+6. > start change 3
+
+7. > ok, now lets complete the project with the refinements and polish we discussed, tell me whats next (per our plan) and we can get on it and finalize stuff quick. again, step by step only, remove the prompt you added in the unstaged modified file for me creating the testguide as it is not relevant. and start the next step required
+
+8. > [the planned-changes table from an earlier Claude reply, re-pasted by the engineer] I think 1-3 were done, dont waste time installing latex library i will verify stuff on overleaf. just wrote it. and also the final report for this has to be not written by AI so in the end you will help me create a report of my own anyway
+
+9. > is it mentioned in A2 that report needs submission screenshots cause if not i dont wanna add them
+
+10. > ok so i have added the 2 screenshots in the results/ folder, scan through them and rename them and relocate them as needed (name is apollo19 in the screeenshots and you can see which is which via the score). so mention in the report where they are. also i dont think team contributions is really required per the A2 pdf so dont add that either (unless im wrong). just focus on this last step and i will jhandle the report on my own after this
+
 ## What was produced
 
 - AI-generated: a read-only review mapping the A2 brief (Q1–Q9) against the
@@ -34,4 +44,19 @@
   three README edits (verified fresh-clone setup path, a fresh-clone test-status
   table, and a correction of the false claim that `torch` was not a project
   dependency).
+- AI-generated, human-reviewed: the PROJECT_STATE.md handover pass — refreshed
+  date and current objective, the handover/branch note, the 2026-09-20 environment
+  verification row, a re-assessment of the three open risks (two closed by
+  measurement, kept with their resolutions), and two stale deliverable-checklist
+  rows.
+- AI-generated, human-reviewed: two edits to `docs/design_note_a2.tex` — a
+  Limitations bullet giving ADR-007's reason for coverage@10 having no bootstrap
+  CI, and a correction to §1.1's claim that EB-NeRD's session/context
+  features were added for A2 (git dates them to 2026-08-30, during A1). Not
+  recompiled locally by the engineer's instruction; the PDF is rebuilt on
+  Overleaf.
+- Human-supplied: the two Codabench leaderboard screenshots. AI-generated: their
+  renaming/relocation to `results/leaderboard_screenshots/`, the README
+  tabulating each row (read off the images themselves and cross-checked against
+  ADR-013/ADR-015), and the design-note paragraph pointing at them.
 - AI-generated: this log file.

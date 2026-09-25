@@ -41,10 +41,15 @@ bootstrap.
 
 EB-NeRD already had 65 engineered features (Candidate K, ADR-013): long/short-term
 category/topic/embedding affinity, freshness (\texttt{article\_age\_h}, the single
-top feature by gain), and --- added this assignment for Q1 --- session features
-(\texttt{session\_position}, \texttt{session\_start\_gap\_h}, three
-\texttt{context\_*} match features). MIND had none of this: only frozen-embedding
-similarity and symbolic category/entity overlap (Candidates A--J).
+top feature by gain), session features (\texttt{session\_position},
+\texttt{session\_start\_gap\_h}) and three \texttt{context\_*} match features.
+\emph{Stated precisely, because the distinction matters for what this assignment
+adds:} all 65, including the session and context features, were built during A1
+(the last of them on 2026-08-30, before A2 opened) --- so Q1 on EB-NeRD is
+answered largely by work that predates A2. What A2 adds for Q1 is Candidate L on
+MIND (below) and the Q9 pricing of the serving-time-unavailable features
+(\S2.1). MIND had none of this: only frozen-embedding similarity and symbolic
+category/entity overlap (Candidates A--J).
 
 Candidate L (A2 Q1, this assignment) adds five engineered features for MIND: click
 count, category match, subcategory match (the last two already existed unweighted
@@ -324,6 +329,18 @@ dev-to-test compression range (0.6868 $\to$ 0.6766) and a real $+0.0304$ over
 the previous official submission (901961, 0.6462). 930992 is now the selected
 official MIND submission.
 
+\textbf{Leaderboard evidence (Q5, Q7 deliverable \#3).} Both selected
+submissions are captured as leaderboard screenshots under
+\texttt{results/leaderboard\_screenshots/} (team \texttt{apollo19}), with a
+\texttt{README.md} tabulating what each row shows:
+\texttt{mind\_codabench\_930992\_leaderboard.png} --- MIND (competition 13967),
+rank 33, submission 930992, uploaded 2026-09-18 06:36, Score \textbf{0.6766};
+and \texttt{ebnerd\_recsys2024\_907863\_leaderboard.png} --- RecSys 2024 /
+EB-NeRD (competition 2469), rank 74, submission 907863, uploaded 2026-08-29
+23:01, Score \textbf{0.7542} (Candidate K, \S2.1). Upload-confirmation captures
+and every superseded submission sit beside their own predictions under
+\texttt{submissions/<run>/}.
+
 \section{Serving and Scale Analysis (Q4)}
 
 Everything below is a measured \emph{single-request} p99, not the batched,
@@ -416,6 +433,19 @@ here rather than discovered as an overrun.
 \section{Limitations and Open Items}
 
 \begin{itemize}
+\item \textbf{Every reported metric carries a bootstrap 95\% CI except
+  coverage@10, and that exception is deliberate.} Coverage is a \emph{set-union}
+  statistic --- the distinct articles appearing across every impression's top-10
+  --- not a per-impression mean. Under with-replacement resampling a user drawn
+  twice adds nothing new to a union, where a mean would correctly reweight, so a
+  naive bootstrap here is biased toward the $\sim$63.2\% effective-sample-size
+  artifact of the resampling mechanism rather than measuring real uncertainty. An
+  interval computed that way would \emph{look} rigorous while being wrong, so
+  coverage is reported as a point estimate with the reason stated, in results
+  output and in ADR-007 (sub-decision 4), rather than forced through machinery
+  that would misrepresent it. Coverage is a guardrail here, never a headline
+  claim, and both guardrail verdicts in \S2 hold on the CI-bearing metrics
+  independently of it.
 \item Q9's serving-time-unavailable ablation and Candidate K's 65-feature
   retrain are measured on \texttt{ebnerd\_small}, not the \texttt{ebnerd\_large}
   split behind the real 0.7542 Codabench score --- that bundle is unreachable
