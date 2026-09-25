@@ -2,7 +2,7 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
-## Assignment 2: current state (updated 2026-09-12)
+## Assignment 2: current state (updated 2026-09-20)
 
 **Brief:** `A2.pdf` (repo root). Due **2026-09-20**. Q1 features · Q2 two-stage re-ranker ·
 Q3 reproduce the official baseline, then beat it with an ablation and paired bootstrap CI ·
@@ -10,12 +10,29 @@ Q4 serving/scale · Q5 extended eval with slices · Q6 6-page design note · Q7�
 Team goal of rank < 10 on both leaderboards is a stretch on top of the graded work, pursued
 only once Q1–Q6 are solid.
 
-**Current objective: Q3.** See `decisions/ADR-015-a2-official-baseline-reproduction.md` (canonical).
+**Current objective (2026-09-20): the final submission pass — documentation, the design
+note, and getting the work onto `main`.** Q1–Q6 are all complete and evidenced below; no
+modelling work, retraining, or leaderboard submission remains. See
+`decisions/ADR-015-a2-official-baseline-reproduction.md` (canonical for Q3, which was the
+objective through 2026-09-18).
+
+**Handover (2026-09-20).** Work passed from the teammate who built Q1–Q6 to Neill Rawani for
+the final pass. Active branch is now `a2-final-polish`, cut from
+`a2-q3-official-baseline`'s head (`f17a1e7`). Two facts worth stating plainly because they
+are submission risks, not cosmetics:
+- **`main` still holds only the Assignment 1 state** — all 36 A2 commits live on the branch.
+  Anyone cloning the repository sees A1 unless the branch is merged. Merging it is the last
+  planned task of this pass.
+- The per-impression `scores.parquet` files behind the Q3 A/B numbers are **not on this
+  machine** (they live on the teammate's machine and Ada, gitignored per Q8). Their sha256s
+  and every metric computed from them are committed under `results/a2_q3/`, so the numbers
+  are auditable, but re-running `scripts/a2_evaluate_scores.py` here requires fetching them
+  first.
 
 | Item | Status |
 |---|---|
 | Corpus-stats anchor table | ✅ `docs/corpus_stats.md` + `scripts/compute_corpus_stats.py` (matches 2026-08-31 exactly) |
-| Local env | ✅ Rebuilt: poetry py3.11 venv had vanished; 328 passed / 1 skipped |
+| Local env | ✅ Rebuilt twice. 2026-09-12 (teammate's machine): poetry py3.11 venv had vanished; 328 passed / 1 skipped. **2026-09-20 (Neill's machine, from nothing — neither Python 3.11 nor Poetry present):** uv-installed CPython 3.11.15 + Poetry as a uv tool + `poetry install`, then **349 unit tests passed in ~20 s**. Integration/reproducibility error out wholesale with `RawDataMissingError` — expected, `data/raw/` is gitignored and `ebnerd_demo` is registration-gated, so a fresh clone cannot run them. **Deviation, recorded not hidden:** the locked `torch` 2.13.0 resolves to the CUDA build (18 `nvidia-*` wheels, ~5 GB, >50 min); this machine installed the `+cpu` wheel instead. Fine for tests and small local runs, **not** what a GPU run must use. Setup path and test expectations now documented in `README.md` |
 | Q3 Option A (official TF code on Ada) | ❌ **Timebox expired.** PyPI is ~0.09–0.37 MB/s from every reachable machine; the TF+CUDA env never finished (job 2694353 held a GPU idle ~4 h). See ADR-015 addendum. |
 | Q3 Option B (PyTorch port of the official configs) | ✅ **Complete.** `src/retrieval/nrms_official{,_data}.py`, 26 unit tests, local smoke tests pass, both datasets' control+treatment trained and A/B-verified through to a real MIND leaderboard result (930992, 0.6766) |
 | MIND control, job 2694501 | ✅ **Done** (13 h 13 m, 10 epochs). MINDlarge-dev, all 376,471 impressions: **AUC 0.6831** (CI 0.6821–0.6839), MRR 0.3803, nDCG@5 0.3620, nDCG@10 0.4279; guardrails diversity@10 0.8343, novelty@10 17.62, coverage@10 0.0627. Beats Candidate J (0.6579) by +0.0252 on the same split, marginal comparison not paired |
@@ -51,8 +68,8 @@ only once Q1–Q6 are solid.
 | 1 | README one-command reproduce | ✅ **Re-run live a second time, 2026-09-17**, after the full-scale Q2 run and every doc change since: `scripts/a2_evaluate_scores.py`'s documented invocation reproduced ADR-015's exact cited numbers again, byte-identical to the 2026-09-14 check (control 0.6831 → treatment 0.6868, diversity −0.0060) |
 | 2 | MIND leaderboard screenshot | ✅ **Resolved 2026-09-18 — real, final official score 0.6766 (submission 930992).** 930353 (the original upload) scored 0.5589 — a real pipeline bug, not a genuine result: `a2_generate_mind_test_predictions.py`'s hand-rolled history reader keyed its dict by the raw user_id while the lookup used the prefixed one, so every one of 2,370,727 impressions was scored with empty history (full root-cause writeup: ADR-015's 2026-09-18 addendum). Fixed by retiring the hand-rolled reader for the same tested `build_mind_test`/`user_history.parquet` path Candidate J and Q2 already use, plus regression tests (`test_mind_format.py`) and a new permanent pre-upload gate (`scripts/a2_check_mind_history_coverage.py`) verified against real ground truth (98.77% non-empty-history rate, exact match) before any re-upload. Same checkpoint, no retraining; regenerated via job 2700133, format-validated clean (0 malformed, 0 duplicates). **The engineer uploaded the corrected file as submission 930992 (2026-09-18 06:36), Score 0.6766** — sane, in this project's normal dev-to-test compression range (0.6868 → 0.6766), and a real +0.0304 over the previous official 901961 (0.6462). Confirmed independently on both the participate-tab submission list and the public leaderboard rank table (row 33, team "apollo19", same ID/timestamp/score). **930992 is now the selected official MIND submission, replacing 901961** — screenshots at `submissions/mind_large_test_nrms_official_treatment_fixed/leaderboard_screenshot_{upload,rank}.png` |
 | 3 | EB-NeRD leaderboard screenshot | ✅ Re-confirmed present on disk 2026-09-17: `submissions/ebnerd_testset_gbdt_k/leaderboard_screenshot_{upload,rank}.png`, submission 907863, score 0.7542, ADR-013. K's leaderboard entry is unchanged — the 2026-09-12 retrain was a local artifact recovery, not a new submission, per the engineer's explicit instruction |
-| 4 | AI usage log current through today | ✅ `knowledge/ai-usage-log/2026-09-11_a2-kickoff-corpus-stats-gap-analysis.md` — Prompts 1–10 verbatim plus the autonomous-execution phase (2026-09-15–17) that shipped the treatment and closed Q2. **2026-09-18: `2026-09-18_mind-submission-bug-investigation-and-fix.md`** — the 930353 root-cause investigation, fix, and the real final 930992/0.6766 result, Prompts 1–10 verbatim |
-| 5 | Working tree fully committed and pushed | ✅ Re-verified 2026-09-18: `git status` clean (only the pre-existing, unrelated untracked `.claude/`), `git fetch` shows local `a2-q3-official-baseline` matches `origin/a2-q3-official-baseline` exactly, HEAD at `70242a5` |
+| 4 | AI usage log current through today | ✅ `knowledge/ai-usage-log/2026-09-11_a2-kickoff-corpus-stats-gap-analysis.md` — Prompts 1–10 verbatim plus the autonomous-execution phase (2026-09-15–17) that shipped the treatment and closed Q2. **2026-09-18: `2026-09-18_mind-submission-bug-investigation-and-fix.md`** — the 930353 root-cause investigation, fix, and the real final 930992/0.6766 result, Prompts 1–10 verbatim. **2026-09-19/20: `2026-09-19_a2-gap-review.md`** — the handover session (brief-vs-repository gap review, environment rebuild, documentation pass), prompts verbatim and AI-vs-human marking, appended prompt-by-prompt as the session runs rather than reconstructed afterwards |
+| 5 | Working tree fully committed and pushed | 🟢 Was ✅ at 2026-09-18 (`a2-q3-official-baseline` matched its remote exactly, HEAD `70242a5`). **Now in motion again:** the handover pass commits to `a2-final-polish`, and the deliverable is not met until that branch is pushed *and* merged into `main` — which still shows the A1 state. Re-verify at the end of this pass, not before |
 
 **Resolved (2026-09-17), per the decision rule fixed in advance.** `mind_treatment_v2`'s final
 (epoch-10) dev monitor AUC: **0.686786** — matching the already-evaluated 0.6868 to four decimal
@@ -68,10 +85,31 @@ validating the submission per the rule set above. Full detail: ADR-015's 2026-09
 - ADR-014's claim of "no trained J checkpoint locally" is wrong:
   `experiments/candidate_j_nrms_lite_ada_2026-08-24/nrms_lite_best.pt` (MINDsmall run) exists.
 
-**Open risks:**
-- MIND 10-epoch wall time is still unmeasured.
-- Option B must be reported as a reimplementation, not "the official code".
-- MIND published NRMS (67.76) is above J's 0.6462, so a faithful control should beat J on MIND.
+**Open risks** (re-assessed 2026-09-20 — two of the three original entries are now closed by
+measurement; closed entries are kept with their resolution rather than deleted, so the record
+shows what was uncertain at the time):
+- ~~MIND 10-epoch wall time is still unmeasured.~~ **Closed 2026-09-12/14 by measurement:**
+  control 13 h 13 m, treatment 34.06 h, both on a single RTX 2080 Ti (jobs 2694501 / 2694992).
+  This is also why no further retraining is on the table before the deadline.
+- **Standing (not closable — a reporting obligation):** Option B must be reported as a
+  reimplementation, not "the official code". Honoured in ADR-015 and in the design note,
+  which calls it "a faithful reimplementation" of the official Keras graph (§2, l. 162–167),
+  not the original codebase. Any future edit to those passages must preserve that framing.
+- ~~MIND published NRMS (67.76) is above J's 0.6462, so a faithful control should beat J on
+  MIND.~~ **Closed 2026-09-12 — the prediction held:** the reproduced control scored 0.6831 on
+  MINDlarge-dev vs. Candidate J's 0.6579 (+0.0252, marginal comparison, not paired), which is
+  the expected direction and magnitude. Had it come out below J, the reproduction itself would
+  have been suspect; it did not.
+
+**Open risks introduced by the handover (2026-09-20):**
+- The A2 work is not on `main` (see Handover above). Until it is merged, the repository's
+  default view misrepresents what was built.
+- Q5's "bootstrap 95% CI for all reported metrics" is satisfied for every metric except
+  coverage@10, which is deliberately a point estimate per ADR-007 sub-decision 4
+  (bootstrap-over-union is mechanically biased for a set statistic, so an interval would look
+  rigorous while being wrong). The reasoning is sound and documented in the ADR, but the
+  design note states the omission without giving the reason — a grader reading only the note
+  sees an unexplained gap. Closing that is a one-paragraph note edit, not new computation.
 
 ---
 

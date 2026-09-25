@@ -60,6 +60,34 @@ The system compares **lexical retrieval (BM25)** and **semantic retrieval (embed
 - Poetry
 - GNU Make
 
+Verified from scratch on 2026-09-19/20 on a machine that had *neither* Python
+3.11 (system `python3` was 3.12) nor Poetry — i.e. the fresh-clone path this
+section actually promises, not an author machine where both already existed.
+What worked, start to finish:
+
+```bash
+uv python install 3.11          # any 3.11 interpreter does; uv is just convenient
+uv tool install poetry          # keeps Poetry out of the project environment
+poetry env use "$(uv python find 3.11)"
+poetry install
+```
+
+Budget **~45-60 min and ~5 GB of disk** for `poetry install`: `poetry.lock`
+pins `torch` 2.13.0, which on Linux resolves to the CUDA build and drags in 18
+`nvidia-*` wheels. On a CPU-only laptop that is several GB of unusable GPU
+runtime — the CPU wheel is a drop-in for everything in this repo that does not
+train at scale:
+
+```bash
+poetry run pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+poetry run pip install sentence-transformers==5.7.0
+```
+
+That is what the 2026-09-19/20 verification run used, and the full unit suite
+passes on it. It is a deliberate deviation from the lock file, recorded here
+rather than left as a silent difference: a GPU run (Ada) must use the locked
+CUDA build.
+
 ---
 
 # Quick Start
@@ -89,6 +117,22 @@ zips are gitignored per Q8's "no `*.zip` in git" policy, so they don't exist
 on a fresh clone; `make fixtures` is a real prerequisite of this target, not
 just documentation, so a bare `pytest` invocation here would fail with
 `FileNotFoundError` on a clean checkout.)
+
+**What a fresh clone can and cannot run before `make data`** (measured
+2026-09-19/20, not assumed):
+
+| Suite | Result with no `data/raw/` | Why |
+|---|---|---|
+| `make test-unit` | **349 passed**, ~20 s | Self-contained: generated fixtures only |
+| `make test-integration` | 4 passed, 1 skipped, 40 errors | Every error is `RawDataMissingError` — the tests read the real built feature store |
+| `make test-reproducibility` | errors, same cause | Rebuilds `data/processed/` twice and compares |
+
+So `make test` is **not** the install check on a fresh clone; `make test-unit`
+is. The integration and reproducibility suites become runnable only after the
+raw bundles are in place, and `ebnerd_demo.zip` is registration-gated
+(https://recsys.eb.dk/), so it cannot be scripted like the MIND bundles can.
+The failures are loud and self-explaining by design (`ensure_raw_data()` names
+each missing file and how to get it) — they are not a broken checkout.
 
 ## Build the Data Pipeline
 
@@ -391,13 +435,18 @@ adds a literal retrieve-then-rank evaluation on top of A1's retriever. See
 and results, `docs/design_note_a2.tex`/`.pdf` for the write-up, and
 `decisions/ADR-016-mind-click-history-features.md` for Q1.
 
-**Environment.** A2's training scripts need `torch`, which is not in this
-project's local Poetry environment (`pyproject.toml` — A1 never needed it).
-Everything here assumes `pip install torch` (CPU wheel is enough for
-`scripts/a2_q2_retrieve_rerank_eval.py` and small local runs; a real GPU is
-needed for a full-scale MIND/EB-NeRD training run and was done on Ada, IIIT-H's
-SLURM cluster — see `docs/ada_cluster_setup.md` for that environment's own
-setup and gotchas, none of which apply to running locally).
+**Environment.** A2's training scripts need `torch`, which **is** a declared
+dependency of this project — `torch = "^2.0.0"` has been in
+`pyproject.toml` since the initial commit (`183f56a`, 2026-08-09) and
+`poetry.lock` pins 2.13.0, so a plain `poetry install` brings it in. (An
+earlier version of this paragraph said torch was absent and had to be
+`pip install`ed separately; that was wrong, and was corrected on 2026-09-20
+after a from-scratch environment rebuild proved otherwise.) What *is* true is
+that the locked wheel is the CUDA build — see **Requirements** above for the
+CPU-wheel substitution and its cost, which is the sane choice on a laptop. A
+real GPU is still needed for a full-scale MIND/EB-NeRD training run; those
+were done on Ada, IIIT-H's SLURM cluster — see `docs/ada_cluster_setup.md`
+for that environment's own setup and gotchas, none of which apply locally.
 
 ## One-command reproduce (Q7): the evaluation half, not the GPU training half
 
