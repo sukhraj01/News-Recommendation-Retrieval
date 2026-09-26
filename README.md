@@ -373,8 +373,10 @@ outside what this codebase or Claude Code can do. Both competitions have
 real submitted results as of 2026-08-13 (MIND: score 0.6195, EB-NeRD:
 score 0.5404) — see `PROJECT_STATE.md`'s Leaderboard Submission row and
 `submissions/{mind_large_test_embed,ebnerd_testset_embed}/leaderboard_screenshot_*.png`
-for the screenshots (gitignored, kept local as source material for the
-design note).
+for those first-submission screenshots. The two **final** submissions'
+leaderboard rows (MIND 930992 at 0.6766, EB-NeRD 907863 at 0.7542) are in
+`results/leaderboard_screenshots/`, which is what `docs/Design_note_A2.pdf`
+cites and what satisfies Q7 deliverable #3.
 
 ---
 
@@ -432,8 +434,14 @@ configuration for both datasets, runs it as an A/B test (control =
 reproduced baseline, treatment = one principled change per dataset), and
 adds a literal retrieve-then-rank evaluation on top of A1's retriever. See
 `decisions/ADR-015-a2-official-baseline-reproduction.md` for the full design
-and results, `docs/design_note_a2.tex`/`.pdf` for the write-up, and
+and results, `docs/Design_note_A2.pdf` for the submitted write-up, and
 `decisions/ADR-016-mind-click-history-features.md` for Q1.
+
+`docs/Design_note_A2.pdf` is the A2 deliverable (Q6 design note / Q7 report)
+and the only A2 design note in the repository. Its LaTeX source and the
+earlier draft are gitignored, so ADR-015 and PROJECT\_STATE still cite
+`docs/design_note_a2.tex`/`.pdf` at dates when that file was the current
+version — an accurate record of what existed then, not a live path.
 
 **Environment.** A2's training scripts need `torch`, which **is** a declared
 dependency of this project — `torch = "^2.0.0"` has been in

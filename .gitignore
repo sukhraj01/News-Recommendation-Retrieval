@@ -109,3 +109,14 @@ benchmarks/results/snapshots/
 # root, NOT a blanket *.pdf — docs/design_note*.pdf ARE deliverables and stay
 # tracked.
 /A2.pdf
+
+# A2 design note: only the final compiled PDF (docs/Design_note_A2.pdf) is
+# tracked. Its LaTeX source and the earlier draft stay local -- one A2 design
+# note in the repository, no stale copies a marker could open by mistake.
+docs/report_a2.tex
+docs/design_note_a2_old.tex
+docs/design_note_a2_old.pdf
+
+# Plain-text working draft of the A2 report; the finished document is
+# docs/Design_note_A2.pdf.
+/IRE Assignment 2 Final.txt

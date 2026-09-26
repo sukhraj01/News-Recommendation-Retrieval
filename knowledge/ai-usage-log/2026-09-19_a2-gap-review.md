@@ -25,6 +25,10 @@
 
 10. > ok so i have added the 2 screenshots in the results/ folder, scan through them and rename them and relocate them as needed (name is apollo19 in the screeenshots and you can see which is which via the score). so mention in the report where they are. also i dont think team contributions is really required per the A2 pdf so dont add that either (unless im wrong). just focus on this last step and i will jhandle the report on my own after this
 
+11. > [several turns of report drafting: the engineer wrote each section himself and asked for correction, fact-filling and trimming, then supplied the finished text as `IRE Assignment 2 Final.txt`] ok i have added the IRE assignment 2 final txr file here which has the text of the report, so neatly make it into the report by adding tables where necessary for displaying data and format it perfectly while keeping the sae content and wording (as much as possible) and again make sure nothing is missing per the requirements. ont replace the old design note, maybe rename the old one to something like _old and this one name it proper so i can finally convert to pdf, notice the difference in writing style too if any and if it can be corrected minimally. make the report look appealing not ugly and out of place data etc use good formatting with tables and all as there should be
+
+12. > Ok, so the final file is Design_note_A2 which i just added, I dont want any other a2 design note to be trakced by git (whether pdf or tex) so do that. and then i will commit this design note
+
 ## What was produced
 
 - AI-generated: a read-only review mapping the A2 brief (Q1–Q9) against the
@@ -59,4 +63,13 @@
   renaming/relocation to `results/leaderboard_screenshots/`, the README
   tabulating each row (read off the images themselves and cross-checked against
   ADR-013/ADR-015), and the design-note paragraph pointing at them.
+- **Human-written: the A2 report's prose.** The engineer drafted every section
+  himself; Claude's role was correcting factual errors, filling numbers he marked
+  as placeholders, and cutting detail he judged undefendable. Claude then typeset
+  that text as `docs/report_a2.tex` (tables, headings, references) and added the
+  Q5 metric/slice tables and the Q9 section needed to meet the brief. The earlier
+  draft was renamed `docs/design_note_a2_old.tex`/`.pdf`. At the engineer's
+  instruction the repository now tracks only the compiled
+  `docs/Design_note_A2.pdf`; the LaTeX source and the earlier draft are
+  gitignored so no stale A2 design note is left in the tree.
 - AI-generated: this log file.
