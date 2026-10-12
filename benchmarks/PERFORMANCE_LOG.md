@@ -241,3 +241,23 @@ Compared against `2026-09-13T07-38-43_snapshot.json` (`6d15e50`):
 | `rank_and_auc` | 1.0593 | 1.0914 | +3.0% | · |
 
 **Verdict:** no regression
+
+### 2026-10-12T19:22:39 — `f17a1e7` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: ARCHITECTURE.md PROJECT_STATE.md benchmarks/profile_bandit.py benchmarks/results/2026-10-12T19-14-16_ebnerd_small_bandit_profile.json decisions/ADR-017-bandit-experiment.md knowledge/ai-usage-log/2026-10-12_offline-contextual-bandit-layer.md results/bandit_ebnerd_small/heldout.json results/bandit_ebnerd_small/heldout_runs.npz results/bandit_ebnerd_small/leakage_audit.json results/bandit_ebnerd_small/mechanism_ablation.json results/bandit_ebnerd_small/simulated.json results/bandit_ebnerd_small/tables.md results/bandit_ebnerd_small/tune.json results/bandit_ebnerd_small/tune_first_pass.json scripts/bandit_leakage_audit.py scripts/bandit_make_report.py scripts/bandit_mechanism_ablation.py scripts/bandit_prepare_stream.py scripts/run_bandit_experiment.py src/bandit/__init__.py src/bandit/evaluation.py src/bandit/features.py src/bandit/policies.py src/bandit/runner.py src/bandit/stream.py tests/unit/test_bandit.py 
+
+**End-to-end:** 2.9874 ms/impression (334.7 impressions/s) · peak RSS 0.62 GB
+
+Compared against `2026-09-14T02-42-54_snapshot.json` (`13564ff`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.1714 | 0.1251 | -27.0% | ~ |
+| `bm25_score_all` | 1.0404 | 0.9785 | -5.9% | · |
+| `embed_query_build` | 0.0324 | 0.0295 | -9.0% | · |
+| `embed_score_all` | 0.8079 | 0.7598 | -6.0% | · |
+| `bm25_candidate_lookup` | 0.0166 | 0.0149 | -10.2% | · |
+| `embed_candidate_lookup` | 0.0126 | 0.0107 | -15.1% | ~ |
+| `rank_and_auc` | 1.0914 | 0.9017 | -17.4% | ~ |
+
+**Verdict:** no regression

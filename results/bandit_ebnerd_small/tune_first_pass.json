@@ -1,0 +1,2008 @@
+{
+ "grid": [
+  {
+   "kind": "eps_greedy_lgbm",
+   "params": {
+    "epsilon": 0.01
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.32665328598631055,
+   "run_s": 0.8134627342224121
+  },
+  {
+   "kind": "eps_greedy_lgbm",
+   "params": {
+    "epsilon": 0.03
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.32244351808965055,
+   "run_s": 0.7924990653991699
+  },
+  {
+   "kind": "eps_greedy_lgbm",
+   "params": {
+    "epsilon": 0.1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3064793371416808,
+   "run_s": 0.7463948726654053
+  },
+  {
+   "kind": "eps_greedy_lgbm",
+   "params": {
+    "epsilon": 0.2
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2863156811280943,
+   "run_s": 0.776482105255127
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34210282538212133,
+   "run_s": 9.123993873596191
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3420307755648191,
+   "run_s": 11.769421100616455
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34191755442334415,
+   "run_s": 11.635561227798462
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3417322834645669,
+   "run_s": 11.380608081817627
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34172199063352376,
+   "run_s": 11.663378238677979
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34167052647830787,
+   "run_s": 12.726114988327026
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34167052647830787,
+   "run_s": 11.60261607170105
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3416293551541352,
+   "run_s": 13.730032920837402
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34161906232309197,
+   "run_s": 16.036888122558594
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3415881838299624,
+   "run_s": 14.334670782089233
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34150584118161703,
+   "run_s": 15.537621974945068
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3408676856569399,
+   "run_s": 10.524013042449951
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34072358602233543,
+   "run_s": 11.581634283065796
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.340466265246256,
+   "run_s": 16.289732694625854
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34034275127373786,
+   "run_s": 11.240309000015259
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3394781534661109,
+   "run_s": 11.250554084777832
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3387164839689156,
+   "run_s": 13.493370294570923
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3384591631928362,
+   "run_s": 11.271204948425293
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33843857753074985,
+   "run_s": 11.833529233932495
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33838711337553395,
+   "run_s": 15.801532983779907
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33837682054449075,
+   "run_s": 13.979100227355957
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3383562348824044,
+   "run_s": 14.827268123626709
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33819154958571357,
+   "run_s": 14.01648211479187
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33800627862693633,
+   "run_s": 11.546809673309326
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34724924090371057,
+   "run_s": 16.006298065185547
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3469610416345016,
+   "run_s": 20.662226915359497
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34694045597241524,
+   "run_s": 20.541176080703735
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34672430652050845,
+   "run_s": 26.63115906715393
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34621995779939274,
+   "run_s": 22.79456114768982
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3461479079820905,
+   "run_s": 22.77157187461853
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34607585816478825,
+   "run_s": 20.99806809425354
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34605527250270185,
+   "run_s": 19.001033067703247
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3459317585301837,
+   "run_s": 25.856936931610107
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34580824455766557,
+   "run_s": 22.628244876861572
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34575678040244967,
+   "run_s": 24.804955005645752
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3456847305851474,
+   "run_s": 22.91137981414795
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3456229735988884,
+   "run_s": 20.217278957366943
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34559209510575883,
+   "run_s": 20.105386972427368
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3454685811332407,
+   "run_s": 27.19247078895569
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3453347743296794,
+   "run_s": 27.002193212509155
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3453347743296794,
+   "run_s": 23.40211296081543
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3452627245123771,
+   "run_s": 20.693124771118164
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34519067469507486,
+   "run_s": 19.045655012130737
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.003,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3450568678915136,
+   "run_s": 25.828672170639038
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3450054037362977,
+   "run_s": 20.129112005233765
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3449539395810818,
+   "run_s": 14.024812936782837
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.03,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34484071843960684,
+   "run_s": 20.298746824264526
+  },
+  {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.01,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34463486181874325,
+   "run_s": 22.4536030292511
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34202048273377594,
+   "run_s": 11.383630990982056
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34161906232309197,
+   "run_s": 11.18974494934082
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3415778909989193,
+   "run_s": 9.402858018875122
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34145437702640113,
+   "run_s": 13.094383239746094
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34139262004014204,
+   "run_s": 11.697227954864502
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3413720343780557,
+   "run_s": 15.034029006958008
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34134115588492614,
+   "run_s": 13.63145899772644
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3411147136019762,
+   "run_s": 11.263365268707275
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3411147136019762,
+   "run_s": 11.475537061691284
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3410735422778035,
+   "run_s": 12.591649770736694
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34067212186711954,
+   "run_s": 9.556512117385864
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3406618290360764,
+   "run_s": 8.710519075393677
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34064124337399004,
+   "run_s": 14.879173040390015
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.340466265246256,
+   "run_s": 12.353209972381592
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34029128711852197,
+   "run_s": 12.163068056106567
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3397869383974062,
+   "run_s": 11.63975715637207
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33930317533837684,
+   "run_s": 9.144052028656006
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33910761154855645,
+   "run_s": 8.578107118606567
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33837682054449075,
+   "run_s": 12.411062955856323
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3382018424167567,
+   "run_s": 13.23715090751648
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3380989141063249,
+   "run_s": 14.32045602798462
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3380577427821522,
+   "run_s": 12.38142728805542
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3380371571200659,
+   "run_s": 15.019749879837036
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33795481447172043,
+   "run_s": 12.155114889144897
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33792393597859094,
+   "run_s": 11.952248096466064
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3378827646544182,
+   "run_s": 11.52610993385315
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.33787247182337504,
+   "run_s": 11.72771692276001
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3378415933302455,
+   "run_s": 11.21785593032837
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3377901291750296,
+   "run_s": 12.354787826538086
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.3377798363439864,
+   "run_s": 11.283053874969482
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3477638824558695,
+   "run_s": 11.629371166229248
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3473212907210128,
+   "run_s": 11.682647943496704
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34730070505892646,
+   "run_s": 12.699457883834839
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3471360197622356,
+   "run_s": 13.383411169052124
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3471257269311924,
+   "run_s": 15.213338851928711
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3470536771138902,
+   "run_s": 9.615838050842285
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34662137821007666,
+   "run_s": 11.588210105895996
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34652874273068807,
+   "run_s": 13.929841041564941
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34615820081313364,
+   "run_s": 9.234156131744385
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3460964438268746,
+   "run_s": 12.243602275848389
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34605527250270185,
+   "run_s": 11.178056955337524
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3460449796716587,
+   "run_s": 12.52821397781372
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34602439400957236,
+   "run_s": 8.777125120162964
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 1,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34600380834748595,
+   "run_s": 13.588064908981323
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34592146569914056,
+   "run_s": 12.534458875656128
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34592146569914056,
+   "run_s": 12.424698114395142
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3458802943749678,
+   "run_s": 12.864924907684326
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3458802943749678,
+   "run_s": 14.937518835067749
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 10,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34585970871288146,
+   "run_s": 11.639569282531738
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3458391230507951,
+   "run_s": 9.109517812728882
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3456229735988884,
+   "run_s": 10.989166975021362
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3456229735988884,
+   "run_s": 11.701771020889282
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34538623848489525,
+   "run_s": 12.207005023956299
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34529360300550666,
+   "run_s": 8.627250909805298
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3449127682569091,
+   "run_s": 12.022650957107544
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3448098399464773,
+   "run_s": 12.969999313354492
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3447583757912614,
+   "run_s": 11.434545040130615
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34473779012917505,
+   "run_s": 9.482582092285156
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 10,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3446657403118728,
+   "run_s": 12.728264808654785
+  },
+  {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34463486181874325,
+   "run_s": 15.294740915298462
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.03,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28771550614996655,
+   "run_s": 9.253060817718506
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.01,
+    "lam": 100
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28747877103597347,
+   "run_s": 8.896313667297363
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.003,
+    "lam": 100
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2873140857392826,
+   "run_s": 8.71050500869751
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.03,
+    "lam": 100
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2870258864700736,
+   "run_s": 9.351534128189087
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.01,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28689207966651226,
+   "run_s": 8.614865064620972
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.003,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28642890226956924,
+   "run_s": 8.747218132019043
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.1,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2860995316761875,
+   "run_s": 9.074435949325562
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.03,
+    "lam": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28562606144820135,
+   "run_s": 8.837926864624023
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.01,
+    "lam": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2849261489372652,
+   "run_s": 8.76984429359436
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.003,
+    "lam": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28479234213370386,
+   "run_s": 8.756074905395508
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.1,
+    "lam": 100
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2847202923164016,
+   "run_s": 8.9584219455719
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.1,
+    "lam": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28468941382327206,
+   "run_s": 9.163098096847534
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.003,
+    "lam": 10
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3000977818949102,
+   "run_s": 15.244349956512451
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.1,
+    "lam": 100
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2997169471463126,
+   "run_s": 15.518154859542847
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.03,
+    "lam": 10
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.29965519016005354,
+   "run_s": 15.545703887939453
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.01,
+    "lam": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.29863619988677886,
+   "run_s": 14.834214925765991
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.01,
+    "lam": 10
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2982450723071381,
+   "run_s": 15.037052154541016
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.1,
+    "lam": 10
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2981421439967063,
+   "run_s": 15.503496885299683
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.01,
+    "lam": 100
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.29714373938551797,
+   "run_s": 15.441979885101318
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.003,
+    "lam": 100
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2966085121712727,
+   "run_s": 14.874698877334595
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.03,
+    "lam": 100
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.29642324121249547,
+   "run_s": 15.767437934875488
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.1,
+    "lam": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2961865060985024,
+   "run_s": 15.397850751876831
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.003,
+    "lam": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.29615562760537284,
+   "run_s": 14.732911109924316
+  },
+  {
+   "kind": "lints",
+   "params": {
+    "v": 0.03,
+    "lam": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2960012351397252,
+   "run_s": 15.620729207992554
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2872111574288508,
+   "run_s": 9.841942071914673
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 100
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28719057176676444,
+   "run_s": 9.931449174880981
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28699500797694405,
+   "run_s": 9.550321817398071
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2869229581596418,
+   "run_s": 10.176692962646484
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 100
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2863671452833102,
+   "run_s": 9.660695791244507
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28628480263496475,
+   "run_s": 9.824007034301758
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2858422109001081,
+   "run_s": 9.506667852401733
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28562606144820135,
+   "run_s": 9.578495025634766
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28561576861715815,
+   "run_s": 7.698163032531738
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28476146364057436,
+   "run_s": 7.527915954589844
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2846791209922289,
+   "run_s": 9.81943678855896
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 100
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2846173640059698,
+   "run_s": 10.188423156738281
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2845041428644949,
+   "run_s": 9.59212327003479
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2824558694869024,
+   "run_s": 9.898614168167114
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2783284442385878,
+   "run_s": 7.561563730239868
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3004271524882919,
+   "run_s": 7.718653202056885
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.29887293500077194,
+   "run_s": 7.574425935745239
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2983480006175699,
+   "run_s": 7.610491991043091
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2977921877412382,
+   "run_s": 9.909212112426758
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 100
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2974628171478565,
+   "run_s": 9.926302909851074
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 10
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.29744223148577015,
+   "run_s": 9.855772018432617
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.29733930317533835,
+   "run_s": 9.695255041122437
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2969481755956976,
+   "run_s": 10.118752002716064
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 10
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2957439143636457,
+   "run_s": 10.040174007415771
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 10
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.29540425093922085,
+   "run_s": 10.009880065917969
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 100
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2953219082908754,
+   "run_s": 10.396146774291992
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 100
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2949719520354073,
+   "run_s": 10.005097150802612
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.01,
+    "lam": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2944058463280325,
+   "run_s": 9.832223892211914
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.1,
+    "lam": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.29422057536925533,
+   "run_s": 9.889561653137207
+  },
+  {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.2940353044104781,
+   "run_s": 9.816758632659912
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 6,
+    "m": 20
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.18604292110545007,
+   "run_s": 2.0663180351257324
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 6,
+    "m": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.1841593330245484,
+   "run_s": 1.9317800998687744
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 6,
+    "m": 5
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.18206988832278317,
+   "run_s": 1.9799742698669434
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 24,
+    "m": 5
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.18094796973907673,
+   "run_s": 1.7478229999542236
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 24,
+    "m": 20
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.18071123462508362,
+   "run_s": 1.784458875656128
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 24,
+    "m": 1
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.17989810097267253,
+   "run_s": 1.879040002822876
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 24,
+    "m": 5
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.24078019659307293,
+   "run_s": 1.8208661079406738
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 6,
+    "m": 5
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.23957593536102104,
+   "run_s": 2.043158769607544
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 6,
+    "m": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.23882455869486902,
+   "run_s": 1.9223260879516602
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 24,
+    "m": 20
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.23447069116360456,
+   "run_s": 1.8403418064117432
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 6,
+    "m": 20
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.23335906541094129,
+   "run_s": 1.9294631481170654
+  },
+  {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 24,
+    "m": 1
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.23271061705522103,
+   "run_s": 1.9803829193115234
+  }
+ ],
+ "winners": {
+  "eps_greedy_lgbm|per_impression": {
+   "kind": "eps_greedy_lgbm",
+   "params": {
+    "epsilon": 0.01
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.32665328598631055,
+   "run_s": 0.8134627342224121
+  },
+  "hybrid_lints|hourly": {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34210282538212133,
+   "run_s": 9.123993873596191
+  },
+  "hybrid_lints|per_impression": {
+   "kind": "hybrid_lints",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.34724924090371057,
+   "run_s": 16.006298065185547
+  },
+  "hybrid_linucb|hourly": {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.34202048273377594,
+   "run_s": 11.383630990982056
+  },
+  "hybrid_linucb|per_impression": {
+   "kind": "hybrid_linucb",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3477638824558695,
+   "run_s": 11.629371166229248
+  },
+  "lints|hourly": {
+   "kind": "lints",
+   "params": {
+    "v": 0.03,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.28771550614996655,
+   "run_s": 9.253060817718506
+  },
+  "lints|per_impression": {
+   "kind": "lints",
+   "params": {
+    "v": 0.003,
+    "lam": 10
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3000977818949102,
+   "run_s": 15.244349956512451
+  },
+  "linucb|hourly": {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.03,
+    "lam": 10
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.2872111574288508,
+   "run_s": 9.841942071914673
+  },
+  "linucb|per_impression": {
+   "kind": "linucb",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.3004271524882919,
+   "run_s": 7.718653202056885
+  },
+  "popularity_greedy|hourly": {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 6,
+    "m": 20
+   },
+   "mode": "hourly",
+   "tune_ctr": 0.18604292110545007,
+   "run_s": 2.0663180351257324
+  },
+  "popularity_greedy|per_impression": {
+   "kind": "popularity_greedy",
+   "params": {
+    "window_h": 24,
+    "m": 5
+   },
+   "mode": "per_impression",
+   "tune_ctr": 0.24078019659307293,
+   "run_s": 1.8208661079406738
+  }
+ },
+ "reference_tune_ctr": {
+  "random": 0.11942771859399928,
+  "lgbm_greedy": 0.3288765374916371
+ },
+ "n_tune_impressions": 97155
+}

@@ -653,6 +653,29 @@ Related ADR
 
 # Architecture Changelog
 
+## 2026-10-12 — Offline contextual-bandit layer (`src/bandit/`) added beside Candidate K (ADR-017)
+
+A new, self-contained package; **no existing component's interface changed**.
+
+* `src/bandit/features.py` — linear view of the existing 65-feature builder (standardise, one-hot,
+  leakage guard against `FORBIDDEN_RAW_COLUMNS`). Reads `build_feature_frame`'s output; adds no data source.
+* `src/bandit/stream.py` — chronological impression stream and `BanditEnvironment`, the only door to
+  labels (reveals the chosen arm's reward only).
+* `src/bandit/policies.py` — `Policy.select(context, candidates) -> arm` / `update(arm, reward)`;
+  Random, popularity-greedy, LightGBM-greedy, ε-greedy, shared-θ LinUCB / Thompson (Sherman–Morrison,
+  O(d²)), and hybrid warm-started variants that take the frozen ranker's score as an input.
+* `src/bandit/runner.py` / `evaluation.py` — prequential replay (per-impression or hourly updates),
+  user-bootstrap CIs on top of `src/evaluation/bootstrap.py`.
+* Scripts: `bandit_prepare_stream.py` (loads K's frozen boosters, writes arrays under `data/processed/`),
+  `run_bandit_experiment.py`, `bandit_leakage_audit.py`, `bandit_mechanism_ablation.py`,
+  `bandit_make_report.py`; benchmark: `benchmarks/profile_bandit.py`.
+* Dependency rule kept: `src/bandit` never imports lightgbm/torch (segfault precedent); the scripts own the booster.
+* Scalability note: shared-θ keeps state at O(d²) (d=100 → 80 KB) independent of catalogue size;
+  disjoint per-article LinUCB would be O(#articles·d²).
+* Not part of the serving path. Deploying the hybrid would add one rank-1 update per click and
+  ≈ +27 % decision latency over LightGBM-greedy at p50 (measured, ADR-017).
+
+
 ## 2026-08-11 — MINDlarge built + benchmarked; Q5 submission-format converter implemented
 
 ### What Changed

@@ -1,0 +1,317 @@
+{
+  "benchmark": "profile_bandit",
+  "dataset": "ebnerd",
+  "bundle": "small",
+  "split": "validation",
+  "timestamp": "2026-10-12T19:14:13",
+  "git_rev": "f17a1e7",
+  "git_dirty": true,
+  "tag": "a3-bandit-layer",
+  "hardware_label": "Mac15,12 / 8GiB",
+  "hardware": {
+    "platform": "macOS-15.7.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.11.14",
+    "cpu_model": "Apple M3",
+    "hw_model": "Mac15,12",
+    "ram_gb": 8.0,
+    "physical_cores": 8,
+    "torch": "2.13.0",
+    "cuda_available": false,
+    "mps_available": true,
+    "numpy": "1.26.4"
+  },
+  "sample": {
+    "impressions": 5000,
+    "warmup_discarded": 300,
+    "sampling": "first n chronological impressions",
+    "mean_candidates": 10.9248
+  },
+  "model": {
+    "path": "/Users/test01/Desktop/assignment-1-news-retrieval/experiments/candidate_k_gbdt_ebnerd_small_2026-09-12/model_K_rank_nopos.txt",
+    "n_features": 63,
+    "n_trees": 702
+  },
+  "setup": {
+    "setup_s": 9.499294996261597,
+    "linear_dim_d0": 100,
+    "note": "BLAS threads are NOT pinned here; LightGBM uses its default threads, as in profile_ebnerd.py"
+  },
+  "per_request": {
+    "linucb": {
+      "n_requests": 4700,
+      "decision_ms": {
+        "mean": 0.10938079789914984,
+        "p50": 0.05662406329065561,
+        "p90": 0.13308299239724874,
+        "p99": 0.7996391970664357,
+        "max": 10.429540881887078
+      },
+      "select_ms_p50": 0.016666948795318604,
+      "update_ms_p50": 0.03941613249480724,
+      "decisions_per_s": 9142.372511508005,
+      "dim": 100
+    },
+    "lints": {
+      "n_requests": 4700,
+      "decision_ms": {
+        "mean": 0.14692218761217404,
+        "p50": 0.0952291302382946,
+        "p90": 0.1784631982445717,
+        "p99": 0.8713620505295736,
+        "max": 26.093626162037253
+      },
+      "select_ms_p50": 0.05266699008643627,
+      "update_ms_p50": 0.040999846532940865,
+      "decisions_per_s": 6806.323920520902,
+      "dim": 100
+    },
+    "hybrid_linucb": {
+      "n_requests": 4700,
+      "decision_ms": {
+        "mean": 0.09122082512786096,
+        "p50": 0.05679239984601736,
+        "p90": 0.13216619845479727,
+        "p99": 0.39226508000865884,
+        "max": 9.547666180878878
+      },
+      "select_ms_p50": 0.01591700129210949,
+      "update_ms_p50": 0.040207989513874054,
+      "decisions_per_s": 10962.409061728347,
+      "dim": 102
+    },
+    "hybrid_lints": {
+      "n_requests": 4700,
+      "decision_ms": {
+        "mean": 0.16724864412297277,
+        "p50": 0.10808347724378109,
+        "p90": 0.19088308326900008,
+        "p99": 0.9337522648274917,
+        "max": 17.55895814858377
+      },
+      "select_ms_p50": 0.058666919358074665,
+      "update_ms_p50": 0.05127058830112219,
+      "decisions_per_s": 5979.1217157176525,
+      "dim": 102
+    },
+    "lgbm_greedy": {
+      "n_requests": 4700,
+      "decision_ms": {
+        "mean": 0.4194059878330123,
+        "p50": 0.2996249822899699,
+        "p90": 0.7801541127264501,
+        "p99": 1.494539908599113,
+        "max": 41.91399994306266
+      },
+      "decisions_per_s": 2384.3245661961146
+    }
+  },
+  "stages": [
+    {
+      "stage": "lgbm_greedy.decision (predict+argmax)",
+      "n_calls": 5000,
+      "total_s": 2.102535491110757,
+      "mean_ms": 0.42050709822215143,
+      "p50_ms": 0.30108343344181776,
+      "p90_ms": 0.7798621430993081,
+      "p99_ms": 1.5427401964552734,
+      "max_ms": 41.91399994306266,
+      "throughput_per_s": 2378.081141145698,
+      "pct_of_total": 17.322697255892475
+    },
+    {
+      "stage": "linucb.select",
+      "n_calls": 4700,
+      "total_s": 0.10689401067793369,
+      "mean_ms": 0.02274340652721993,
+      "p50_ms": 0.016666948795318604,
+      "p90_ms": 0.03720798995345831,
+      "p99_ms": 0.05854283459484579,
+      "max_ms": 1.27083295956254,
+      "throughput_per_s": 43968.787120925466,
+      "pct_of_total": 0.8806950433277798
+    },
+    {
+      "stage": "linucb.update",
+      "n_calls": 4700,
+      "total_s": 0.4071957394480705,
+      "mean_ms": 0.0866373913719299,
+      "p50_ms": 0.03941613249480724,
+      "p90_ms": 0.09596231393516065,
+      "p99_ms": 0.7172607840038856,
+      "max_ms": 10.374290868639946,
+      "throughput_per_s": 11542.360453895144,
+      "pct_of_total": 3.354867752849088
+    },
+    {
+      "stage": "linucb.decision (select+update)",
+      "n_calls": 4700,
+      "total_s": 0.5140897501260042,
+      "mean_ms": 0.10938079789914983,
+      "p50_ms": 0.05662406329065561,
+      "p90_ms": 0.13308299239724874,
+      "p99_ms": 0.7996391970664356,
+      "max_ms": 10.429540881887078,
+      "throughput_per_s": 9142.372511508005,
+      "pct_of_total": 4.235562796176867
+    },
+    {
+      "stage": "lints.select",
+      "n_calls": 4700,
+      "total_s": 0.36921949801035225,
+      "mean_ms": 0.0785573400022026,
+      "p50_ms": 0.05266699008643627,
+      "p90_ms": 0.08004205301404,
+      "p99_ms": 0.3524098964408084,
+      "max_ms": 24.778167018666863,
+      "throughput_per_s": 12729.555251895772,
+      "pct_of_total": 3.041983173195817
+    },
+    {
+      "stage": "lints.update",
+      "n_calls": 4700,
+      "total_s": 0.32131478376686573,
+      "mean_ms": 0.06836484760997143,
+      "p50_ms": 0.040999846532940865,
+      "p90_ms": 0.08737912867218257,
+      "p99_ms": 0.37117374828085503,
+      "max_ms": 5.946167046204209,
+      "throughput_per_s": 14627.400410589724,
+      "pct_of_total": 2.647298343627704
+    },
+    {
+      "stage": "lints.decision (select+update)",
+      "n_calls": 4700,
+      "total_s": 0.690534281777218,
+      "mean_ms": 0.14692218761217404,
+      "p50_ms": 0.0952291302382946,
+      "p90_ms": 0.1784631982445717,
+      "p99_ms": 0.8713620505295737,
+      "max_ms": 26.093626162037253,
+      "throughput_per_s": 6806.323920520903,
+      "pct_of_total": 5.689281516823521
+    },
+    {
+      "stage": "lints.select_cached_posterior",
+      "n_calls": 2000,
+      "total_s": 0.021950766211375594,
+      "mean_ms": 0.010975383105687797,
+      "p50_ms": 0.008916947990655899,
+      "p90_ms": 0.01529185101389885,
+      "p99_ms": 0.02664719242602585,
+      "max_ms": 0.2324159722775221,
+      "throughput_per_s": 91112.9926281815,
+      "pct_of_total": 0.1808513954804403
+    },
+    {
+      "stage": "hybrid_linucb.select",
+      "n_calls": 4700,
+      "total_s": 0.11301946640014648,
+      "mean_ms": 0.02404669497875457,
+      "p50_ms": 0.01591700129210949,
+      "p90_ms": 0.035588070750236525,
+      "p99_ms": 0.0535845197737217,
+      "max_ms": 9.497583145275712,
+      "throughput_per_s": 41585.75641615229,
+      "pct_of_total": 0.9311624030840755
+    },
+    {
+      "stage": "hybrid_linucb.update",
+      "n_calls": 4700,
+      "total_s": 0.31571841170080006,
+      "mean_ms": 0.06717413014910639,
+      "p50_ms": 0.040207989513874054,
+      "p90_ms": 0.09066620841622353,
+      "p99_ms": 0.3535581054165981,
+      "max_ms": 6.818166002631187,
+      "throughput_per_s": 14886.683277927088,
+      "pct_of_total": 2.601190080798536
+    },
+    {
+      "stage": "hybrid_linucb.decision (select+update)",
+      "n_calls": 4700,
+      "total_s": 0.42873787810094655,
+      "mean_ms": 0.09122082512786098,
+      "p50_ms": 0.05679239984601736,
+      "p90_ms": 0.13216619845479727,
+      "p99_ms": 0.3922650800086588,
+      "max_ms": 9.547666180878878,
+      "throughput_per_s": 10962.409061728347,
+      "pct_of_total": 3.5323524838826117
+    },
+    {
+      "stage": "hybrid_linucb.total (lgbm predict+select+update)",
+      "n_calls": 4700,
+      "total_s": 2.3999460209161043,
+      "mean_ms": 0.5106268129608732,
+      "p50_ms": 0.37991616409271955,
+      "p90_ms": 0.8743157144635918,
+      "p99_ms": 1.8541033728979535,
+      "max_ms": 41.968417121097445,
+      "throughput_per_s": 1958.3773797570339,
+      "pct_of_total": 19.773049504553388
+    },
+    {
+      "stage": "hybrid_lints.select",
+      "n_calls": 4700,
+      "total_s": 0.416452405275777,
+      "mean_ms": 0.08860689473952701,
+      "p50_ms": 0.058666919358074665,
+      "p90_ms": 0.08858307264745235,
+      "p99_ms": 0.31058910302818654,
+      "max_ms": 17.417500028386712,
+      "throughput_per_s": 11285.803468676415,
+      "pct_of_total": 3.4311330146771355
+    },
+    {
+      "stage": "hybrid_lints.update",
+      "n_calls": 4700,
+      "total_s": 0.369616222102195,
+      "mean_ms": 0.07864174938344576,
+      "p50_ms": 0.05127058830112219,
+      "p90_ms": 0.09992022532969716,
+      "p99_ms": 0.3860830026678768,
+      "max_ms": 4.926291992887855,
+      "throughput_per_s": 12715.892103622278,
+      "pct_of_total": 3.045251765505515
+    },
+    {
+      "stage": "hybrid_lints.decision (select+update)",
+      "n_calls": 4700,
+      "total_s": 0.786068627377972,
+      "mean_ms": 0.16724864412297274,
+      "p50_ms": 0.10808347724378109,
+      "p90_ms": 0.19088308326900008,
+      "p99_ms": 0.9337522648274916,
+      "max_ms": 17.55895814858377,
+      "throughput_per_s": 5979.1217157176525,
+      "pct_of_total": 6.47638478018265
+    },
+    {
+      "stage": "hybrid_lints.select_cached_posterior",
+      "n_calls": 2000,
+      "total_s": 0.01689011207781732,
+      "mean_ms": 0.00844505603890866,
+      "p50_ms": 0.006833113729953766,
+      "p90_ms": 0.006958143785595894,
+      "p99_ms": 0.010588082950562233,
+      "max_ms": 0.8311669807881117,
+      "throughput_per_s": 118412.47652978609,
+      "pct_of_total": 0.1391568890889699
+    },
+    {
+      "stage": "hybrid_lints.total (lgbm predict+select+update)",
+      "n_calls": 4700,
+      "total_s": 2.7572767701931298,
+      "mean_ms": 0.5866546319559851,
+      "p50_ms": 0.4446040838956833,
+      "p90_ms": 0.9623119141906503,
+      "p99_ms": 1.985439050477007,
+      "max_ms": 42.091374984011054,
+      "throughput_per_s": 1704.5804218162673,
+      "pct_of_total": 22.717081800853425
+    }
+  ],
+  "peak_rss_gb": 1.15
+}

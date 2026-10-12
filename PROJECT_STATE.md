@@ -2,6 +2,27 @@
 
 > This document captures the current state of the project. It is updated as implementation progresses and should always reflect the latest engineering status.
 
+## Offline contextual-bandit layer on Candidate K (2026-10-12) — ADR-017
+
+**Self-directed extension; nothing graded, nothing deployed changed.** Candidate K's 0.7542
+leaderboard artifacts, `submissions/` and the training pipeline are untouched; the new
+`src/bandit/` package only reads K's frozen boosters. Full record: `decisions/ADR-017-bandit-experiment.md`
+(numbered 017 — `ADR-016` was already taken by the MIND history-features record).
+
+| Item | Status |
+|---|---|
+| Scope of the claim | Runs on the **locally retrained `ebnerd_small` K_rank_nopos** (stream AUC reproduced to 6 decimals, 0.758808), **not** the Ada `ebnerd_large` model behind 0.7542 (weights unavailable locally) |
+| Protocol | Prequential log-replay over the validation week (244,647 impressions, 7 × 24 h): days 0-2 = tuning (97,155 imps), days 3-6 = held-out (147,492 imps), fresh policy state at the split, hyper-parameters frozen. User-bootstrap CIs (n=2000). Per-impression and hourly-batch updates both reported |
+| Phase-0 facts | In-view order is **not** display position (click probability flat across positions) → SNIPS skipped with reasons; "cold user (history<5)" slice is **empty** (min history = 5) → substituted history<20; ADR-013's "position 5.12 vs 7.92" gap is a list-size composition effect |
+| Result | Hybrid (LightGBM score as feature + warm-start prior) **+0.0106 [+0.0090,+0.0123]** top-1 CTR over LightGBM-greedy (0.3195 vs 0.3089) per-impression, **+0.0054/+0.0058** with hourly batches; plain shared-θ LinUCB/Thompson **lose** (−0.028 / −0.041); ε-greedy loses (−0.0005); popularity-greedy and random lose big |
+| Honest caveats | Lead is front-loaded (+0.0156 held-out day 1 → +0.0024 n.s. in the final 20%); tuned exploration ≈ 0 (flat α surface) so the gain is greedy residual learning, not exploration; mechanism not fully pinned down (ablation: ~half of the gain survives removing static article metadata) |
+| Audits | Label-permutation control → all policies at random; single-feature scan → no leak-sized feature; full-information static ridge → linear-only is capacity-limited (0.284 vs 0.318). Tuning-period only |
+| Engineering | `src/bandit/` (features, stream, policies, runner, evaluation), 20 unit tests incl. SM-inverse = direct inverse, shuffled-future-label invariance + a negative control, reward-only-for-chosen-arm; full suite 414 passed / 1 skipped. Latency (`benchmarks/profile_bandit.py`): bandit select+update p50 0.057 ms vs LightGBM predict 0.300 ms; hybrid total ≈ +27 % over LightGBM-greedy |
+| Incidents | Stream time-unit bug (µs read as ns) caught before any bandit run; tuning grid widened once after boundary winners (first pass kept) |
+| Next (not done) | Discounted/windowed ridge (the lead decays); repeat on `ebnerd_large` ranker or a second week; log propensities before any online test |
+
+---
+
 ## Assignment 2: current state (updated 2026-09-12)
 
 **Brief:** `A2.pdf` (repo root). Due **2026-09-20**. Q1 features · Q2 two-stage re-ranker ·
