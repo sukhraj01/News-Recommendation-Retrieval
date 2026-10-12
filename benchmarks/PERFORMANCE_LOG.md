@@ -321,3 +321,23 @@ Compared against `2026-10-12T22-14-11_snapshot.json` (`268f37a`):
 | `rank_and_auc` | 1.0574 | 1.0553 | -0.2% | · |
 
 **Verdict:** no regression
+
+### 2026-10-12T22:14:28 — `268f37a` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: ARCHITECTURE.md PROJECT_STATE.md benchmarks/PERFORMANCE_LOG.md benchmarks/profile_bandit.py benchmarks/results/2026-10-12T22-06-36_ebnerd_small_bandit_profile.json decisions/ADR-017-bandit-experiment.md decisions/ADR-018-bandit-drift-and-mechanism.md knowledge/ai-usage-log/2026-10-12_bandit-drift-and-mechanism.md results/bandit_ebnerd_small/drift/diagnosis.json results/bandit_ebnerd_small/drift/forget_heldout.json results/bandit_ebnerd_small/drift/forget_heldout_runs.npz results/bandit_ebnerd_small/drift/groups_forget_extra_heldout.json results/bandit_ebnerd_small/drift/groups_forget_extra_tune.json results/bandit_ebnerd_small/drift/groups_forget_heldout.json results/bandit_ebnerd_small/drift/groups_forget_tune.json results/bandit_ebnerd_small/drift/groups_plain_heldout.json results/bandit_ebnerd_small/drift/groups_plain_tune.json results/bandit_ebnerd_small/drift/realtime_audit.json results/bandit_ebnerd_small/drift/tables.md results/bandit_ebnerd_small/drift/tune_forget.json results/bandit_ebnerd_small/drift/tune_forget_first_pass.json scripts/bandit_realtime_audit.py scripts/drift_make_report.py scripts/run_bandit_experiment.py scripts/run_drift_experiment.py src/bandit/groups.py src/bandit/policies.py src/bandit/runner.py tests/unit/test_bandit_drift.py 
+
+**End-to-end:** 4.0138 ms/impression (249.1 impressions/s) · peak RSS 0.61 GB
+
+Compared against `2026-10-12T22-14-15_snapshot.json` (`268f37a`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.1403 | 0.135 | -3.8% | · |
+| `bm25_score_all` | 1.0282 | 1.1471 | +11.6% | · |
+| `embed_query_build` | 0.0298 | 0.036 | +20.8% | ~ |
+| `embed_score_all` | 0.9243 | 1.3034 | +41.0% | 🔴 |
+| `bm25_candidate_lookup` | 0.0164 | 0.0173 | +5.5% | · |
+| `embed_candidate_lookup` | 0.0125 | 0.0133 | +6.4% | · |
+| `rank_and_auc` | 1.0553 | 1.1409 | +8.1% | · |
+
+**Verdict:** REGRESSION DETECTED
