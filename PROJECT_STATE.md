@@ -23,6 +23,22 @@ leaderboard artifacts, `submissions/` and the training pipeline are untouched; t
 
 ---
 
+## Fair baseline for ADR-018: LightGBM + causal trailing-CTR features (2026-10-12)
+
+Branch bandit-fair-baseline; ADR-018 Addendum 2. 0.7542 artifacts, submissions/, training pipeline untouched.
+
+| Item | Result (measured, held-out days 3-6, user-bootstrap n=2000) |
+|---|---|
+| Verdict | **Retrained GBDT beats the forgetting hybrid at every feedback delay D** (overall, paired): D=0 +0.0437 [+0.0410,+0.0464]; 15 min +0.0393; 30 min +0.0373; 60 min **+0.0348 [+0.0325,+0.0372]**; also in the final 20 % (+0.0539 … +0.0255) |
+| vs original ranker | P@1 +0.0906 / +0.0698 / +0.0570 / +0.0397; stream AUC (days 3-6) 0.7560 → 0.8167 / 0.8021 / 0.7933 / **0.7815** |
+| Correction to ADR-018 | Hybrid re-tuned under delay is +0.0049 [+0.0028,+0.0069] at 60 min (not −0.0040, which used D=0-frozen parameters) |
+| Blend (no learning) | beats the forgetting hybrid at D ≥ 30 min (+0.0032, +0.0124) |
+| Causality | 12 unit tests (flip all labels ≥ t−D); trained-model audit: 1.56 M rows bit-identical after permuting all later labels; placebo features → original level (0.31-0.32 top-1) |
+| Caveats | GBDT/blend see all candidates' outcomes, bandit only its picks; D=0 is an upper bound; not comparable to leaderboard scores; no bandit-on-top-of-retrained-ranker run |
+| Decision | Put real-time popularity in the ranker as features; withdraw "upgrade to forgetting bandit" as a production recommendation |
+
+---
+
 ## Bandit drift + mechanism follow-up (2026-10-12) — ADR-018
 
 Branch `bandit-drift-experiment` (from `bandit-offline-experiment`). Same stream/protocol as ADR-017; no new data, 0.7542

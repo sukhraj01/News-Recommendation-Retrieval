@@ -27,6 +27,8 @@ unknown ("about half the gain survives removing static article metadata"). Two f
 | What carries the gain? | **Article descriptors, not users.** For the forgetting hybrid, LightGBM score + one-hot category/type/sentiment + static article metadata alone reproduces **91 %** of the gain (+0.0428 of +0.0469); dropping the 41 one-hots costs −0.0164, dropping metadata −0.0090; the 29 user-history features contribute nothing (dropping them is +0.0034 *better*). A non-learning "LightGBM probability + trailing 2-hour CTR" blend, using the labels of earlier impressions, already gets **+0.0326 [+0.0307, +0.0345]**. The correction is largely *real-time article/section popularity* — a signal Candidate K lacks by design (ADR-013 uses history-window popularity only). |
 | How much of it survives realistic feedback latency? | **Little, beyond ~15 min.** Frozen forgetting policy, reward available only `delay` after the impression: +0.0469 (0), +0.0399 (5 min), +0.0267 (15 min), +0.0112 (30 min), **−0.0040 [−0.0061, −0.0017] (60 min)**. Non-forgetting hybrid: +0.0106 → +0.0075 (15 min) → +0.0001 (60 min). The headline per-impression numbers assume near-instant click feedback. |
 
+> **Superseded in part by Addendum 2 (end of this ADR):** the 60-minute row above used hyper-parameters frozen at D = 0; re-tuned under delay the hybrid is +0.0049 at 60 min, and the retrained GBDT with trailing-CTR features beats the forgetting hybrid at every D tested.
+
 **Therefore the honest reading of the +0.047 is not "a better learner beats the ranker". It is
 "the ranker has no real-time popularity signal, and a fast-forgetting online layer supplies one
 if clicks are fed back within minutes".** The fair comparison — a GBDT retrained with trailing-CTR
@@ -443,3 +445,181 @@ Group sizes (columns): lightgbm_score 2, freshness 5, article_metadata 6, user_h
 | hybrid_linucb_reset | 0.0668 | 0.1336 | 1.0142 | 0.0190 | 0.0458 | 7,339 |
 | hybrid_lints_forget | 0.1111 | 0.1973 | 2.0923 | 0.0561 | 0.0505 | 4,768 |
 | lgbm_greedy | 0.3170 | 0.8112 | 1.6185 | nan | nan | 2,229 |
+
+
+---
+
+# Addendum 2 (2026-10-12): the fair baseline — LightGBM retrained with causal trailing-CTR features
+
+Branch `bandit-fair-baseline`. This is the baseline the main text said it owed ("Alternatives / next steps", first bullet).
+Same stream, tuning days 0-2, held-out days 3-6, user-bootstrap n = 2000. Candidate K's artifacts, `submissions/` and the
+training pipeline are untouched; new models live in `experiments/trailing_ctr_gbdt_2026-10-12/` (git-ignored) and new
+score arrays next to the ADR-017 stream.
+
+## Verdict (measured)
+
+| D (feedback delay) | retrained GBDT vs forgetting hybrid, overall days 3-6 | final 20 % | GBDT vs original ranker | hybrid vs original |
+|---|---|---|---|---|
+| 0 | **beats**: +0.0437 [+0.0410, +0.0464] | +0.0539 [+0.0486, +0.0595] | +0.0906 [+0.0880, +0.0932] | +0.0469 |
+| 15 min | **beats**: +0.0393 [+0.0368, +0.0415] | +0.0384 [+0.0333, +0.0435] | +0.0698 [+0.0675, +0.0722] | +0.0305 |
+| 30 min | **beats**: +0.0373 [+0.0349, +0.0397] | +0.0318 [+0.0264, +0.0370] | +0.0570 [+0.0548, +0.0591] | +0.0197 |
+| 60 min | **beats**: +0.0348 [+0.0325, +0.0372] | +0.0255 [+0.0202, +0.0305] | +0.0397 [+0.0377, +0.0417] | +0.0049 [+0.0028, +0.0069] |
+
+**The retrained GBDT beats the forgetting hybrid at every delay, overall and in the final 20 %, CI-clear in all eight cells.**
+It does not "match" it at any D. The gap narrows with delay (0.0437 → 0.0348 overall) but never closes in this range.
+Stream AUC (days 3-6): original 0.7560 [0.7540, 0.7579] → retrained 0.8167 [0.8149, 0.8185] at D = 0 (paired +0.0608 [+0.0597, +0.0618]),
+0.8021 / 0.7933 at 15 / 30 min, **0.7815 [0.7795, 0.7834] at 60 min (paired +0.0255 [+0.0247, +0.0263])**.
+On the full seven-day validation stream the AUCs are 0.8173 / 0.8028 / 0.7943 / 0.7827 vs 0.7588 for the original.
+
+The non-learning popularity blend (re-tuned per D on days 0-2) sits between: +0.0326, +0.0268, +0.0229, +0.0172 over the original,
+and it is **better than the forgetting hybrid at D ≥ 30 min** (+0.0032 [+0.0008, +0.0055] at 30 min, +0.0124 [+0.0103, +0.0146] at 60 min) and worse at
+D = 0 (−0.0143) and 15 min (−0.0037).
+
+## What was built
+
+* `src/bandit/trailing.py` — for a row at time t, clicks and shows of the same article over `[t − D − W, t − D)`, W ∈ {1 h, 2 h}.
+  Six features: smoothed CTR `(clicks + 5·0.1)/(shows + 5)` and impression count for each window, plus each CTR's rank inside the
+  impression. The upper bound is **strict**: the brief said "≤ impression_time − D", but with D = 0 a non-strict bound admits the
+  row's own label (and same-second siblings), a direct leak, so `<` is used (for D > 0 the two differ only for events at exactly
+  t − D to the second). Shows and clicks are windowed identically, so a delayed click is never divided by an undelayed show count.
+* `scripts/trailing_ctr_gbdt.py` — one model per D: Candidate K's `K_rank_nopos` recipe unchanged (lambdarank, identical
+  `LGB_PARAMS`, 1,500 rounds, early stopping 75 on the **last 24 h of train only**, the same 63 leakage-safe columns — no
+  lifetime aggregates, no position features) plus the six features. Trailing statistics run over the concatenated train + validation
+  timeline so the first validation hours are seeded by the end of train, as a live system would be. Best iterations 950 / 513 / 426 / 462.
+  The six features carry 37.9 % / 30.3 % / 24.8 % / 18.3 % of total gain at D = 0 / 15 / 30 / 60 min.
+* `scripts/fair_baseline_compare.py` — per D, everything chosen on days 0-2 and frozen: the blend's (window, β); the forgetting hybrid's
+  (γ, λ) **re-tuned under delay D** (12 configs; the runner releases a pick's reward `D` seconds later).
+
+## Causality evidence (the gap is large, so it was checked three ways)
+
+1. **Unit tests** (`tests/unit/test_trailing.py`, 12 cases): equality with a brute-force loop; for D ∈ {0, 15, 30, 60} min, flipping **every** label
+   with `obs_time ≥ t − D` leaves the feature at t unchanged (60 random probes each); a row's own label and same-second siblings never enter at D = 0.
+2. **End-to-end on the trained models** (`scripts/fair_baseline_audit.py`): permute every validation label from stream day 4 onward, recompute the
+   features, re-score with the *same* model. For D = 0 / 15 / 60 min, 1.56 M / 1.56 M / 1.59 M rows with `t ≤ T0 + D` have a maximum absolute score change of **0.0**;
+   92–99 % of later rows do change (so the check is not vacuous).
+3. **Placebo**: building the trailing features from within-impression-permuted labels (all of train + validation) drops the same models to top-1
+   0.3092 / 0.3113 / 0.3194 vs 0.4077 / 0.3859 / 0.3536 with real labels and 0.3168 for the original ranker — the gain comes from label information in earlier
+   impressions and nothing else.
+
+## Reading it correctly
+
+* **Information asymmetry, in the GBDT's favour.** The retrained GBDT and the blend use the shows *and* clicks of **every** in-view candidate of every impression older
+  than D; the bandit sees only the reward of its own picks (the "pick one arm" formulation of ADR-017). A production system logs all served impressions regardless
+  of policy, so the GBDT's information is the realistic one; the bandit's restriction is a property of the formulation, not of reality. A fairer bandit would be handed the same
+  full-information log — then it is just a recency-weighted regression, i.e. this GBDT.
+* **D = 0 is an upper bound, not a deployable number.** AUC 0.8173 uses labels up to the previous second. It is **not comparable** to the 0.7542 leaderboard score or the
+  0.7699 clean literature figure (blind test sets without in-stream labels). The D = 60 min row (AUC 0.7827 over all seven days) is the more conservative reading.
+* **Revision of an ADR-018 statement.** The main text says the forgetting policy is "−0.0040 [−0.0061, −0.0017] worse than LightGBM-greedy at a 60-minute delay". That policy's
+  hyper-parameters were frozen at D = 0. Re-tuned under the delay (γ = 0.9999, λ = 10) it is **+0.0049 [+0.0028, +0.0069]** over the original at 60 min (and +0.0305 / +0.0197 at 15 / 30 min vs +0.0267 / +0.0112
+  before). The earlier row measured "a policy tuned for instant feedback under delay", not "the best bandit under delay"; this section supersedes it. The qualitative conclusion
+  (the bandit's lead depends heavily on the delay) stands: +0.0469 → +0.0049.
+* The hybrid's re-tuning grid is small (γ ∈ {0.998, 0.999, 0.9995, 0.9999} × λ ∈ {1, 10, 100}) and winners sit at γ = 0.9999 for D = 60 min (an edge); the 0.035 gap to the
+  GBDT is much larger than anything a wider grid recovered in the main experiment, but a wider delay-aware grid was not run.
+
+## Limitations (new)
+
+One week of one small-sample dataset; the GBDT trains on a single week (05-18 to 05-25) with no hyper-parameter search (same fixed parameters as K); one seed per model;
+trailing features need an in-stream label feed, which the blind-test setting of the leaderboards does not provide (so none of this changes the 0.7542 story); the six features are
+article-level only — no user×article or category-level trailing statistics; **a bandit on top of the retrained GBDT (hybrid warm-started from `gbdt_plus_trailing_ctr`) was not run**, so
+"does an online layer add anything once the ranker has real-time features" is open.
+
+## Decision (revised, preserving the earlier text above)
+
+ADR-018's condition "revisit if the GBDT-with-trailing-CTR baseline matches the forgetting bandit" is resolved in the other direction: it **beats** it at every D tested.
+Revised recommendation: supply real-time popularity to the ranker as **features** (cheap, stateless at serving time beyond a rolling count store, +0.0397 P@1 over the original even at a
+60-minute delay); do not ship the forgetting bandit as a substitute for those features. The only open bandit question is incremental: whether a forgetting layer on top of the
+retrained ranker adds anything — to be tested before any online work. The earlier "upgrade the hybrid candidate to the forgetting variant" is withdrawn as a *production* recommendation
+(it remains the best *bandit*).
+
+## Verification and reproduce
+
+* New tests: 12 (`tests/unit/test_trailing.py`). Full suite: see PROJECT_STATE.md.
+
+```bash
+poetry run python scripts/trailing_ctr_gbdt.py            # ~8 min: caches raw matrices, trains 4 models (D = 0, 15, 30, 60 min)
+poetry run python scripts/fair_baseline_compare.py        # ~4 min: tuning on days 0-2, one held-out run
+poetry run python scripts/fair_baseline_audit.py          # ~15 min: permuted-future-label invariance + placebo on the trained models
+poetry run python scripts/fair_baseline_report.py         # renders the tables below
+```
+
+## Tables (rendered from `results/bandit_ebnerd_small/drift/fair_baseline*.json`)
+
+### Retrained GBDT: training summary (all validation days; the models never saw validation)
+
+| D | best iteration | stream AUC (all 7 days) | top-1 (all 7 days) | share of gain from the 6 trailing features |
+|---|---:|---:|---:|---:|
+| 0 min | 950 | 0.8173 | 0.4077 | 0.379 |
+| 15 min | 513 | 0.8028 | 0.3859 | 0.303 |
+| 30 min | 426 | 0.7943 | 0.3724 | 0.248 |
+| 60 min | 462 | 0.7827 | 0.3536 | 0.183 |
+
+Original ranker on the same stream: AUC 0.7588, top-1 0.3168.
+
+### D = 0 min — held-out days 3-6 (n = 147,492); selections made on days 0-2
+
+Blend chosen on days 0-2: 2h window, beta = 2.0. Forgetting hybrid re-tuned under this delay: gamma = 0.999, lambda = 1.
+
+| policy | P@1 [CI] | Δ vs original [CI] | Δ vs forgetting hybrid [CI] | final-20% P@1 | final-20% Δ vs original | final-20% Δ vs hybrid |
+|---|---|---|---|---|---|---|
+| LightGBM-greedy (original) | 0.3089 [0.3058, 0.3120] | - | -0.0469 [-0.0492, -0.0448] | 0.3169 | - | -0.0457 [-0.0507, -0.0408] |
+| LightGBM + trailing CTR (retrained) | 0.3995 [0.3961, 0.4029] | +0.0906 [+0.0880, +0.0932] | +0.0437 [+0.0410, +0.0464] | 0.4166 | +0.0997 [+0.0943, +0.1052] | +0.0539 [+0.0486, +0.0595] |
+| popularity blend (no learning) | 0.3415 [0.3384, 0.3448] | +0.0326 [+0.0306, +0.0345] | -0.0143 [-0.0167, -0.0120] | 0.3402 | +0.0233 [+0.0196, +0.0270] | -0.0224 [-0.0273, -0.0176] |
+| forgetting hybrid LinUCB | 0.3558 [0.3527, 0.3590] | +0.0469 [+0.0448, +0.0492] | - | 0.3626 | +0.0457 [+0.0408, +0.0507] | - |
+
+Stream AUC on days 3-6: original 0.7560 [0.7540, 0.7579], retrained 0.8167 [0.8149, 0.8185], paired Δ +0.0608 [+0.0597, +0.0618]. Per-day P@1 (days 3-6): LightGBM-greedy 0.303/0.303/0.314/0.315; LightGBM + trailing CTR 0.390/0.390/0.404/0.414; popularity blend 0.337/0.332/0.352/0.344; forgetting hybrid LinUCB 0.348/0.353/0.360/0.361.
+
+### D = 15 min — held-out days 3-6 (n = 147,492); selections made on days 0-2
+
+Blend chosen on days 0-2: 2h window, beta = 2.0. Forgetting hybrid re-tuned under this delay: gamma = 0.9995, lambda = 10.
+
+| policy | P@1 [CI] | Δ vs original [CI] | Δ vs forgetting hybrid [CI] | final-20% P@1 | final-20% Δ vs original | final-20% Δ vs hybrid |
+|---|---|---|---|---|---|---|
+| LightGBM-greedy (original) | 0.3089 [0.3058, 0.3120] | - | -0.0305 [-0.0327, -0.0285] | 0.3169 | - | -0.0314 [-0.0363, -0.0265] |
+| LightGBM + trailing CTR (retrained) | 0.3786 [0.3754, 0.3820] | +0.0698 [+0.0675, +0.0722] | +0.0393 [+0.0368, +0.0415] | 0.3867 | +0.0698 [+0.0648, +0.0750] | +0.0384 [+0.0333, +0.0435] |
+| popularity blend (no learning) | 0.3357 [0.3326, 0.3390] | +0.0268 [+0.0249, +0.0287] | -0.0037 [-0.0060, -0.0015] | 0.3367 | +0.0198 [+0.0159, +0.0236] | -0.0116 [-0.0166, -0.0064] |
+| forgetting hybrid LinUCB | 0.3394 [0.3365, 0.3426] | +0.0305 [+0.0285, +0.0327] | - | 0.3483 | +0.0314 [+0.0265, +0.0363] | - |
+
+Stream AUC on days 3-6: original 0.7560 [0.7540, 0.7579], retrained 0.8021 [0.8002, 0.8039], paired Δ +0.0461 [+0.0451, +0.0471]. Per-day P@1 (days 3-6): LightGBM-greedy 0.303/0.303/0.314/0.315; LightGBM + trailing CTR 0.373/0.371/0.385/0.385; popularity blend 0.332/0.327/0.345/0.339; forgetting hybrid LinUCB 0.326/0.341/0.342/0.347.
+
+### D = 30 min — held-out days 3-6 (n = 147,492); selections made on days 0-2
+
+Blend chosen on days 0-2: 2h window, beta = 2.0. Forgetting hybrid re-tuned under this delay: gamma = 0.9995, lambda = 10.
+
+| policy | P@1 [CI] | Δ vs original [CI] | Δ vs forgetting hybrid [CI] | final-20% P@1 | final-20% Δ vs original | final-20% Δ vs hybrid |
+|---|---|---|---|---|---|---|
+| LightGBM-greedy (original) | 0.3089 [0.3058, 0.3120] | - | -0.0197 [-0.0219, -0.0175] | 0.3169 | - | -0.0249 [-0.0300, -0.0200] |
+| LightGBM + trailing CTR (retrained) | 0.3659 [0.3627, 0.3691] | +0.0570 [+0.0548, +0.0591] | +0.0373 [+0.0349, +0.0397] | 0.3736 | +0.0567 [+0.0520, +0.0615] | +0.0318 [+0.0264, +0.0370] |
+| popularity blend (no learning) | 0.3317 [0.3286, 0.3351] | +0.0229 [+0.0209, +0.0247] | +0.0032 [+0.0008, +0.0055] | 0.3343 | +0.0174 [+0.0136, +0.0212] | -0.0075 [-0.0124, -0.0027] |
+| forgetting hybrid LinUCB | 0.3286 [0.3255, 0.3316] | +0.0197 [+0.0175, +0.0219] | - | 0.3418 | +0.0249 [+0.0200, +0.0300] | - |
+
+Stream AUC on days 3-6: original 0.7560 [0.7540, 0.7579], retrained 0.7933 [0.7914, 0.7951], paired Δ +0.0374 [+0.0364, +0.0383]. Per-day P@1 (days 3-6): LightGBM-greedy 0.303/0.303/0.314/0.315; LightGBM + trailing CTR 0.360/0.362/0.371/0.370; popularity blend 0.329/0.323/0.340/0.334; forgetting hybrid LinUCB 0.312/0.328/0.332/0.341.
+
+### D = 60 min — held-out days 3-6 (n = 147,492); selections made on days 0-2
+
+Blend chosen on days 0-2: 2h window, beta = 1.0. Forgetting hybrid re-tuned under this delay: gamma = 0.9999, lambda = 10.
+
+| policy | P@1 [CI] | Δ vs original [CI] | Δ vs forgetting hybrid [CI] | final-20% P@1 | final-20% Δ vs original | final-20% Δ vs hybrid |
+|---|---|---|---|---|---|---|
+| LightGBM-greedy (original) | 0.3089 [0.3058, 0.3120] | - | -0.0049 [-0.0069, -0.0028] | 0.3169 | - | -0.0132 [-0.0176, -0.0087] |
+| LightGBM + trailing CTR (retrained) | 0.3485 [0.3453, 0.3519] | +0.0397 [+0.0377, +0.0417] | +0.0348 [+0.0325, +0.0372] | 0.3556 | +0.0387 [+0.0345, +0.0432] | +0.0255 [+0.0202, +0.0305] |
+| popularity blend (no learning) | 0.3261 [0.3231, 0.3294] | +0.0172 [+0.0158, +0.0186] | +0.0124 [+0.0103, +0.0146] | 0.3299 | +0.0130 [+0.0103, +0.0158] | -0.0002 [-0.0049, +0.0044] |
+| forgetting hybrid LinUCB | 0.3137 [0.3105, 0.3168] | +0.0049 [+0.0028, +0.0069] | - | 0.3301 | +0.0132 [+0.0087, +0.0176] | - |
+
+Stream AUC on days 3-6: original 0.7560 [0.7540, 0.7579], retrained 0.7815 [0.7795, 0.7834], paired Δ +0.0255 [+0.0247, +0.0263]. Per-day P@1 (days 3-6): LightGBM-greedy 0.303/0.303/0.314/0.315; LightGBM + trailing CTR 0.344/0.340/0.357/0.352; popularity blend 0.322/0.317/0.335/0.329; forgetting hybrid LinUCB 0.289/0.321/0.315/0.328.
+
+### Verdict per D (retrained GBDT vs forgetting hybrid, paired, overall / final 20%)
+
+| D | overall | final 20% |
+|---|---|---|
+| 0 min | **beats** the hybrid (+0.0437 [+0.0410, +0.0464]) | **beats** the hybrid (+0.0539 [+0.0486, +0.0595]) |
+| 15 min | **beats** the hybrid (+0.0393 [+0.0368, +0.0415]) | **beats** the hybrid (+0.0384 [+0.0333, +0.0435]) |
+| 30 min | **beats** the hybrid (+0.0373 [+0.0349, +0.0397]) | **beats** the hybrid (+0.0318 [+0.0264, +0.0370]) |
+| 60 min | **beats** the hybrid (+0.0348 [+0.0325, +0.0372]) | **beats** the hybrid (+0.0255 [+0.0202, +0.0305]) |
+
+### Causality audit of the trained models (end to end)
+
+| D | rows with t ≤ T0+D checked | max \|score change\| on them | later rows whose score changed | placebo top-1 (permuted-label features) | real top-1 | original ranker top-1 |
+|---|---:|---:|---:|---:|---:|---:|
+| D=0 | 1,555,133 | 0.0e+00 | 0.994 | 0.3092 | 0.4077 | 0.3168 |
+| D=900 | 1,564,487 | 0.0e+00 | 0.989 | 0.3113 | 0.3859 | 0.3168 |
+| D=3600 | 1,588,275 | 0.0e+00 | 0.917 | 0.3194 | 0.3536 | 0.3168 |

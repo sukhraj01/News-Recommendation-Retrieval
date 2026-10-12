@@ -1,0 +1,26 @@
+{
+ "D=0": {
+  "rows_checked_unaffected": 1555133,
+  "max_abs_score_diff_unaffected": 0.0,
+  "rows_after_cutoff_that_changed": 0.9944693913054872,
+  "placebo_top1_all_validation": 0.30924556606048714,
+  "real_top1_all_validation": 0.4076812713828496,
+  "original_ranker_top1_all_validation": 0.31681565684435126
+ },
+ "D=900": {
+  "rows_checked_unaffected": 1564487,
+  "max_abs_score_diff_unaffected": 0.0,
+  "rows_after_cutoff_that_changed": 0.9893657174476256,
+  "placebo_top1_all_validation": 0.3113015896373142,
+  "real_top1_all_validation": 0.3858743413980143,
+  "original_ranker_top1_all_validation": 0.31681565684435126
+ },
+ "D=3600": {
+  "rows_checked_unaffected": 1588275,
+  "max_abs_score_diff_unaffected": 0.0,
+  "rows_after_cutoff_that_changed": 0.9165176736654218,
+  "placebo_top1_all_validation": 0.31943984598217023,
+  "real_top1_all_validation": 0.3535747423839246,
+  "original_ranker_top1_all_validation": 0.31681565684435126
+ }
+}
