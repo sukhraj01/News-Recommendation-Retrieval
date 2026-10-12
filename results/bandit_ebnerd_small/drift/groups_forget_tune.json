@@ -1,0 +1,6998 @@
+{
+ "tune_grid": [
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.36114456281200147
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3594977098450929
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.36573516545725904
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.36639390664402244
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3686686223045649
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3664762492923679
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3721681848592455
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3707477741752869
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3664144923061088
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.37121095157222994
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3690906283773352
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.36225618856466474
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3688436004322989
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.36733055426895167
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.36215326025423294
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3692450208429829
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3692964849981988
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3665894704338428
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.31825433585507695
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3312438886315681
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3199629458082446
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.30870258864700734
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3422057536925531
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3142092532551078
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3417425762956101
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3392620040142041
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3447995471154341
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.33723431629869793
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.33639030415315735
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3350110647933714
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34278215223097114
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34249395296176216
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34425402707014563
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3443672482116206
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3475168545108332
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3473830477072719
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.30532654006484483
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.30532654006484483
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3027018681488343
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3027018681488343
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.2940353044104781
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.2940353044104781
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3143121815655396
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.31175955946683137
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.31175955946683137
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3058205959549174
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3143121815655396
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3058205959549174
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3204672945293603
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3204672945293603
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.31916010498687664
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3157428850805414
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3157428850805414
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.31916010498687664
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.2304873655498945
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.2304873655498945
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.2334414080592867
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.23214451134784622
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.2334414080592867
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.23214451134784622
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.2555812876331635
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.2555812876331635
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.25249343832021
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.25249343832021
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.25097009932581954
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.25097009932581954
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.27407750501775513
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.2734702279862076
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.26849879059235243
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.27407750501775513
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.26849879059235243
+  },
+  {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.2734702279862076
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3652205239051001
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.36004322989038134
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.36036230765271987
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.36548813751222275
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.367464361072513
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3650764242704956
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.37116978024805725
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.37254901960784315
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.37003756883330763
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3686583294735217
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3618650609850239
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3659719005712521
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3704801605681643
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3690391642221193
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3707168956821574
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.36681591271679276
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3614533477432968
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.36943029180176007
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.31649426174669343
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3262106942514539
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3238948072667387
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.33536102104883947
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3248314548916679
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3458802943749678
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.34723894807266736
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3415264268437034
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3394678606350677
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3401368946528743
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3396428387628017
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.34513921053985896
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.348484380628892
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.34372909268694357
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.34449076218413877
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3497195203540734
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3472801193968401
+  },
+  {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.34775358962482633
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35875662600998404
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3596623951417838
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3589418969687613
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3527661983428542
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35727445833976634
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35543204158303743
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.361350419432865
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.36010498687664044
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3628428799341259
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.36050640728732436
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3604343574700221
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35610107560084403
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35958005249343833
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.36229735988883743
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.36036230765271987
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3619165251402398
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35907570377232256
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35592609747311
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.31695743914363644
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3256651742061654
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.31850136380011324
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3288765374916371
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.340178065977047
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3218156553960167
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3409706139673717
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3433173794452164
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3424116103134167
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3354948278524008
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3364005969842005
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3351757500900623
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3441819772528434
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33996191652514024
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34207194688899184
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3440893417734548
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3378415933302455
+  },
+  {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3404148010910401
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3687406721218671
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3593536102104884
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.36614687869898616
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.36901857856003295
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3685656939941331
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.35875662600998404
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.37058308887859603
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3710771447686686
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.360599042766713
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3663218568267202
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3680098811178015
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3686068653183058
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3665791776027997
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3658175081056044
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3668467912099223
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3651896454119706
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.35995059441099275
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3661262930368998
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.31875868457619266
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3443260768874479
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3152488291904688
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3210436930677783
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3162678194637435
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.32998816324430036
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.33591683392517113
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3375945653852092
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3452833101744635
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.34273068807575524
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3409191498121558
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.34022953013226287
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3480314960629921
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.34750656167979005
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3417837476197828
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3451186248777726
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3467654778446812
+  },
+  {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3423601461582008
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.36691884102722455
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.36505583860840923
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3506458751479595
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3653955020328341
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3629252225824713
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3602902578354176
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3698934691987031
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.36979054088827135
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.35760382893314807
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.36742318974834026
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3673614327620812
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.36014615820081314
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.36605424321959756
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3650352529463229
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3660130718954248
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3614121764191241
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.360948999022181
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3676496320312902
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3178632082754362
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3212804281817714
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3304204621481138
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.30932015850959804
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.34190726159230095
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3159693273634913
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3262827440687561
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.34233956049611447
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3362153260254233
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.34390407081467755
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.33991045236992434
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.33412588132365806
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.34687869898615614
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.33653440378776184
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3422263393546395
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3406618290360764
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3410838351088467
+  },
+  {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.347218362410581
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3541042663784674
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3536307961504812
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35257063455303383
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3564819103494416
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35322937573979724
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.352869126653286
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3560290257835418
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3542792445062014
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3577685142298389
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3539292882507334
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3597756162832587
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.354021923730122
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3547835932273172
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3549997426792239
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35702743039473006
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35339406103648807
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35826257011991147
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35227214245278166
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.31771910864083164
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3217950697339303
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3259430806443312
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3265194791827492
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3172250527507591
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3379445216406773
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.334064124337399
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.33122330296948177
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.33453759456538523
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3353816067109258
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3293808862127528
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3396840100869744
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3408676856569399
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.33933405383150633
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3422880963408986
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3404971437393855
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.33832535638927486
+  },
+  {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.33762544387833876
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3288662446605939
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32827955329113273
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32817662498070094
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32818691781174414
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3287324378570326
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3281457464875714
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32854716689825536
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.328526581236169
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3287736091812053
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32855745972929856
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3288662446605939
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32853687406721216
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3286706808707735
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3286706808707735
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3287736091812053
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3286809737018167
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3288662446605939
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3286706808707735
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3255725387267768
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32774432607688747
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3263136225618856
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32791930420462145
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32668416447944004
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32840306726365087
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3283104317842623
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32668416447944004
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32850599557408267
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32613864443415164
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32645772219649016
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32827955329113273
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32858833822242806
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32860892388451446
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32668416447944004
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3285780453913849
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3265709433379651
+  },
+  {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32643713653440376
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3293294220575369
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3296999639750913
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32997787041325716
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32931912922649376
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3245123771293294
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.329102979774587
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32988523493386857
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3296999639750913
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.33026606968246613
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.33018372703412074
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32926766507127786
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32617981575832433
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3298131851165663
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32950440018527094
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32966908548196183
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32712675621429677
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32983377077865267
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3297514281303072
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3227831815140754
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3106788122072976
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.31338582677165355
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.31633986928104574
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3179043795996089
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3272502701868149
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.31906746950748804
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3260151304616335
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3235036796870979
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.31633986928104574
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32855745972929856
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3199423601461582
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3200349956255468
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.329391179043796
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32245381092069375
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3184190211517678
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3281148679944419
+  },
+  {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.32606659461684934
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3486078946014101
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34858730893932377
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3478976892594308
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3482476455148989
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34625083629252223
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35002830528536877
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34883433688436005
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34830940250115794
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34764036848335134
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3500488909474551
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35122227368637743
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34720806957953787
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34597292985435646
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.345890587206011
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.345715609078277
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34719777674849467
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3501312335958005
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34524213885029076
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.32520199680922235
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3304204621481138
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.32978230662343677
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3260974731099789
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33372446091297414
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33872677679995883
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33751222273686377
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33398178168905357
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33977664556636306
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33299366990890844
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3357830271216098
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33370387525088774
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34022953013226287
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33510370027276004
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33909731871751325
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3359888837424734
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3386135556584839
+  },
+  {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33781071483711594
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.34201018990273274
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3442849055632752
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.340754464515465
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3438526066594617
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3429159590345324
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.342545417116978
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3438423138284185
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.34329679378313005
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.34425402707014563
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3459523441922701
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.34354382172816633
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3455715094436725
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3435747002212959
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.34349235757295044
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.34509803921568627
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3465081570686017
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3443569553805774
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.34325562245895735
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.32960732849570273
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3376872008645978
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3338376820544491
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.33555658483865985
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3240491997323864
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.33150120940764755
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3360712263908188
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.33822242807884306
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3389840975760383
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3358344912768257
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.339025268900211
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.33327157634707427
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.33909731871751325
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.33915907570377235
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.33639030415315735
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3388811692656065
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3374401729195615
+  },
+  {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3366064536050641
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3290618084504143
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32802223251505325
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3284339457567804
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32879419484329164
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3286706808707735
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3296896711440482
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3294941073542278
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.329102979774587
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32987494210282536
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32965879265091863
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3300602130616026
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3297411352992641
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32946322886109825
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.33026606968246613
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32960732849570273
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3296999639750913
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32992640625804126
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32972054963717773
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3195100612423447
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32320518758684574
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32321548041788895
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3178117441202203
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32875302351911895
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32429622767742267
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3264783078585765
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32401832123925683
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32545931758530183
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3193453759456539
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3201276311049354
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3284236529257372
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3257166383613813
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.324893211877927
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3269311924244763
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32597395913746074
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32673562863465594
+  },
+  {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3282075034738305
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35579229066954865
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3561113684318872
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3556790695280737
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3558334619937214
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35277649117389737
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3498327414955483
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35484535021357627
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35497915701713756
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3560187329524986
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35164427975914775
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35580258350059185
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35388811692656064
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35344552519170397
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35294117647058826
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3546292007616695
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3512634450105502
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.35388811692656064
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3533631825433586
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.33662703926715043
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.33867531264474293
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.33437290926869434
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.34421285574597293
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.332911327260563
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3436158715454686
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.33909731871751325
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.34448046935309556
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.340816221501724
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3426483454274098
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.33781071483711594
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.34457310483248416
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.34328650095208685
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3430085945139211
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.341217641912408
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3415984766610056
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.339889866707838
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.34101178529154447
+  }
+ ],
+ "winners": {
+  "drop freshness|per_impression": {
+   "spec": "drop freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.37254901960784315
+  },
+  "full (no ablation)|per_impression": {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3721681848592455
+  },
+  "drop user_history|per_impression": {
+   "spec": "drop user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3710771447686686
+  },
+  "drop context_session_popularity|per_impression": {
+   "spec": "drop context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.3698934691987031
+  },
+  "drop article_metadata|per_impression": {
+   "spec": "drop article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3628428799341259
+  },
+  "drop onehot_categoricals|per_impression": {
+   "spec": "drop onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3597756162832587
+  },
+  "keep lightgbm_score + onehot_categoricals|per_impression": {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3561113684318872
+  },
+  "keep lightgbm_score + article_metadata|per_impression": {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35122227368637743
+  },
+  "drop freshness|hourly": {
+   "spec": "drop freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.3497195203540734
+  },
+  "drop user_history|hourly": {
+   "spec": "drop user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3480314960629921
+  },
+  "full (no ablation)|hourly": {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3475168545108332
+  },
+  "drop context_session_popularity|hourly": {
+   "spec": "drop context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.347218362410581
+  },
+  "keep lightgbm_score + user_history|per_impression": {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.3465081570686017
+  },
+  "keep lightgbm_score + onehot_categoricals|hourly": {
+   "spec": "keep lightgbm_score + onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.34457310483248416
+  },
+  "drop article_metadata|hourly": {
+   "spec": "drop article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3441819772528434
+  },
+  "drop onehot_categoricals|hourly": {
+   "spec": "drop onehot_categoricals",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "onehot_categoricals"
+    ]
+   },
+   "tune_ctr": 0.3422880963408986
+  },
+  "keep lightgbm_score + article_metadata|hourly": {
+   "spec": "keep lightgbm_score + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34022953013226287
+  },
+  "keep lightgbm_score + user_history|hourly": {
+   "spec": "keep lightgbm_score + user_history",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "user_history"
+    ]
+   },
+   "tune_ctr": 0.33915907570377235
+  },
+  "keep lightgbm_score + freshness|per_impression": {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.33026606968246613
+  },
+  "keep lightgbm_score + context_session_popularity|per_impression": {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.33026606968246613
+  },
+  "keep lightgbm_score + freshness|hourly": {
+   "spec": "keep lightgbm_score + freshness",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "freshness"
+    ]
+   },
+   "tune_ctr": 0.329391179043796
+  },
+  "keep only lightgbm_score|per_impression": {
+   "spec": "keep only lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3288662446605939
+  },
+  "keep lightgbm_score + context_session_popularity|hourly": {
+   "spec": "keep lightgbm_score + context_session_popularity",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "context_session_popularity"
+    ]
+   },
+   "tune_ctr": 0.32875302351911895
+  },
+  "keep only lightgbm_score|hourly": {
+   "spec": "keep only lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.32860892388451446
+  },
+  "drop lightgbm_score|per_impression": {
+   "spec": "drop lightgbm_score",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.3204672945293603
+  },
+  "drop lightgbm_score|hourly": {
+   "spec": "drop lightgbm_score",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "drop_groups": [
+     "lightgbm_score"
+    ]
+   },
+   "tune_ctr": 0.27407750501775513
+  }
+ }
+}

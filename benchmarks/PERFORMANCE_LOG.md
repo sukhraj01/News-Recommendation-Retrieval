@@ -261,3 +261,63 @@ Compared against `2026-09-14T02-42-54_snapshot.json` (`13564ff`):
 | `rank_and_auc` | 1.0914 | 0.9017 | -17.4% | ~ |
 
 **Verdict:** no regression
+
+### 2026-10-12T22:13:32 — `268f37a` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** pre-commit: ARCHITECTURE.md PROJECT_STATE.md benchmarks/profile_bandit.py benchmarks/results/2026-10-12T22-06-36_ebnerd_small_bandit_profile.json decisions/ADR-017-bandit-experiment.md decisions/ADR-018-bandit-drift-and-mechanism.md knowledge/ai-usage-log/2026-10-12_bandit-drift-and-mechanism.md results/bandit_ebnerd_small/drift/diagnosis.json results/bandit_ebnerd_small/drift/forget_heldout.json results/bandit_ebnerd_small/drift/forget_heldout_runs.npz results/bandit_ebnerd_small/drift/groups_forget_extra_heldout.json results/bandit_ebnerd_small/drift/groups_forget_extra_tune.json results/bandit_ebnerd_small/drift/groups_forget_heldout.json results/bandit_ebnerd_small/drift/groups_forget_tune.json results/bandit_ebnerd_small/drift/groups_plain_heldout.json results/bandit_ebnerd_small/drift/groups_plain_tune.json results/bandit_ebnerd_small/drift/realtime_audit.json results/bandit_ebnerd_small/drift/tables.md results/bandit_ebnerd_small/drift/tune_forget.json results/bandit_ebnerd_small/drift/tune_forget_first_pass.json scripts/bandit_realtime_audit.py scripts/drift_make_report.py scripts/run_bandit_experiment.py scripts/run_drift_experiment.py src/bandit/groups.py src/bandit/policies.py src/bandit/runner.py tests/unit/test_bandit_drift.py 
+
+**End-to-end:** 3.8931 ms/impression (256.9 impressions/s) · peak RSS 0.6 GB
+
+Compared against `2026-10-12T19-22-39_snapshot.json` (`f17a1e7`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.1251 | 0.1357 | +8.5% | · |
+| `bm25_score_all` | 0.9785 | 1.0386 | +6.1% | · |
+| `embed_query_build` | 0.0295 | 0.0347 | +17.6% | ~ |
+| `embed_score_all` | 0.7598 | 1.3223 | +74.0% | 🔴 |
+| `bm25_candidate_lookup` | 0.0149 | 0.0209 | +40.3% | ~ |
+| `embed_candidate_lookup` | 0.0107 | 0.0134 | +25.2% | ~ |
+| `rank_and_auc` | 0.9017 | 1.091 | +21.0% | ~ |
+
+**Verdict:** REGRESSION DETECTED
+
+### 2026-10-12T22:14:11 — `268f37a` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** recheck after blocked commit (1)
+
+**End-to-end:** 3.3141 ms/impression (301.7 impressions/s) · peak RSS 0.59 GB
+
+Compared against `2026-10-12T22-13-32_snapshot.json` (`268f37a`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.1357 | 0.1642 | +21.0% | ~ |
+| `bm25_score_all` | 1.0386 | 1.029 | -0.9% | · |
+| `embed_query_build` | 0.0347 | 0.0324 | -6.6% | · |
+| `embed_score_all` | 1.3223 | 0.7982 | -39.6% | 🟢 |
+| `bm25_candidate_lookup` | 0.0209 | 0.0154 | -26.3% | ~ |
+| `embed_candidate_lookup` | 0.0134 | 0.0119 | -11.2% | · |
+| `rank_and_auc` | 1.091 | 1.0574 | -3.1% | · |
+
+**Verdict:** no regression
+
+### 2026-10-12T22:14:15 — `268f37a` (dirty tree)
+**Hardware:** Mac15,12 / 8GiB · **Config:** MIND small/dev, 150 users, 205 impressions, 42,416 articles
+**Note:** recheck after blocked commit (2)
+
+**End-to-end:** 3.4032 ms/impression (293.8 impressions/s) · peak RSS 0.69 GB
+
+Compared against `2026-10-12T22-14-11_snapshot.json` (`268f37a`):
+
+| Stage | Before (ms/imp) | After (ms/imp) | Change | |
+|---|---:|---:|---:|---|
+| `query_tokenize` | 0.1642 | 0.1403 | -14.6% | · |
+| `bm25_score_all` | 1.029 | 1.0282 | -0.1% | · |
+| `embed_query_build` | 0.0324 | 0.0298 | -8.0% | · |
+| `embed_score_all` | 0.7982 | 0.9243 | +15.8% | ~ |
+| `bm25_candidate_lookup` | 0.0154 | 0.0164 | +6.5% | · |
+| `embed_candidate_lookup` | 0.0119 | 0.0125 | +5.0% | · |
+| `rank_and_auc` | 1.0574 | 1.0553 | -0.2% | · |
+
+**Verdict:** no regression

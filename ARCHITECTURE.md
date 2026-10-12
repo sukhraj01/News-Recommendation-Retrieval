@@ -653,6 +653,14 @@ Related ADR
 
 # Architecture Changelog
 
+## 2026-10-12 (2) — Drift-aware update rules for the bandit layer (ADR-018)
+
+`src/bandit/policies.py::_SharedLinear` gained opt-in exponential forgetting (SM with scaling + periodic prior restore),
+sliding-window (rank-1 add/remove) and periodic reset; `LinUCB`/`LinThompson` accept a `feature_mask`; `runner.py` gained a
+read-only `hook` and a `delay_s` delayed-feedback mode; `src/bandit/groups.py` defines the feature groups. All defaults reproduce the
+previous behaviour bit for bit (tested). No serving-path change. Scalability: per-observation state stays O(d²); the window rule
+adds an O(W·d) buffer (W=1000, d=102 → ~0.8 MB).
+
 ## 2026-10-12 — Offline contextual-bandit layer (`src/bandit/`) added beside Candidate K (ADR-017)
 
 A new, self-contained package; **no existing component's interface changed**.

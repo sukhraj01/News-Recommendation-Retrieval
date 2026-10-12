@@ -37,6 +37,7 @@ from src.bandit.evaluation import (
 from src.bandit.policies import (
     EpsilonGreedy, LightGBMGreedy, LinThompson, LinUCB, PopularityGreedy, RandomPolicy, hybrid_prior_theta,
 )
+from src.bandit.groups import HYBRID_NAMES, group_mask
 from src.bandit.runner import run_prequential
 from src.bandit.stream import ImpressionStream
 
@@ -83,6 +84,17 @@ def split_periods(stream: ImpressionStream) -> tuple[ImpressionStream, Impressio
     return stream.window(0, n_tune), stream.window(n_tune, len(stream)), n_tune
 
 
+_NAMES: list[str] | None = None
+
+
+def _feature_names() -> list[str]:
+    """Names of the d0+2 columns of the stream's feature matrix (100 linear + 2 hybrid)."""
+    global _NAMES
+    if _NAMES is None:
+        _NAMES = json.loads((STREAM_DIR / "meta.json").read_text())["feature_names"] + HYBRID_NAMES
+    return _NAMES
+
+
 def make_policy(kind: str, p: dict, d0: int, seed: int):
     if kind == "random":
         return RandomPolicy(seed)
@@ -98,9 +110,13 @@ def make_policy(kind: str, p: dict, d0: int, seed: int):
         return LinThompson(d0, p["v"], p["lam"], seed=seed)
     if kind in ("hybrid_linucb", "hybrid_lints"):
         prior = hybrid_prior_theta(d0 + 2, d0, p["w"])
+        # optional drift-aware / feature-group options (ADR-017 addendum); absent -> original behaviour
+        extra = {k: p[k] for k in ("gamma", "window", "reset_every", "floor_every") if k in p}
+        if "drop_groups" in p or "keep_only" in p:
+            extra["feature_mask"] = group_mask(_feature_names(), drop=p.get("drop_groups"), keep_only=p.get("keep_only"))
         if kind == "hybrid_linucb":
-            return LinUCB(d0 + 2, p["alpha"], p["lam"], prior, name=kind)
-        return LinThompson(d0 + 2, p["v"], p["lam"], prior, seed=seed, name=kind)
+            return LinUCB(d0 + 2, p["alpha"], p["lam"], prior, name=kind, **extra)
+        return LinThompson(d0 + 2, p["v"], p["lam"], prior, seed=seed, name=kind, **extra)
     raise KeyError(kind)
 
 

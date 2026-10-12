@@ -127,32 +127,93 @@ class _SharedLinear:
     observation versus O(d^3) to re-invert. `A` is also kept so (a) tests can
     compare against the direct inverse and (b) `refresh_every` can re-invert to
     cancel floating-point drift accumulated over many rank-1 updates.
+
+    Drift-aware modes (ADR-017 addendum; all default OFF, in which case the code path is
+    the original one, bit for bit):
+
+    * ``gamma < 1`` -- exponential forgetting  A <- gamma*A + x x^T,  b <- gamma*b + r x.
+      Derivation: (gamma A)^-1 = A^-1 / gamma, so scaling is one O(d^2) pass, then the
+      ordinary rank-1 Sherman-Morrison add. Left alone this also decays the ridge prior
+      (A -> 0 in directions with no data, A^-1 -> inf), so with ``restore_prior`` every
+      ``floor_every`` steps the prior mass lost since the last restore,
+      lam*(1 - gamma^floor_every)*I (and lam*theta0 in b), is added back and A^-1 is
+      re-derived by direct inversion: amortised O(d^3/floor_every) < O(d^2) per step for
+      floor_every >= d. This approximates A <- gamma*A + x x^T + (1-gamma)*lam*I, the
+      standard weighted-ridge form, to within floor_every steps.
+    * ``window = W`` -- sliding window of the last W observations: rank-1 add of the new
+      (x, r), rank-1 *remove* of the oldest, A^-1 += (A^-1 x)(A^-1 x)^T / (1 - x^T A^-1 x).
+      The ridge prior lam*I is never removed, so A stays positive definite.
+    * ``reset_every = T`` -- discard everything and return to the prior after T observations.
     """
 
-    def __init__(self, dim: int, lam: float, prior_theta: np.ndarray | None, refresh_every: int = 20000):
+    def __init__(self, dim: int, lam: float, prior_theta: np.ndarray | None, refresh_every: int = 20000,
+                 gamma: float = 1.0, window: int | None = None, reset_every: int | None = None,
+                 restore_prior: bool = True, floor_every: int = 256):
+        assert 0.0 < gamma <= 1.0
         self.dim, self.lam = dim, lam
-        self.A = np.eye(dim) * lam
-        self.A_inv = np.eye(dim) / lam
-        theta0 = np.zeros(dim) if prior_theta is None else np.asarray(prior_theta, dtype=np.float64)
-        assert theta0.shape == (dim,)
-        # b = lam * theta0 makes the posterior mean exactly theta0 before any data.
-        self.b = lam * theta0
-        self.theta = theta0.copy()
-        self.n_updates = 0
+        self.theta0 = np.zeros(dim) if prior_theta is None else np.asarray(prior_theta, dtype=np.float64)
+        assert self.theta0.shape == (dim,)
+        self.gamma, self.window, self.reset_every = gamma, window, reset_every
+        self.restore_prior, self.floor_every = restore_prior, floor_every
         self.refresh_every = refresh_every
+        self.n_updates = 0
         self.version = 0
+        self._reset_state()
 
-    def update(self, x: np.ndarray, reward: float) -> None:
-        x = x.astype(np.float64, copy=False)
+    def _reset_state(self) -> None:
+        self.A = np.eye(self.dim) * self.lam
+        self.A_inv = np.eye(self.dim) / self.lam
+        # b = lam * theta0 makes the posterior mean exactly theta0 before any data.
+        self.b = self.lam * self.theta0
+        self.theta = self.theta0.copy()
+        self._since_reset = 0
+        self._since_floor = 0
+        self._buf = deque() if self.window else None
+
+    def _sm_add(self, x: np.ndarray) -> None:
         Ax = self.A_inv @ x
         self.A_inv -= np.outer(Ax, Ax) / (1.0 + x @ Ax)
         self.A_inv = 0.5 * (self.A_inv + self.A_inv.T)
         self.A += np.outer(x, x)
+
+    def _sm_remove(self, x: np.ndarray) -> None:
+        Ax = self.A_inv @ x
+        self.A_inv += np.outer(Ax, Ax) / (1.0 - x @ Ax)
+        self.A_inv = 0.5 * (self.A_inv + self.A_inv.T)
+        self.A -= np.outer(x, x)
+
+    def _reinvert(self) -> None:
+        self.A_inv = np.linalg.inv(self.A)
+        self.A_inv = 0.5 * (self.A_inv + self.A_inv.T)
+
+    def update(self, x: np.ndarray, reward: float) -> None:
+        x = x.astype(np.float64, copy=False)
+        if self.reset_every and self._since_reset >= self.reset_every:
+            self._reset_state()
+        if self.gamma < 1.0:
+            self.A_inv /= self.gamma
+            self.A *= self.gamma
+            self.b *= self.gamma
+        self._sm_add(x)
         self.b += reward * x
+        if self.window:
+            self._buf.append((x.copy(), float(reward)))
+            if len(self._buf) > self.window:
+                x_old, r_old = self._buf.popleft()
+                self._sm_remove(x_old)
+                self.b -= r_old * x_old
         self.n_updates += 1
+        self._since_reset += 1
+        if self.gamma < 1.0 and self.restore_prior:
+            self._since_floor += 1
+            if self._since_floor >= self.floor_every:
+                lost = 1.0 - self.gamma ** self._since_floor
+                self.A += self.lam * lost * np.eye(self.dim)
+                self.b += self.lam * lost * self.theta0
+                self._reinvert()
+                self._since_floor = 0
         if self.refresh_every and self.n_updates % self.refresh_every == 0:
-            self.A_inv = np.linalg.inv(self.A)
-            self.A_inv = 0.5 * (self.A_inv + self.A_inv.T)
+            self._reinvert()
         self.theta = self.A_inv @ self.b
         self.version += 1
 
@@ -171,14 +232,17 @@ class LinUCB(Policy):
     name = "linucb"
 
     def __init__(self, dim: int, alpha: float, lam: float = 1.0, prior_theta: np.ndarray | None = None,
-                 name: str | None = None):
+                 name: str | None = None, feature_mask: np.ndarray | None = None, **linear_kw):
         self.dim, self.alpha = dim, alpha
-        self.model = _SharedLinear(dim, lam, prior_theta)
+        self.mask = None if feature_mask is None else np.asarray(feature_mask, dtype=np.float64)
+        self.model = _SharedLinear(dim, lam, prior_theta, **linear_kw)
         if name:
             self.name = name
 
     def select(self, context: Context, candidates: Candidates) -> int:
         X = candidates.features[:, : self.dim].astype(np.float64, copy=False)
+        if self.mask is not None:
+            X = X * self.mask
         mean = X @ self.model.theta
         if self.alpha > 0:
             bonus = np.sqrt(np.maximum(np.einsum("ij,ij->i", X @ self.model.A_inv, X), 0.0))
@@ -186,7 +250,8 @@ class LinUCB(Policy):
         return int(np.argmax(mean))
 
     def update(self, arm: Arm, reward: float) -> None:
-        self.model.update(arm.features[: self.dim], reward)
+        x = arm.features[: self.dim]
+        self.model.update(x if self.mask is None else x * self.mask, reward)
 
 
 class LinThompson(Policy):
@@ -196,9 +261,10 @@ class LinThompson(Policy):
     stochastic = True
 
     def __init__(self, dim: int, v: float, lam: float = 1.0, prior_theta: np.ndarray | None = None,
-                 seed: int = 0, name: str | None = None):
+                 seed: int = 0, name: str | None = None, feature_mask: np.ndarray | None = None, **linear_kw):
         self.dim, self.v = dim, v
-        self.model = _SharedLinear(dim, lam, prior_theta)
+        self.mask = None if feature_mask is None else np.asarray(feature_mask, dtype=np.float64)
+        self.model = _SharedLinear(dim, lam, prior_theta, **linear_kw)
         self.rng = np.random.default_rng(seed)
         self._chol_version = -1
         self._chol: np.ndarray | None = None
@@ -220,7 +286,10 @@ class LinThompson(Policy):
         z = self.rng.standard_normal(self.dim)
         theta_tilde = self.model.theta + self.v * (self._factor() @ z)
         X = candidates.features[:, : self.dim].astype(np.float64, copy=False)
+        if self.mask is not None:
+            X = X * self.mask
         return int(np.argmax(X @ theta_tilde))
 
     def update(self, arm: Arm, reward: float) -> None:
-        self.model.update(arm.features[: self.dim], reward)
+        x = arm.features[: self.dim]
+        self.model.update(x if self.mask is None else x * self.mask, reward)

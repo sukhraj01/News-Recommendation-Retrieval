@@ -1,0 +1,2401 @@
+{
+ "grid": [
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.35251917039781794
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.3488034583912305
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.35722299418455045
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.3546909577479286
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.3469507488034584
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.3520971643250476
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.34708455560701973
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.35983737326951776
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3692964849981988
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.35594668313519634
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3692450208429829
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.35687303792908237
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.37121095157222994,
+   "on_param_grid_edge": false,
+   "on_lambda_grid_edge": true
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3664144923061088
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3473727548762287
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.35041943286500954
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.312490350470897
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.3369769955226185
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.3646441253666821,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": true
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.3596315166486542
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.3381709639236272
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.36419124080078225
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.36456178271833667
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.35345581802274717
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.35610107560084403
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.3474139262004014
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.3565436673357007
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.35400133806803563
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.35045031135813903
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.3470948484380629
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.34883433688436005
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.34775358962482633
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.359734444959086,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": false
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.35832432710617057
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.34786681076630127
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.35089290309299576
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.3441408059286707
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.35632751788379396
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.35073851062734807
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.3493180999433894
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.35317791158458134
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.3492563429571304
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.3413823272090989
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.3426483454274098
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.3420925325510782
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.3518810148731409
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1000,
+    "w": 0.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.3486181874324533
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.34811383871133755
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.3454685811332407
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.3465081570686017
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.3439967062940662
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.3452215531882044
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.3465184498996449
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.34468632597395915
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34815501003551025,
+   "on_param_grid_edge": false,
+   "on_lambda_grid_edge": true
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34730070505892646
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3425968812721939
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3474756831866605
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.34498481807421133
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.3044310637640883
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.33370387525088774
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.34606556533374505
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.343235036796871
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.3445113478462251
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.3223817611033915
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.3458391230507951,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": true
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.34064124337399004
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.33407441716844216
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.33695640986053216
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.34124852040553755
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.34195872574751685
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.3423086820029849
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.342082239720035
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.34191755442334415
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.3408676856569399
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.3428439092172302
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.34334825793834595
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.32445062014307036
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.33724460912974114
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.3365035252946323
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.3449024754258659,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": true
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.3387164839689156
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.34135144871596934
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.3417425762956101
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.3393649323246359
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.34167052647830787
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.3416396479851783
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.3415470125057897
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 100,
+    "w": 1.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.3421337038752509
+  },
+  {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.3415778909989193
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.34724924090371057
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.3484740877978488
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.3475271473418764
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.3542792445062014
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.3519324790283567
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.3516339869281046
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.3571509443672482
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.35892131130667493
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.3551953064690443
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3691420925325511
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.36743348257938346
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.35508208532756935
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3708301168236323,
+   "on_param_grid_edge": false,
+   "on_lambda_grid_edge": true
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.36481910349441615
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3463743502650404
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.344274612732232
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.3347743296793783
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.3066954865935876
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.3623591168750965
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.35627605372857807
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.3367814317327981
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.3637589418969688
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.364232412124955,
+   "on_param_grid_edge": false,
+   "on_lambda_grid_edge": false
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.35502032834131025
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.3539292882507334
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.348484380628892
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.35321908290875403
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.35579229066954865
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.3498224486645052
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.3469610416345016
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.3484329164736761
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.3474653903556173
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.3545468581133241
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.3589110184756317,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": false
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.34791827492151717
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.34397612063197985
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.35206628583191807
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.35493798569296486
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.3510575883896866
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.34963717770572794
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.35144871596932736
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.34945190674695076
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.34934897843651896
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.34257629561010755
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.34282332355514383
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.35097524574134115
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 0.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.34893726519479185
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.34534506716072255
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.34565385209201793
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.99999
+   },
+   "tune_ctr": 0.3415367196747465
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.99995
+   },
+   "tune_ctr": 0.34391436364572076
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.3475786114970923,
+   "on_param_grid_edge": false,
+   "on_lambda_grid_edge": true
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.3472801193968401
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.34472749729813185
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34607585816478825
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34754773300396274
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3406618290360764
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.34422314857701614
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.34585970871288146
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.3034635376460295
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34708455560701973
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.3314394524213885
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "gamma": 0.995
+   },
+   "tune_ctr": 0.3419793114096032
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.32383305028047965
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.3354536565282281
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.33633883999794145
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.34565385209201793,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": true
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.3442437342391025
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.3412793988986671
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.3419896042406464
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.34420256291492973
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.342658638258453
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.3427512737378416
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.34258658844115075
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 30000
+   },
+   "tune_ctr": 0.3410838351088467
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 10000
+   },
+   "tune_ctr": 0.3439349493078071
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.342658638258453
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.3249343832020997
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.33643147547733004
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.3452215531882044,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": true
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.3359477124183007
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 60000
+   },
+   "tune_ctr": 0.34144408419535793
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.3410735422778035
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "reset_every": 15000
+   },
+   "tune_ctr": 0.3388091194483043
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.3394575678040245
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.34167052647830787
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "reset_every": 30000
+   },
+   "tune_ctr": 0.3413617415470125
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.3416911121403942
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 1.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.3426174669342803
+  },
+  {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "reset_every": 60000
+   },
+   "tune_ctr": 0.3415367196747465
+  }
+ ],
+ "winners": {
+  "hybrid_linucb|per_impression|forget": {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.37121095157222994,
+   "on_param_grid_edge": false,
+   "on_lambda_grid_edge": true
+  },
+  "hybrid_lints|per_impression|forget": {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3708301168236323,
+   "on_param_grid_edge": false,
+   "on_lambda_grid_edge": true
+  },
+  "hybrid_linucb|per_impression|window": {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.3646441253666821,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": true
+  },
+  "hybrid_lints|per_impression|window": {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "window": 3000
+   },
+   "tune_ctr": 0.364232412124955,
+   "on_param_grid_edge": false,
+   "on_lambda_grid_edge": false
+  },
+  "hybrid_linucb|per_impression|reset": {
+   "kind": "hybrid_linucb",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.359734444959086,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": false
+  },
+  "hybrid_lints|per_impression|reset": {
+   "kind": "hybrid_lints",
+   "mode": "per_impression",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 100,
+    "w": 0.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.3589110184756317,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": false
+  },
+  "hybrid_linucb|hourly|forget": {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "alpha": 0.0,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34815501003551025,
+   "on_param_grid_edge": false,
+   "on_lambda_grid_edge": true
+  },
+  "hybrid_lints|hourly|forget": {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "forget",
+   "params": {
+    "v": 0.1,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9999
+   },
+   "tune_ctr": 0.3475786114970923,
+   "on_param_grid_edge": false,
+   "on_lambda_grid_edge": true
+  },
+  "hybrid_linucb|hourly|window": {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.3458391230507951,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": true
+  },
+  "hybrid_lints|hourly|window": {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "window",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "window": 1000
+   },
+   "tune_ctr": 0.34565385209201793,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": true
+  },
+  "hybrid_lints|hourly|reset": {
+   "kind": "hybrid_lints",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "v": 0.1,
+    "lam": 1000,
+    "w": 1.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.3452215531882044,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": true
+  },
+  "hybrid_linucb|hourly|reset": {
+   "kind": "hybrid_linucb",
+   "mode": "hourly",
+   "variant": "reset",
+   "params": {
+    "alpha": 0.0,
+    "lam": 1000,
+    "w": 1.0,
+    "reset_every": 5000
+   },
+   "tune_ctr": 0.3449024754258659,
+   "on_param_grid_edge": true,
+   "on_lambda_grid_edge": true
+  }
+ },
+ "non_forgetting_reference_tune_ctr": {
+  "hybrid_linucb|per_impression": 0.3477638824558695,
+  "hybrid_linucb|hourly": 0.34202048273377594,
+  "hybrid_lints|per_impression": 0.34724924090371057,
+  "hybrid_lints|hourly": 0.34210282538212133
+ },
+ "variant_grid": {
+  "forget": [
+   "gamma",
+   [
+    0.99999,
+    0.99995,
+    0.9999,
+    0.9995,
+    0.999,
+    0.995
+   ]
+  ],
+  "window": [
+   "window",
+   [
+    1000,
+    3000,
+    10000,
+    30000,
+    60000
+   ]
+  ],
+  "reset": [
+   "reset_every",
+   [
+    5000,
+    15000,
+    30000,
+    60000
+   ]
+  ]
+ },
+ "lambdas": [
+  10,
+  100,
+  1000
+ ]
+}

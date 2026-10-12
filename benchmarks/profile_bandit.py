@@ -44,7 +44,7 @@ WARMUP = 300
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n-impressions", type=int, default=5000)
-    ap.add_argument("--tag", default="a3-bandit-layer")
+    ap.add_argument("--tag", default="a3-bandit-layer-with-drift-variants")
     args = ap.parse_args()
     n = args.n_impressions
     zip_path = _REPO / "data" / "raw" / "ebnerd" / "ebnerd_small.zip"
@@ -83,6 +83,12 @@ def main() -> None:
         "hybrid_linucb": ("hybrid_linucb", {"alpha": 0.003, "lam": 100, "w": 0.0}),
         "hybrid_lints": ("hybrid_lints", {"v": 0.1, "lam": 100, "w": 0.0}),
     }
+    # drift-aware variants (ADR-017 addendum): frozen winners from the tuning-period search
+    import json as _json
+    drift = _json.loads((_REPO / "results" / "bandit_ebnerd_small" / "drift" / "tune_forget.json").read_text())["winners"]
+    for variant in ("forget", "window", "reset"):
+        specs[f"hybrid_linucb_{variant}"] = ("hybrid_linucb", drift[f"hybrid_linucb|per_impression|{variant}"]["params"])
+    specs["hybrid_lints_forget"] = ("hybrid_lints", drift["hybrid_lints|per_impression|forget"]["params"])
     per_request: dict = {}
     for tag, (kind, params) in specs.items():
         pol = make_policy(kind, params, d0, 0)
@@ -96,7 +102,7 @@ def main() -> None:
         for name, arr in ((f"{tag}.select", sel), (f"{tag}.update", upd), (f"{tag}.decision (select+update)", sel + upd)):
             for v in arr:
                 timer.record(name, float(v))
-        if kind.endswith("lints"):  # cached-posterior select (hourly deployment): same state, no update in between
+        if kind.endswith("lints") and "forget" not in tag:  # cached-posterior select (hourly deployment): same state, no update in between
             ctx, cand = stream.context(n - 1), stream.candidates(n - 1)
             pol.select(ctx, cand)
             for _ in range(2000):

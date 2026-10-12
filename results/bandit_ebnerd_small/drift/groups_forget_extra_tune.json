@@ -1,0 +1,1032 @@
+{
+ "tune_grid": [
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.36573516545725904
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3594977098450929
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.36639390664402244
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3721681848592455
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.36114456281200147
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3686686223045649
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3664762492923679
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3707477741752869
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.37121095157222994
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3664144923061088
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3690906283773352
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.36225618856466474
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.36733055426895167
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3688436004322989
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3692964849981988
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3692450208429829
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3665894704338428
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3142092532551078
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.36215326025423294
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.30870258864700734
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3199629458082446
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3312438886315681
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.33639030415315735
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.3422057536925531
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998
+   },
+   "tune_ctr": 0.31825433585507695
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.33723431629869793
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3392620040142041
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3417425762956101
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34249395296176216
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3350110647933714
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34425402707014563
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.34278215223097114
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3447995471154341
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3475168545108332
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3443672482116206
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3580258350059184
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3637074777417529
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.36384128454531417
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3641809479697391
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35799495651278884
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.36433534043538673
+  },
+  {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3473830477072719
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3667850342236632
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3639133343626164
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3639853841799187
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3636148422623643
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3595903453244815
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3660748288816839
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.36573516545725904
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3637898203900983
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3217641912408008
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.363542792445062
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.36523081673614327
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33243785703257683
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.35995059441099275
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3645514898872935
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.32520199680922235
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33929288250733364
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3456950234161906
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34299830168287787
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.998,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3180176007410838
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.33862384848952704
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3393237610004632
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3325510781740518
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34883433688436005
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3459008800370542
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3441819772528434
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3429880088518347
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3457464875714065
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34879316556018736
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.349812155833462
+  },
+  {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 0.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.34266893108949614
+  }
+ ],
+ "winners": {
+  "full (no ablation)|per_impression": {
+   "spec": "full (no ablation)",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 1,
+    "w": 0.0,
+    "gamma": 0.999
+   },
+   "tune_ctr": 0.3721681848592455
+  },
+  "keep lightgbm_score + onehot_categoricals + article_metadata|per_impression": {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "per_impression",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 0.0,
+    "gamma": 0.999,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.3667850342236632
+  },
+  "keep lightgbm_score + onehot_categoricals + article_metadata|hourly": {
+   "spec": "keep lightgbm_score + onehot_categoricals + article_metadata",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 100,
+    "w": 1.0,
+    "gamma": 0.9995,
+    "keep_only": [
+     "lightgbm_score",
+     "onehot_categoricals",
+     "article_metadata"
+    ]
+   },
+   "tune_ctr": 0.349812155833462
+  },
+  "full (no ablation)|hourly": {
+   "spec": "full (no ablation)",
+   "mode": "hourly",
+   "params": {
+    "alpha": 0.003,
+    "lam": 10,
+    "w": 1.0,
+    "gamma": 0.9995
+   },
+   "tune_ctr": 0.3475168545108332
+  }
+ }
+}

@@ -444,3 +444,19 @@ unbiased only for the question "which of the already-shown articles is clicked".
   article recommendation algorithms* (replay estimator; requires a uniformly random logging policy —
   which EB-NeRD is not, see Limitations).
 * Sherman & Morrison (1950), rank-1 inverse update.
+
+
+---
+
+## Addendum (2026-10-12): the open hypotheses above were tested — see ADR-018
+
+* "Why the lead shrinks (hypotheses, not tested)": tested in ADR-018. Hypothesis (b), no forgetting, is supported in the
+  sense that discounted updates (exponential / window / reset) hold the lead through the final window and raise it to
+  ≈ +0.046 (per-impression) / +0.020 (hourly). Hypothesis (a) as a *slow* train→validation shift is not supported: the
+  ranker's lift over random is flat across days 3-6 and a full-information linear correction is stable across the week.
+* "Mechanism is not fully pinned down": the gain of the forgetting variant is carried by article descriptors (one-hot
+  category/type/sentiment + static metadata ≈ 91 % of it), i.e. real-time article/section popularity; user-history features
+  contribute nothing there. The earlier "≈ half survives removing static metadata" is superseded.
+* **Caveat that now qualifies finding 4 and 5 of this ADR:** the per-impression numbers assume click feedback within
+  seconds; ADR-018's delay sweep shows the forgetting variant's lead is gone at ~60 minutes of delay.
+* Nothing in this ADR's measured numbers changed; ADR-018's diagnostic re-run reproduced the stored held-out rewards exactly.

@@ -23,6 +23,22 @@ leaderboard artifacts, `submissions/` and the training pipeline are untouched; t
 
 ---
 
+## Bandit drift + mechanism follow-up (2026-10-12) — ADR-018
+
+Branch `bandit-drift-experiment` (from `bandit-offline-experiment`). Same stream/protocol as ADR-017; no new data, 0.7542
+artifacts / submissions / training pipeline untouched.
+
+| Item | Result (measured, held-out days 3-6) |
+|---|---|
+| Does forgetting help? | **Yes.** Hybrid LinUCB + exponential forgetting (γ=0.999): P@1 **0.3558 vs 0.3089** LightGBM-greedy, Δ **+0.0469 [+0.0448,+0.0492]**; final 20 % **+0.0457 [+0.0408,+0.0507]** (non-forgetting: +0.0024 n.s.). Window +0.0409, reset +0.0302. Hourly batches: +0.0206 / +0.0140 / +0.0125 |
+| Drift hypothesis | **Partly.** Not slow drift: ranker lift over random flat (2.67→2.70×), full-information linear correction stable (θ cosines 0.95-0.99). What forgetting exploits is minutes-scale non-stationarity |
+| What carries the gain | Article descriptors (one-hot category/type/sentiment + static metadata ≈ 91 % of it); user-history features contribute nothing for the forgetting hybrid. Non-learning "LightGBM prob + trailing 2 h CTR" blend alone: +0.0326 |
+| Biggest caveat | Assumes near-instant click feedback: +0.0469 (0) → +0.0267 (15 min) → +0.0112 (30 min) → **−0.0040** (60 min delay). The right baseline (GBDT retrained with trailing-CTR features) was **not** run |
+| Audits | Label permutation → random for all forgetting variants; delay sweep; real-time popularity baseline; grid widened once (first pass kept) |
+| Engineering | New update rules (SM with scaling + prior restore, rank-1 add/remove window, reset), feature groups/masks, `delay_s`, 17 new tests; latency: forgetting hybrid select+update p50 0.068 ms vs LightGBM predict 0.317 ms |
+
+---
+
 ## Assignment 2: current state (updated 2026-09-12)
 
 **Brief:** `A2.pdf` (repo root). Due **2026-09-20**. Q1 features · Q2 two-stage re-ranker ·
